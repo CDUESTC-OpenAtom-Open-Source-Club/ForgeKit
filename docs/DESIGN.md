@@ -88,6 +88,20 @@ output:
 side_effect: 在 Docker buildx 容器中执行多架构构建
 ```
 
+**`decision_basis` 字段示例**：
+
+```json
+// pack_deb 的 decision_basis 输出示例
+{
+  "decision_basis": "选择 Ubuntu 22.04 作为基础镜像，因为：\n1. 目标部署环境为 Ubuntu 服务器（用户指定）\n2. 22.04 是当前 LTS 版本，稳定性好\n3. 项目依赖 Python 3.10，Ubuntu 22.04 默认包含\n4. 构建容器使用 isolation=docker，确保环境隔离\n\n构建参数配置：\n- arch: x86_64（MVP 验收要求）\n- distro: ubuntu（用户项目运行环境）\n- version: 1.0.0（项目版本号）"
+}
+
+// build_docker_image 的 decision_basis 输出示例
+{
+  "decision_basis": "选择 python:3.10-slim 作为 base image，因为：\n1. 项目语言：Python，需要 Python 运行环境\n2. 镜像大小优先：slim 变体体积小（~150MB vs ~1GB），适合生产部署\n3. 平台支持：官方镜像支持 amd64/arm64 双架构\n4. 构建参数：未传入 build_args，使用默认配置\n\n平台选择：linux/amd64（MVP 验收要求 x86_64）\n标签策略：['1.0.0', 'latest']（版本标签 + 最新标签）"
+}
+```
+
 **设计原则**：原子、可组合、可回滚、**可解释**（输出含决策依据，方便 AI 向用户解释）。
 
 ### 3.3 Tool Description 编写规范
@@ -259,9 +273,14 @@ Claude Code ──MCP──▶ ForgeKit MCP Server (TypeScript)
 
 | 层级 | 测试类型 | 工具 | v0.1 覆盖率目标 |
 |------|----------|------|----------------|
-| 能力层 | 单元测试 | Vitest / Pytest | ≥ 60% |
-| MCP Server | 集成测试 | Vitest + MCP SDK mock | ≥ 50% |
+| 能力层 | 单元测试 | **Vitest**（TypeScript 技术栈统一） | ≥ 60% |
+| MCP Server | 集成测试 | **Vitest** + MCP SDK mock | ≥ 50% |
 | 端到端 | E2E 测试 | 手动验收 | 1 个场景通过 |
+
+**测试工具锁定理由**：
+- MCP Server 已决策用 TypeScript，测试工具统一为 Vitest
+- Vitest 与 Vite 生态集成良好，测试速度快、配置简单
+- 社团成员对 Vitest 更熟悉（前端/全栈项目经验）
 
 ### 11.3 多架构正确性验证
 
@@ -278,3 +297,95 @@ MVP 版本发布前必须：
 2. MCP Server 集成测试通过率 ≥ 80%
 3. 手动 E2E 测试通过（Python 项目 → deb + Docker 镜像）
 4. 无已知 P0 级 Bug
+
+---
+
+## 12. 项目目录结构（v0.1 MVP）
+
+```
+forgekit/
+├── src/
+│   ├── mcp-server/                  # MCP Server 入口
+│   │   ├── index.ts                 # MCP Server 主入口
+│   │   ├── tools/                   # 工具注册
+│   │   │   ├── pack-deb.ts          # pack_deb 工具实现
+│   │   │   ├── build-docker.ts      # build_docker_image 工具实现
+│   │   │   └── registry.ts          # 工具注册表
+│   │   └── schemas/                 # JSON Schema 定义
+│   │       ├── pack-deb.schema.ts
+│   │       └ build-docker.schema.ts
+│   ├── capabilities/                # 能力层（CLI 调底座）
+│   │   ├── cli/                     # CLI 入口
+│   │   │   ├── index.ts             # CLI 主入口
+│   │   │   ├── commands/            # 命令实现
+│   │   │   │   ├── pack-deb.ts
+│   │   │   │   ├── build-docker.ts
+│   │   ├── utils/                   # 工具函数
+│   │   │   ├── docker.ts            # Docker 操作封装
+│   │   │   ├── logger.ts            # 日志工具
+│   │   │   ├── validator.ts         # 参数校验
+│   ├── knowledge/                   # 知识库
+│   │   ├── deb-packaging.yaml       # deb 打包要点
+│   │   ├── docker-best-practices.yaml # Docker 最佳实践
+│   │   ├── decisions.yaml           # 选型决策树
+│   ├── templates/                   # 模板文件
+│   │   ├── python-project/          # Python 项目模板
+│   │   │   ├── setup.py
+│   │   │   ├── pyproject.toml
+│   │   │   ├── Dockerfile.example
+│   │   │   ├── README.md
+├── tests/
+│   ├── unit/                        # 单元测试
+│   │   ├── capabilities/
+│   │   │   ├── pack-deb.test.ts
+│   │   │   ├── build-docker.test.ts
+│   ├── integration/                 # 集成测试
+│   │   ├── mcp-server.test.ts
+│   ├── e2e/                         # E2E 测试
+│   │   ├── python-project.test.ts
+│   ├── fixtures/                    # 测试数据
+│   │   ├── sample-python-project/
+│   ├── vitest.config.ts             # Vitest 配置
+├── docs/
+│   ├── README.md                    # 项目首页
+│   ├── REQUIREMENTS.md              # 需求文档
+│   ├── DESIGN.md                    # 设计文档（本文档）
+│   ├── REVIEW.md                    # 评审清单
+│   ├── CHANGELOG.md                 # 变更日志（待添加）
+│   ├── CONTRIBUTING.md              # 贡献指南（待添加 v0.2）
+│   ├── TROUBLESHOOTING.md           # 故障排查（待添加 v0.2）
+├── .github/
+│   ├── workflows/
+│   │   ├── test.yml                 # CI 测试（待添加编码阶段）
+│   │   ├── release.yml              # 发布流程（待添加 v0.1 发布）
+│   ├── ISSUE_TEMPLATE/
+│   ├── PR_TEMPLATE/
+├── package.json                     # Node.js 项目配置
+├── tsconfig.json                    # TypeScript 配置
+├── .eslintrc.js                     # ESLint 配置
+├── .prettierrc                      # Prettier 配置
+├── LICENSE                          # 开源协议（MIT）
+├── README.md                        # 项目首页（简洁版）
+```
+
+### 目录结构说明
+
+| 目录 | 职责 | MVP 状态 |
+|------|------|----------|
+| `src/mcp-server/` | MCP Server 实现，Agent 接入层 | ✅ v0.1 必做 |
+| `src/capabilities/` | 能力层 CLI，调用底座 | ✅ v0.1 必做 |
+| `src/knowledge/` | 知识库（YAML 格式） | ✅ v0.1 基础条目 |
+| `src/templates/` | 项目模板仓库 | ✅ v0.1 Python 模板 |
+| `tests/` | 测试代码（Vitest） | ✅ v0.1 单元 + 集成 |
+| `docs/` | 文档 | ✅ 已完成 |
+| `.github/workflows/` | CI 配置 | 🟡 编码阶段添加 |
+
+### 编码规约（TypeScript 项目）
+
+| 规约项 | 工具/规范 | 理由 |
+|--------|----------|------|
+| Linter | **ESLint** + `@typescript-eslint` | TypeScript 标准配置，社团熟悉 |
+| Formatter | **Prettier** | 代码风格统一，减少争议 |
+| Commit 规范 | **Conventional Commits** | 自动生成 CHANGELOG，语义化提交 |
+| 分支命名 | `feat/*`, `fix/*`, `docs/*` | 清晰的分支分类 |
+| PR 规范 | 必填描述 + 关联 Issue | 保证代码审查质量 |
