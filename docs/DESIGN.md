@@ -389,3 +389,102 @@ forgekit/
 | Commit 规范 | **Conventional Commits** | 自动生成 CHANGELOG，语义化提交 |
 | 分支命名 | `feat/*`, `fix/*`, `docs/*` | 清晰的分支分类 |
 | PR 规范 | 必填描述 + 关联 Issue | 保证代码审查质量 |
+
+---
+
+## 13. 系统适配框架
+
+ForgeKit 为每个主流操作系统建立了详细的打包框架，位于 `src/systems/` 目录。
+
+### 13.1 支持的操作系统
+
+| 系统 | 包格式 | 推荐版本 | 架构 | 文档位置 |
+|------|--------|----------|------|----------|
+| Ubuntu | deb | 20.04/22.04 LTS | x86_64/aarch64 | [src/systems/ubuntu/](../src/systems/ubuntu/) |
+| Debian | deb | 11/12 Stable | x86_64/aarch64 | [src/systems/debian/](../src/systems/debian/) |
+| CentOS | rpm | 9 Stream | x86_64/aarch64 | [src/systems/centos/](../src/systems/centos/) |
+| EulerOS | rpm | 2.2/2.3/2.9 | x86_64/aarch64 | [src/systems/euleros/](../src/systems/euleros/) |
+| Fedora | rpm | 38/39 | x86_64/aarch64 | [src/systems/fedora/](../src/systems/fedora/) |
+
+### 13.2 每个系统的框架内容
+
+每个系统目录包含：
+```
+src/systems/{system}/
+├── versions.yaml              # 版本清单（glibc/Python/架构支持）
+├── packaging-guide.md         # 打包完整指南（流程/模板/问题）
+├── templates/                 # 打包模板文件
+│   ├── Dockerfile.{system}-{version}
+│   ├── control.template (deb) 或 spec.template (rpm)
+│   ├── rules.template / rpmmacros.template
+│   ├── postinst.template / service.template
+├── issues/                    # 已知问题与解决方案
+│   ├── glibc-dependency.md
+│   ├── python-versions.md
+```
+
+### 13.3 版本选择决策逻辑
+
+Agent 调用 `pack_deb` 时，ForgeKit 会：
+1. 读取 `src/systems/ubuntu/versions.yaml`
+2. 检查用户指定的目标版本（如 `distro: ubuntu-22.04`）
+3. 选择对应的构建镜像（`ubuntu:22.04`）
+4. 使用模板文件（`templates/Dockerfile.ubuntu-22.04`）
+5. 输出 `decision_basis`（为什么选择 Ubuntu 22.04）
+
+### 13.4 glibc 版本兼容性矩阵
+
+| 构建系统 | glibc | 可运行系统 |
+|----------|-------|-----------|
+| Ubuntu 20.04 | 2.31 | Ubuntu 20.04/22.04/24.04 ✅ |
+| Ubuntu 22.04 | 2.35 | Ubuntu 22.04/24.04 ✅，Ubuntu 20.04 ❌ |
+| CentOS 9 | 2.34 | CentOS 9/EulerOS 2.9 ✅ |
+
+**推荐策略**：在目标系统的**最低 glibc 版本**构建，确保向上兼容。
+
+### 13.5 模板文件使用示例
+
+**Ubuntu deb 打包**：
+```bash
+# 使用 ForgeKit 提供的 Dockerfile
+docker build -f src/systems/ubuntu/templates/Dockerfile.ubuntu-22.04 .
+
+# 或复制模板文件到项目
+cp src/systems/ubuntu/templates/control.template debian/control
+cp src/systems/ubuntu/templates/rules.template debian/rules
+```
+
+**CentOS RPM 打包**：
+```bash
+# 使用 RPM spec 模板
+cp src/systems/centos/templates/spec.template package.spec
+
+# 在 Docker 中构建
+docker build -f src/systems/centos/templates/Dockerfile.centos-9 .
+```
+
+### 13.6 已知问题与解决方案
+
+**问题 1：glibc 版本不兼容**
+- 文档：`src/systems/ubuntu/issues/glibc-dependency.md`
+- 解决方案：使用最低版本构建或静态链接
+
+**问题 2：Python 版本不匹配**
+- 文档：`src/systems/ubuntu/issues/python-versions.md`
+- 解决方案：使用虚拟环境或明确依赖版本
+
+**问题 3：aarch64 交叉编译**
+- 解决方案：使用 Docker buildx 或原生 ARM 实例
+
+### 13.7 后续完善计划
+
+| 系统 | 状态 | 优先级 |
+|------|------|--------|
+| Ubuntu | ✅ 已完善（versions + guide + templates） | P0 完成 |
+| Debian | 🟡 版本清单完成，指南待完善 | P1 |
+| CentOS | 🟡 版本清单完成，指南待完善 | P1 |
+| EulerOS | 🟡 版本清单完成，指南待完善 | P1 |
+| Fedora | 🟡 版本清单完成，指南待完善 | P2 |
+| openSUSE | 📅 待添加 | P2 |
+
+**总览文档**：[src/systems/README.md](../src/systems/README.md)
