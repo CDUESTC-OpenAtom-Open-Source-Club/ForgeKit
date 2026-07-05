@@ -1,0 +1,107 @@
+# ForgeKit 知识库 - Docker 多架构构建最佳实践
+
+# 基础概念
+docker_basics:
+  image_format: "OCI (Open Container Initiative)"
+  manifest: "多架构镜像清单（manifest list）"
+  platforms:
+    - "linux/amd64 (x86_64)"
+    - "linux/arm64 (aarch64)"
+
+# 构建工具
+build_tools:
+  docker_buildx:
+    description: "Docker 官方多架构构建工具"
+    recommended: true
+    usage: "docker buildx build --platform linux/amd64,linux/arm64"
+    prerequisites:
+      - "Docker 19.03+"
+      - "启用 buildx: docker buildx create --use"
+
+  qemu:
+    description: "x86_64 上模拟 arm64 的必需工具"
+    usage: "docker run --privileged --rm tonistiigi/binfmt --install all"
+
+# base image 选择
+base_image_selection:
+  criteria:
+    - name: "language_support"
+      mapping:
+        python: "python:3.10-slim (体积小 ~150MB)"
+        golang: "golang:1.21-alpine (体积最小 ~5MB)"
+        nodejs: "node:18-alpine"
+
+    - name: "size_priority"
+      recommendation: "优先 slim/alpine 变体"
+      comparison:
+        full_image: "python:3.10 (~1GB)"
+        slim_image: "python:3.10-slim (~150MB)"
+        alpine_image: "python:3.10-alpine (~50MB，但有兼容性问题)"
+
+    - name: "platform_support"
+      verification: "检查官方镜像是否支持多架构"
+      command: "docker image inspect python:3.10-slim | grep Architecture"
+
+# 多架构构建策略
+multi_arch_strategies:
+  strategy_1_native_build:
+    description: "在原生架构机器上构建"
+    pros: ["最快", "无模拟开销"]
+    cons: ["需要多台机器", "成本高"]
+    recommended_for: "生产环境高频构建"
+
+  strategy_2_qemu_emulation:
+    description: "在 x86_64 上用 QEMU 模拟 arm64"
+    pros: ["单机完成", "成本低"]
+    cons: ["速度慢（~10x)", "资源占用高"]
+    recommended_for: "低频构建 / 测试环境"
+
+  strategy_3_ci_matrix:
+    description: "CI 系统中使用多架构 runner 矩阵"
+    example: "GitHub Actions: runs-on: [ubuntu-latest, ubuntu-arm64]"
+    recommended_for: "自动化 CI/CD"
+
+# Dockerfile 最佳实践
+dockerfile_best_practices:
+  layer_optimization:
+    rules:
+      - "合并 RUN 命令减少层数"
+      - "清理缓存：apt-get clean && rm -rf /var/lib/apt/lists/*"
+      - "使用 COPY 而非 ADD（除非需要解压）"
+
+  security:
+    rules:
+      - "使用非 root 用户运行"
+      - "最小化基础镜像依赖"
+      - "不暴露敏感信息（用 .dockerignore）"
+
+  size_reduction:
+    techniques:
+      - "多阶段构建（multi-stage build）"
+      - "使用 alpine 基础镜像"
+      - "清理临时文件"
+
+# 常见问题
+common_issues:
+  - id: "platform-not-supported"
+    symptom: "exec user process caused: exec format error"
+    cause: "镜像架构与宿主机不匹配"
+    solutions:
+      - "检查镜像 manifest 是否包含目标平台"
+      - "使用 docker buildx 构建多架构镜像"
+      - "在目标平台原生构建"
+    severity: "high"
+
+  - id: "buildx-timeout"
+    symptom: "QEMU 模拟构建超时（> 2 小时）"
+    cause: "QEMU 模拟性能差"
+    solutions:
+      - "使用原生 ARM 实例（华为云鲲鹏 / AWS Graviton）"
+      - "降低构建复杂度"
+      - "拆分构建步骤"
+    severity: "medium"
+
+# 数据引用
+data_sources:
+  versions: "src/systems/*/versions.yaml (arch_support 字段)"
+  templates: "src/systems/ubuntu/templates/Dockerfile.ubuntu-22.04"

@@ -1,0 +1,71 @@
+{
+  "name": "@forgekit/mcp-server",
+  "version": "0.1.0",
+  "description": "Agent-Native Build & Release Platform - MCP Server for AI-powered packaging",
+  "main": "dist/mcp-server/index.js",
+  "types": "dist/mcp-server/index.d.ts",
+  "bin": {
+    "forgekit-mcp": "dist/mcp-server/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src tests --ext .ts",
+    "lint:fix": "eslint src tests --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "clean": "rm -rf dist",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "agent",
+    "packaging",
+    "deb",
+    "rpm",
+    "docker",
+    "multi-arch",
+    "build",
+    "release",
+    "ai",
+    "claude"
+  ],
+  "author": "KCOS OpenSource Club <opensource-club@kcos.club>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/muzimu217/ForgeKit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/muzimu217/ForgeKit/issues"
+  },
+  "homepage": "https://github.com/muzimu217/ForgeKit#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "commander": "^11.1.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.4",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0",
+    "@vitest/coverage-v8": "^1.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "src/knowledge",
+    "src/templates",
+    "src/systems",
+    "README.md",
+    "LICENSE"
+  ]
+}
