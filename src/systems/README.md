@@ -22,51 +22,61 @@
 
 ```
 src/systems/
-├── ubuntu/
+├── ubuntu/                        # ✅ 完整框架（已实现）
 │   ├── versions.yaml              # Ubuntu 版本清单（20.04/22.04/24.04）
-│   ├── packaging-guide.md         # Ubuntu deb 打包完整指南
-│   ├── templates/                 # Ubuntu 打包模板文件
+│   ├── packaging-guide.md         # Ubuntu deb 打包完整指南（523 行）
+│   ├── templates/                 # Ubuntu 打包模板文件（6 个文件）
 │   │   ├── Dockerfile.ubuntu-22.04
-│   │   ├── Dockerfile.ubuntu-20.04
-│   │   ├── Dockerfile.ubuntu-24.04
+│   │   ├── Dockerfile.ubuntu-20.04（待添加）
+│   │   ├── Dockerfile.ubuntu-24.04（待添加）
 │   │   ├── control.template
 │   │   ├── rules.template
 │   │   ├── changelog.template
 │   │   ├── postinst.template
 │   │   ├── service.template
-│   ├── issues/                    # Ubuntu 已知问题与解决方案
-│   │   ├── glibc-dependency.md
-│   │   ├── python-versions.md
+│   ├── issues/                    # Ubuntu 已知问题（待添加）
+│   │   ├── glibc-dependency.md（待添加）
+│   │   ├── python-versions.md（待添加）
 │
-├── debian/
+├── debian/                        # 🟡 基础框架（待完善）
 │   ├── versions.yaml              # Debian 版本清单（10/11/12）
-│   ├── packaging-guide.md         # Debian deb 打包指南（待完善）
-│   ├── templates/                 # Debian 打包模板（复用 Ubuntu 模板）
+│   ├── packaging-guide.md         # 待完善（编码阶段）
+│   ├── templates/                 # 待完善（编码阶段，可复用 Ubuntu 模板）
+│   ├── issues/                    # 待添加（v0.2）
 │
-├── centos/
+├── centos/                        # 🟡 基础框架（待完善）
 │   ├── versions.yaml              # CentOS 版本清单（7/8/9）
-│   ├── packaging-guide.md         # CentOS RPM 打包指南（待完善）
-│   ├── templates/                 # CentOS RPM 打包模板
-│   │   ├── Dockerfile.centos-9
-│   │   ├── spec.template
-│   │   ├── rpmmacros.template
+│   ├── packaging-guide.md         # 待完善（编码阶段）
+│   ├── templates/                 # 待完善（编码阶段）
+│   │   ├── Dockerfile.centos-9（待添加）
+│   │   ├── spec.template（待添加）
+│   │   ├── rpmmacros.template（待添加）
+│   ├── issues/                    # 待添加（v0.2）
 │
-├── euleros/
+├── euleros/                       # 🟡 基础框架（待完善）
 │   ├── versions.yaml              # EulerOS 版本清单（2.2/2.3/2.9）
-│   ├── packaging-guide.md         # EulerOS RPM 打包指南（待完善）
-│   ├── templates/                 # EulerOS RPM 打包模板
+│   ├── packaging-guide.md         # 待完善（编码阶段）
+│   ├── templates/                 # 待完善（编码阶段）
+│   ├── issues/                    # 待添加（v0.2）
 │
-├── fedora/
+├── fedora/                        # 🟡 基础框架（待完善）
 │   ├── versions.yaml              # Fedora 版本清单（38/39/40）
-│   ├── packaging-guide.md         # Fedora RPM 打包指南（待完善）
-│   ├── templates/                 # Fedora RPM 打包模板
+│   ├── packaging-guide.md         # 待完善（v0.2）
+│   ├── templates/                 # 待完善（v0.2）
+│   ├── issues/                    # 待添加（v0.2）
 │
-├── opensuse/
-│   ├── versions.yaml              # openSUSE 版本清单（待添加）
-│   ├── packaging-guide.md         # openSUSE RPM 打包指南（待添加）
+├── opensuse/                      # 📅 规划中（待添加）
+│   ├── versions.yaml              # 待添加（v0.2）
+│   ├── packaging-guide.md         # 待添加（v0.2）
+│   ├── templates/                 # 待添加（v0.2）
 │
 ├── README.md                      # 本文档（系统适配框架总览）
 ```
+
+**实现状态对照**：
+- ✅ **Ubuntu**：完整实现（versions + guide + templates + 基础架构）
+- 🟡 **Debian/CentOS/EulerOS/Fedora**：versions.yaml 完成，其他待完善
+- 📅 **openSUSE**：整体待添加（v0.2）
 
 ---
 

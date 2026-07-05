@@ -121,14 +121,18 @@ side_effect: 在 Docker buildx 容器中执行多架构构建
 - ❌ "返回构建结果"
 
 ### 3.4 知识库
+
+**数据源**：`src/systems/*/versions.yaml`（系统版本清单）+ `src/systems/*/packaging-guide.md`（打包知识）+ `src/systems/*/issues/`（已知问题）
+
 - **形态**：结构化 Markdown + 决策规则（YAML/JSON）
 - **内容**：
   - deb vs rpm vs docker 选型决策树
-  - 各发行版坑（glibc 依赖、包命名、服务管理差异）
-  - 多架构注意点（aarch64 交叉编译、QEMU 模拟）
-  - 常见 CI 报错 → 修复映射表
-- **用途**：AI 选型时检索；CI 失败时匹配修复
+  - 各发行版坑（glibc 依赖、包命名、服务管理差异）——**数据来源：versions.yaml**
+  - 多架构注意点（aarch64 交叉编译、QEMU 模拟）——**数据来源：versions.yaml.arch_support**
+  - 常见 CI 报错 → 修复映射表——**数据来源：issues/ 目录**
+- **用途**：AI 选型时检索（读取 versions.yaml）；CI 失败时匹配修复（查询 issues/）
 - **维护**：社团成员贡献经验，持续增长（这是 recurring 价值来源）
+- **关联能力层**：pack_deb / build_docker_image 调用时，会读取对应系统的 versions.yaml 获取 glibc/Python 信息
 
 ---
 
@@ -395,6 +399,56 @@ forgekit/
 ## 13. 系统适配框架
 
 ForgeKit 为每个主流操作系统建立了详细的打包框架，位于 `src/systems/` 目录。
+
+### 13.0 框架归属说明
+
+`src/systems/` 属于 **知识层 + 模板层的联合子集**：
+- **知识层部分**：`versions.yaml`（系统版本数据）、`packaging-guide.md`（打包知识）、`issues/`（已知问题）
+- **模板层部分**：`templates/`（打包模板文件，如 Dockerfile、control、spec）
+
+**设计意图**：将"系统打包知识"和"打包模板文件"集中管理，便于 Agent 调用和用户查阅。
+
+### 13.1 能力层调用流程
+
+Agent 调用 `pack_deb` 或 `build_docker_image` 时，ForgeKit 会按以下流程调用系统适配框架：
+
+```
+Agent → MCP Server: pack_deb(source_dir, distro="ubuntu-22.04")
+   ↓
+MCP Server → 能力层 CLI:
+   1. 读取 src/systems/ubuntu/versions.yaml
+   2. 查找 Ubuntu 22.04 配置（glibc 2.35, Python 3.10）
+   3. 选择构建镜像：ubuntu:22.04
+   4. 使用模板：templates/Dockerfile.ubuntu-22.04
+   5. 执行 packaging-guide.md 的打包流程
+   6. 输出产物 + decision_basis（选择 Ubuntu 22.04 的理由）
+   ↓
+产物：package_1.0.0_amd64.deb
+decision_basis: "选择 Ubuntu 22.04 LTS，因为..."
+```
+
+**关键数据流**：
+- **输入**：用户指定的系统版本（如 `ubuntu-22.04`）
+- **数据源**：`src/systems/ubuntu/versions.yaml`（获取 glibc/Python/镜像信息）
+- **模板**：`src/systems/ubuntu/templates/Dockerfile.ubuntu-22.04`（构建环境）
+- **知识**：`src/systems/ubuntu/packaging-guide.md`（打包流程）
+- **输出**：产物 + decision_basis（可解释性）
+
+### 13.2 与测试策略的关联
+
+`packaging-guide.md` 描述的手动打包流程，会被抽象为 `pack_deb` 工具的自动化流程：
+
+| 手动流程（packaging-guide.md） | 自动化流程（pack_deb 工具） | 测试覆盖（§11） |
+|-------------------------------|----------------------------|----------------|
+| 编写 debian/control | 自动生成 control（从 templates/） | 单元测试：control 生成逻辑 |
+| 手动执行 dpkg-buildpackage | CLI 调用底座构建 | 单元测试：CLI 调用逻辑 |
+| 使用 lintian 检查 | 自动质量检查 | 单元测试：质量检查逻辑 |
+| 手动安装测试 | E2E 测试验证 | E2E 测试：完整流程验证 |
+
+**测试策略 §11 覆盖点**：
+- 能力层单元测试：验证 pack_deb 能正确读取 versions.yaml + 选择构建镜像
+- MCP Server 集成测试：验证 Agent 调用 → pack_deb → 产物的完整链路
+- E2E 测试：验证 packaging-guide.md 的手动流程可被自动化完成
 
 ### 13.1 支持的操作系统
 
