@@ -48,7 +48,7 @@ v0.1 的接入策略是：
 4. Agent 调用 ForgeKit MCP 工具执行构建。
 5. ForgeKit 将结果和风险写回打包文档。
 
-详细协议规划见 [AGENT_INTEGRATION.md](./specs/AGENT_INTEGRATION.md)，打包文档规范见 [PACKAGING_DOCUMENT.md](./specs/PACKAGING_DOCUMENT.md)；项目框架规范与适配见 [PROJECT_FRAMEWORK.md](./specs/PROJECT_FRAMEWORK.md)。
+详细协议规划见 [AGENT_INTEGRATION.md](./AGENT_INTEGRATION.md)，打包文档规范见 [PACKAGING_DOCUMENT.md](./specs/PACKAGING_DOCUMENT.md)；项目框架规范与适配见 [PROJECT_FRAMEWORK.md](./specs/PROJECT_FRAMEWORK.md)。
 
 ## 4. 核心问题
 
@@ -130,7 +130,7 @@ ForgeKit 的潜在商业价值来自三个方向：
 | MVP 接受度 | 至少 3 个用户接受 v0.1 只做 Python + Docker/deb 的窄范围 |
 | 替代方案缺口 | 能明确说出现有工具为什么对目标用户不够友好 |
 
-如果调研显示用户只需要 Docker，不需要系统包，v0.1 应调整为 Docker-first，deb 后置。
+**已拍板（v0.0 退出）**：v0.1 采用「Docker 硬闭环 + deb 可选」。若后续试点证明用户只需 Docker，deb 直接后置到 v0.2，不做硬验收。
 
 ## 8. v0.1 MVP 定义
 
@@ -138,10 +138,10 @@ ForgeKit 的潜在商业价值来自三个方向：
 
 验证服务器端最小闭环（多端路线的第一阶段）：
 
-> 用户通过 AI Agent 说明打包目标，Agent 调用 ForgeKit，本地生成可验证的服务器端产物（Docker + deb），并解释为什么这么构建。
+> 用户通过 AI Agent 说明打包目标，Agent 调用 ForgeKit，本地生成可验证的服务器端产物（Docker 镜像；deb 按需可选），并解释为什么这么构建。
 
 **多端路线总览**：
-- v0.1：服务器端基础闭环（Docker + deb）
+- v0.1：服务器端基础闭环（Docker 硬闭环，deb 可选）
 - v0.2：服务器端扩展（rpm + 多语言）
 - v0.3：移动端 + Web→移动端（并行开发）
 - v0.4：移动端验收
@@ -154,7 +154,7 @@ ForgeKit 的潜在商业价值来自三个方向：
 作为一个学生或社团开发者，
 当我有一个 Python 项目需要交付给别人运行时，
 我希望可以让 AI Agent 调用 ForgeKit，
-生成 Docker 镜像和一个基础 deb 包，
+生成可运行的 Docker 镜像（deb 包按需可选），
 这样我不用先成为打包专家，也能得到可验证的交付产物。
 ```
 
@@ -180,8 +180,8 @@ ForgeKit 的潜在商业价值来自三个方向：
 |------|------|
 | Agent 接入 | MCP Server 能暴露工具列表和结构化输入输出 |
 | 打包计划文档 | 能生成 `Forge.md`，记录目标、策略、风险和结果 |
-| Docker 构建（硬闭环） | 支持 Python 项目的本地 Docker 镜像构建（linux/amd64） |
-| deb 构建（可选） | 仅当目标确为 Ubuntu + systemd 时支持 Ubuntu 22.04 x86_64 基础 deb 构建；否则后置 |
+| Docker 构建 | **硬闭环** | 支持 Python 项目的本地 Docker 镜像构建（linux/amd64） |
+| deb 构建 | **可选** | 仅当目标确为 Ubuntu + systemd 时支持 Ubuntu 22.04 x86_64 基础 deb 构建；否则后置 |
 | 决策依据 | 每次构建返回目标系统、架构、基础镜像、风险说明 |
 | 示例项目 | 提供一个可复现 Python fixture |
 | 验收 | 一次手动 E2E：Agent 指令到产物验证 |
@@ -215,7 +215,7 @@ ForgeKit 的潜在商业价值来自三个方向：
 
 | 风险 | 应对 |
 |------|------|
-| 用户只需要 Docker，不需要 deb | v0.1 调整为 Docker-first，deb 降级为实验能力 |
+| 用户只需要 Docker，不需要 deb | 已拍板 Docker 硬闭环、deb 可选；若试点证伪 deb 需求则后置 v0.2 |
 | Agent 调用不稳定 | 工具 Schema 收窄，输出结构化错误和决策依据 |
 | 打包范围过大 | 严格限制 v0.1：Python + Ubuntu 22.04 + x86_64 |
 | 与现有工具重复 | 不重写底层工具，重点做 Agent 编排、知识解释和低门槛路径 |

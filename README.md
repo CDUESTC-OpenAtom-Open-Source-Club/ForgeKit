@@ -123,7 +123,7 @@ v0.1-v1.0 的多端扩展路线图：
 | [需求文档](./docs/REQUIREMENTS.md) | 用户、痛点、商业价值、MVP 范围 |
 | [设计文档](./docs/DESIGN.md) | 产品架构、分层职责、工具边界 |
 | [技术计划](./docs/TECHNICAL_PLAN.md) | 开发前技术落地、目录、接口、测试顺序 |
-| [Agent 接入](./docs/specs/AGENT_INTEGRATION.md) | MCP、Skill/Markdown、未来协议演进 |
+| [Agent 接入](./docs/AGENT_INTEGRATION.md) | MCP、Skill/Markdown、未来协议演进 |
 | [打包文档规范](./docs/specs/PACKAGING_DOCUMENT.md) | `Forge.md` 的结构和用途 |
 | [项目框架规范](./docs/specs/PROJECT_FRAMEWORK.md) | 标准框架约定与非合规适配（normalize） |
 | [路线图](./docs/ROADMAP.md) | v0.1 到 v1.0 的阶段计划和验收标准 |

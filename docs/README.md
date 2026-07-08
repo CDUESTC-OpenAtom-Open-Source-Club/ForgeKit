@@ -11,11 +11,15 @@
 - [评审清单](./REVIEW.md) — 发布前核对
 
 ## 规范子文档（`specs/`）
-> 具体契约与标准：Agent 怎么接、打包计划怎么写、项目框架怎么合规。
+> 具体契约与标准：Agent 怎么接、打包计划怎么写、项目框架怎么合规、决策规则怎么来。
 
-- [Agent 接入方案](./specs/AGENT_INTEGRATION.md)
+- [Agent 接入方案](./AGENT_INTEGRATION.md)
 - [Forge.md 打包文档规范](./specs/PACKAGING_DOCUMENT.md)
 - [项目框架规范与适配](./specs/PROJECT_FRAMEWORK.md)
+- [决策规则规范](./specs/DECISION_RULES.md)
+
+## 规划治理
+- [试点候选与拍板记录](./PILOTS.md) — v0.0 退出门槛证据（试点 + 已拍板决策）
 
 ## 归档
 - [archive/](./archive/README.md) — 阶段性 / 过时文档（暂不移动现行文档）

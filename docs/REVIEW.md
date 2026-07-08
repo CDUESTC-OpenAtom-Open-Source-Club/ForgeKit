@@ -22,7 +22,7 @@
 | [REQUIREMENTS.md](./REQUIREMENTS.md) | 用户是否真实、痛点是否成立、MVP 是否合理、商业价值是否可信 |
 | [DESIGN.md](./DESIGN.md) | 架构是否可执行、分层是否必要、边界是否清楚 |
 | [TECHNICAL_PLAN.md](./TECHNICAL_PLAN.md) | 技术落地是否具体、开发顺序是否合理、测试是否可执行 |
-| [AGENT_INTEGRATION.md](./specs/AGENT_INTEGRATION.md) | 是否清楚支持 Codex、Claude Code、Cline 等 Agent，MCP 是否作为主协议 |
+| [AGENT_INTEGRATION.md](./AGENT_INTEGRATION.md) | 是否清楚支持 Codex、Claude Code、Cline 等 Agent，MCP 是否作为主协议 |
 | [PACKAGING_DOCUMENT.md](./specs/PACKAGING_DOCUMENT.md) | `Forge.md` 是否足够独特、可读、可执行 |
 | [PROJECT_FRAMEWORK.md](./specs/PROJECT_FRAMEWORK.md) | 项目框架规范与非合规适配是否合理 |
 | [ROADMAP.md](./ROADMAP.md) | 阶段边界是否清晰，是否防止过早扩范围 |

@@ -11,7 +11,7 @@
 1. 需求文档确认 v0.1 范围。
 2. 设计文档确认分层和工具边界。
 3. 至少完成初步用户/竞品验证。
-4. 明确 v0.1 是 Docker-first，还是 Docker + deb 双闭环。
+4. 明确 v0.1 Docker 硬闭环、deb 可选（已在 PILOTS.md 拍板）。
 
 未满足这些条件，不新增能力实现代码。
 
@@ -167,7 +167,7 @@ tests/
 
 | 任务 | 验收 |
 |------|------|
-| Python fixture | 可构建 Docker + deb |
+| Python fixture | 可构建 Docker（deb 可选） |
 | Packaging document | fixture 生成 `Forge.md` |
 | MCP E2E | 模拟 Agent 调用完成闭环 |
 | 文档更新 | README 快速开始改为真实可用 |
