@@ -13,6 +13,7 @@ import type { ForgeKitResult } from '@capabilities/types.js';
 
 // 真实能力实现（按里程碑逐步接入）
 import { inspectProject } from '@capabilities/inspect-project.js';
+import { generatePackagingPlan } from '@capabilities/generate-packaging-plan.js';
 
 /**
  * Execute tool call
@@ -39,7 +40,11 @@ export async function executeTool(
       return inspectProject(args.source_dir as string);
 
     case 'generate_packaging_plan':
-      return runGeneratePackagingPlan(args);
+      return generatePackagingPlan(
+        args.source_dir as string,
+        (args.goals as string[]) || [],
+        args.target_environment as string | undefined
+      );
 
     case 'build_docker_image':
       return runBuildDockerImage(args);
@@ -71,17 +76,7 @@ function planNotFound(planPath?: string): ForgeKitResult {
 }
 
 // ========== 工具实现路由 ==========
-// 用动态 require 实现按里程碑渐进接入，避免引用未实现模块导致编译失败
-
-async function runGeneratePackagingPlan(args: Record<string, unknown>): Promise<ForgeKitResult> {
-  const mod = tryRequire('@capabilities/generate-packaging-plan.js');
-  if (!mod) return notImplemented('generate_packaging_plan', 'M3');
-  return mod.generatePackagingPlan(
-    args.source_dir as string,
-    args.goals as string[],
-    args.target_environment as string | undefined
-  );
-}
+// build_docker_image / pack_deb 用动态 require 渐进接入，避免引用未实现模块
 
 async function runBuildDockerImage(args: Record<string, unknown>): Promise<ForgeKitResult> {
   const mod = tryRequire('@capabilities/build-docker-image.js');
