@@ -116,7 +116,7 @@
 |------|-------------|
 | v0.2 | rpm 打包、Go/TypeScript 项目、多架构支持 |
 | v0.3 | 移动端（Android/iOS）、Web→移动端（PWA/Hybrid） |
-| v0.5 | 桌面端（Windows/macOS/Linux） |
+| v0.5 | 桌面端（Windows/macOS） |
 
 ---
 

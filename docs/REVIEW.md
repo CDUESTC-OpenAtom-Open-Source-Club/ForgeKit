@@ -40,7 +40,7 @@
 
 ## 4. 设计评审问题
 
-1. MCP 是否应该是主入口，还是 CLI 主入口 + MCP 适配更合理？
+1. MCP 是否应该是唯一接入方式？
 2. MCP Interface、Capability、System Adapter、Knowledge、Local Tooling 的边界是否清楚？
 3. Agent Integration（接入策略）和 Packaging Plan / `Forge.md`（产物规范）是否必要，是否增加了真实独特性，而非被误建成空运行时代码？
 4. v0.1 是否过早引入复杂知识库？
@@ -61,7 +61,7 @@
 ## 6. Agent 协议与打包文档评审问题
 
 1. v0.1 选择 MCP 作为主协议是否合理？
-2. Skill / Markdown 指南是否足够覆盖 Codex 等非 MCP 优先场景？是否补齐了最小 CLI（`forgekit plan .` / `forgekit build .`）兜底？
+2. Skill / Markdown 指南是否足够辅助 Agent 理解流程？
 3. 是否明确不在 v0.1 自研协议？
 4. `Forge.md` 是否比普通 README 更有价值？是否存在生成后无人维护的腐烂风险？
 5. 打包文档是否能被人类、Agent、CI 同时复用？

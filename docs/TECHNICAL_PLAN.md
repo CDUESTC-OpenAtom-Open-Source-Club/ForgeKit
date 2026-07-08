@@ -81,7 +81,6 @@ tests/
 | `packaging` | `Forge.md` 模板和渲染逻辑 | 不执行构建 |
 | `systems` | 系统版本和模板 | 不写运行时逻辑 |
 | `knowledge` | 决策和错误知识 | 不变成数据库服务 |
-| `cli` | `forgekit plan` / `forgekit build` 命令，作为非 MCP Agent（如 Codex）的兜底入口 | 不直接实现构建，转发到 capabilities |
 | `tests/fixtures` | 可复现样例项目 | 不放真实用户私有项目 |
 
 ## 5. 工具接口计划

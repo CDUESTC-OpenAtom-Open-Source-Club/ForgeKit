@@ -36,7 +36,7 @@ v0.1 的接入策略是：
 | 接入方式 | 定位 | v0.1 决策 |
 |----------|------|-----------|
 | MCP Server | 主协议，给 Codex、Claude Code、Cline、Cursor 等 Agent 调用工具 | 必做 |
-| Agent Skill / Markdown Guide | 辅助说明，告诉 Agent 如何规划、确认、调用和总结 | 必做文档，不先做运行时 |
+| Agent Skill / Markdown Guide | 辅助说明，告诉 Agent 如何规划、确认、调用和总结 | 必做文档，不先做运行时 | |
 | `Forge.md` | 项目级打包计划文件，记录目标、策略、风险和结果 | 必做 |
 | 自研协议 | 未来可能存在的高级打包语义协议 | v1.0 前不做 |
 
@@ -70,7 +70,6 @@ ForgeKit 的核心问题陈述是：
 | GitHub Actions / GitLab CI | 自动化流水线 | 新手仍要写 YAML、Secrets、构建矩阵和产物上传逻辑 |
 | Dockerfile | 容器化交付 | 不解决 deb/rpm、安装包、系统服务、发布解释 |
 | Buildpacks / Nixpacks | 自动生成镜像 | 偏 Docker-first，Agent 可解释性和系统包能力不足 |
-| fpm / nfpm | 快速生成系统包 | 偏 CLI 专家工具，需要用户理解包格式和依赖 |
 | GoReleaser | Go 项目发布强 | 语言场景较窄，不覆盖 Agent 编排和教学路径 |
 | Claude Code / Cline / Cursor | 代码生成和修改 | 缺少稳定、可验证、面向发布工程的工具契约 |
 
@@ -117,7 +116,6 @@ ForgeKit 的潜在商业价值来自三个方向：
 3. 哪一步最容易失败或最耗时间？
 4. 你是否需要 deb/rpm，还是 Docker 已经足够？
 5. 如果 AI Agent 帮你发布项目，你最担心什么？
-6. 你更希望用 MCP 工具、CLI 命令，还是 Markdown/Skill 文档引导？
 7. 你能接受项目里新增 `Forge.md` 作为打包计划吗？
 8. 你愿意提供一个真实项目做 v0.1 验证吗？
 

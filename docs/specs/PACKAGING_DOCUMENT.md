@@ -6,7 +6,7 @@
 
 `Forge.md` 是每个被 ForgeKit 处理的项目中可选生成的打包计划文件。
 
-它不是普通 README，也不是 CI 配置。它的作用是把“这个项目应该如何被打包、为什么这么打包、当前构建结果是什么”写成一份人和 Agent 都能理解的文档。
+它不只是过程记录，更是 AI 的**上下文约束（Contextual Constraint）**与**决策契约（Decision Contract）**：把“这个项目应该如何被打包、为什么这么打包、哪些方案被拒绝、执行前必须满足什么安全前提、当前构建结果是什么”写成一份人和 Agent 都能理解、且能约束后续决策的文档（详见 §4.1）。
 
 ## 2. 为什么需要它
 
@@ -65,6 +65,11 @@ v0.1 推荐先写项目根目录，便于 Agent 和人类发现。
 - Base image:
 - System target:
 
+## Decision Contract
+- Feasibility Matrix: 候选方案 [安全性 | 技术难度 | 性能代价 | 维护成本] 评分(1-5)
+- Decision Gates: 记录为何拒绝方案 B，防止循环重试
+- Security Anchors: 执行前必检 pre_conditions（详见 §4.1）
+
 ## Decisions
 - Why Docker:
 - Why deb:
@@ -93,6 +98,39 @@ v0.1 推荐先写项目根目录，便于 Agent 和人类发现。
 - ...
 ```
 
+### 4.1 决策契约（Decision Contract）：从过程记录到上下文约束
+
+`Forge.md` 不应只是“做了什么”的记录，而应约束 AI 的后续决策。在 `## Decision Contract` 下包含三个子模块：
+
+**1. 可行性矩阵（Feasibility Matrix）**
+为每个候选方案按 1-5 分打分，使“为什么选 A 不选 B”可量化：
+
+| 候选方案 | 安全性 | 技术难度 | 性能代价 | 维护成本 | 结论 |
+|----------|--------|----------|----------|----------|------|
+| Docker 镜像 | 5 | 2 | 3 | 2 | 推荐 |
+| Ubuntu deb | 4 | 3 | 2 | 3 | 备选 |
+| 安装脚本+压缩包 | 2 | 1 | 1 | 4 | 拒绝 |
+
+**2. 决策门槛（Decision Gates）**
+明确记录“为何拒绝方案 B”。这是防止 AI 在失败循环中无脑重试的关键：一旦 Gate 写定，后续循环必须引用而非推翻。
+
+```text
+rejected:
+  - candidate: 安装脚本+压缩包
+    reason: 无版本管理、维护成本高、无法被 systemd 托管
+    gate: 不进入重试候选
+```
+
+**3. 安全扫描锚点（Security Anchors）**
+定义执行前必须通过的 `pre_conditions`，由 Capability 层的 Pre-flight Check / Semantic Gateway 在触发 Local Tooling 前强制执行（详见 DESIGN §3.7）：
+
+```yaml
+pre_conditions:
+  - forbid: "rm -rf /"              # 禁止容器外危险删除
+  - require: debhelper_validation   # deb 必须过 debhelper 校验
+  - fs_scope: [project_dir, dist/]  # 文件写入限定范围
+```
+
 ## 5. v0.1 最小字段
 
 v0.1 不需要一次写满所有字段，但必须包含：
@@ -117,6 +155,10 @@ MCP 工具负责执行，`Forge.md` 负责记录计划和结果。
 3. 用户或 Agent 确认计划。
 4. `build_docker_image` / `pack_deb` 执行。
 5. ForgeKit 更新 Results。
+
+> 写入采用**差量更新**（对应实现层的 `patch_forge.md`）：AI 只输出变更点（`op` / `target` / `change` / `reason`），底层应用到文件，而非重读全量再写回；与 Append-only 审计互补（详见 DESIGN §11.5A）。
+
+> 完整分层架构与标准化流水线（Inspect → Plan → Resolve Dependencies → Build → Verify）见 [DESIGN §3](../DESIGN.md)；所有打包动作经由 Pre-flight Check (Semantic Gateway) 与 Observation & Feedback 回溯。
 
 ## 7. 与 Skill 文档的关系
 
@@ -155,6 +197,11 @@ Skill / Markdown 指南告诉 Agent “怎么使用 ForgeKit”。
 - Architecture: x86_64
 - Base image: python:3.10-slim
 - System target: ubuntu-22.04
+
+## Decision Contract
+- Feasibility Matrix: Docker(5/2/3/2) 推荐, deb(4/3/2/3) 备选, 脚本(2/1/1/4) 拒绝
+- Decision Gates: 拒绝纯安装脚本——无版本管理、维护成本高、无法被 systemd 托管
+- Security Anchors: 禁止容器外 rm -rf, deb 须过 debhelper, 写入限 project_dir/dist
 
 ## Decisions
 - Why Docker: easiest runtime isolation for first deployment.

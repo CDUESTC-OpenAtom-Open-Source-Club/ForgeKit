@@ -11,10 +11,10 @@ ForgeKit 支持四种目标端：
 
 | 端类型 | 覆盖范围 | 产物格式 | 典型用户场景 |
 |--------|----------|----------|-------------|
-| **servers** | Ubuntu、Debian、CentOS、EulerOS、Fedora | Docker镜像、deb、rpm | 服务器端部署、系统级安装 |
-| **mobile** | Android、iOS | APK、IPA | 移动端应用（不上架，直接分发） |
-| **web** | PWA、Hybrid应用 | PWA包、混合应用APK/IPA | Web项目转移动端（离线可用） |
-| **desktop** | Windows、macOS、Linux桌面 | exe、app、AppImage | 桌面应用打包（可选） |
+| **servers** | Ubuntu、Debian、CentOS、EulerOS、Fedora（Linux 系，服务器部署） | Docker镜像、deb、rpm | 服务器端部署、系统级安装 |
+| **mobile** | Android、iOS、HarmonyOS（鸿蒙，后续方案） | APK、IPA、HAP（后续） | 移动端应用（不上架，直接分发） |
+| **web** | PWA、Hybrid（Cordova/Capacitor）、跨平台框架（Flutter/React Native） | PWA包、混合应用APK/IPA、原生APK/IPA | Web项目转移动端（离线可用） |
+| **desktop** | Windows、macOS（Linux 归服务器端，桌面 GUI 应用后置） | exe、app | 桌面应用打包（可选） |
 
 ---
 
@@ -33,7 +33,7 @@ src/systems/
     euleros/
     fedora/
 
-  mobile/                         # 🟡 移动端（规划中，v0.3实现）
+  mobile/                         # 🟡 移动端（规划中，v0.3实现；Android/iOS 先行，鸿蒙后续）
     android/
       versions.yaml               # Android 11/12/13/14（API 30-34）
       packaging-guide.md          # Android APK 打包指南
@@ -50,6 +50,13 @@ src/systems/
       issues/                     # 已知问题（开发者账号、证书管理）
         developer-account.md
         certificate-management.md
+    harmonyos/                    # 📅 鸿蒙端（后续方案，v0.4+ 评估）
+      versions.yaml               # HarmonyOS NEXT / 兼容层（支持 APK）
+      packaging-guide.md          # 鸿蒙应用打包指南
+      templates/                  # module.json、签名配置模板
+      decision-rules.yaml         # 鸿蒙决策规则（版本选择、签名配置）
+      issues/
+        harmonyos-signing.md
 
   web/                            # 🟡 Web端（规划中，v0.3实现）
     pwa/
@@ -65,8 +72,16 @@ src/systems/
         packaging-guide.md        # Capacitor 打包指南
         templates/                # capacitor.config.json、项目结构模板
         decision-rules.yaml       # Capacitor 决策规则（现代框架适配）
+      flutter/                    # 跨平台框架 → 原生 APK/IPA（Dart，可选）
+        packaging-guide.md        # Flutter 打包指南
+        templates/                # pubspec、Android/iOS 工程模板
+        decision-rules.yaml       # Flutter 决策规则（目标平台、产物选择）
+      react-native/               # 跨平台框架 → 原生 APK/IPA（JS，可选）
+        packaging-guide.md        # React Native 打包指南
+        templates/                # app.json、原生工程模板
+        decision-rules.yaml       # React Native 决策规则（目标平台、签名）
 
-  desktop/                        # 📅 桌面端（可选扩展，v0.5实现）
+  desktop/                        # 📅 桌面端（可选扩展，v0.5实现；仅 Windows + macOS）
     windows/
       versions.yaml               # Windows 10/11
       packaging-guide.md          # Windows exe 打包指南
@@ -77,21 +92,21 @@ src/systems/
       packaging-guide.md          # macOS app 打包指南
       templates/                  # .app bundle 模板、签名配置
       decision-rules.yaml         # macOS 决策规则（签名、公证）
-    linux-app/
-      versions.yaml               # AppImage/Snap/Flatpak
-      packaging-guide.md          # Linux 桌面应用打包指南
-      templates/                  # AppImage、Snap、Flatpak配置模板
-      decision-rules.yaml         # Linux 桌面决策规则（打包格式选择）
+    # 注：Linux 桌面 GUI 应用（AppImage/Snap/Flatpak）归服务器端（系统级安装包 deb/rpm），
+    #     不在桌面端路线中单列；如确有需求后置到 v1.5+ 评估。
 ```
 
 **实现状态**：
 - ✅ **servers**：已完整实现（Ubuntu框架已建立）
-- 🟡 **mobile/web**：规划中，v0.3开始实现
-- 📅 **desktop**：可选扩展，v0.5确认需求后实现
+- 🟡 **mobile/web**：规划中，v0.3开始实现（Android/iOS/Web→移动端；Flutter/React Native 一并纳入 Web→移动端）
+- 📅 **harmonyos（鸿蒙）**：后续方案，v0.4+ 评估（支持 APK 兼容层，暂不在 v0.3 范围）
+- 📅 **desktop**：可选扩展，v0.5确认需求后实现（仅 Windows + macOS；Linux 桌面 GUI 应用归服务器端/后置）
 
 ---
 
 ## 多端决策路径（核心）
+
+> 完整分层架构（含元认知层、Pre-flight Check、观测与回溯层、兼容性矩阵）见 [DESIGN §3](../../docs/DESIGN.md)。
 
 每个端都有 `decision-rules.yaml`，这是 Forge.md 生成决策依据的核心：
 
@@ -155,7 +170,7 @@ inspect_project 分析
 
 | 维度 | servers | mobile | web | desktop |
 |------|---------|--------|------|---------|
-| **构建工具** | Docker、dpkg、rpm | Gradle、Xcode | Web打包工具、Cordova/Capacitor | Electron、NSIS、app打包工具 |
+| **构建工具** | Docker、dpkg、rpm | Gradle、Xcode | Web打包工具、Cordova/Capacitor、Flutter/React Native | Electron、NSIS、app打包工具 |
 | **签名需求** | 不需要 | ✅ 必需（APK/IPA） | 不需要 | macOS需要签名，Windows可选 |
 | **上架流程** | 不涉及 | **明确不做**（只做本地打包） | 不涉及 | 不涉及 |
 | **证书管理** | 不涉及 | ✅ 用户自管理（keystore/certificate） | 不涉及 | macOS需要开发者证书 |
@@ -236,8 +251,9 @@ inspect_project 分析
 | P1 | 创建 mobile/android 决策规则和模板 | v0.3 规划 |
 | P1 | 创建 mobile/ios 决策规则和模板 | v0.3 规划 |
 | P1 | 创建 web/pwa 决策规则和模板 | v0.3 规划 |
-| P1 | 创建 web/hybrid 决策规则和模板 | v0.3 规划 |
-| P2 | 创建 desktop 决策规则和模板（可选） | v0.5 规划 |
+| P1 | 创建 web/hybrid 决策规则和模板（Cordova/Capacitor/Flutter/React Native） | v0.3 规划 |
+| P2 | 创建 mobile/harmonyos 决策规则和模板（鸿蒙，后续方案） | v0.4+ 评估 |
+| P2 | 创建 desktop 决策规则和模板（仅 Windows + macOS） | v0.5 规划 |
 | P2 | 补充各端已知问题文档 | v0.3-v0.5 |
 
 ---
@@ -251,14 +267,15 @@ src/knowledge/
     deb-packaging.yaml            # deb 打包知识（已有）
     rpm-packaging.yaml            # rpm 打包知识（v0.2新增）
 
-  mobile/                         # v0.3新增
+  mobile/                         # v0.3新增（鸿蒙 v0.4+）
     android-packaging.yaml        # Android 打包知识
     ios-packaging.yaml            # iOS 打包知识
+    harmonyos-packaging.yaml      # 鸿蒙打包知识（v0.4+）
     signing-rules.yaml            # 签名配置规则
 
   web/                            # v0.3新增
     pwa-best-practices.yaml       # PWA 最佳实践
-    hybrid-app.yaml               # 混合应用打包知识
+    hybrid-app.yaml               # 混合应用打包知识（含 Flutter/React Native）
 
   desktop/                        # v0.5新增（可选）
     electron-packaging.yaml       # Electron 打包知识
@@ -276,8 +293,9 @@ src/knowledge/
 | `pack_rpm` | servers | servers/centos/decision-rules.yaml |
 | `pack_android_apk` | mobile | mobile/android/decision-rules.yaml |
 | `pack_ios_ipa` | mobile | mobile/ios/decision-rules.yaml |
+| `pack_harmonyos_app` | mobile | mobile/harmonyos/decision-rules.yaml（后续方案） |
 | `pack_pwa` | web | web/pwa/decision-rules.yaml |
-| `pack_hybrid_app` | web | web/hybrid/*/decision-rules.yaml |
+| `pack_hybrid_app` | web | web/hybrid/*/decision-rules.yaml（含 Cordova/Capacitor/Flutter/React Native） |
 | `pack_windows_exe` | desktop | desktop/windows/decision-rules.yaml |
 | `pack_macos_app` | desktop | desktop/macos/decision-rules.yaml |
 

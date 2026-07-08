@@ -47,6 +47,8 @@
 | **更新频率** | 低（架构稳定后很少变更） | 高（每次构建都可能更新） |
 | **内容** | 规则、条件、建议、风险 | 具体项目的决策结果、产物路径 |
 
+> 决策流程与完整分层架构（含元认知层、Pre-flight Check、观测与回溯层、兼容性矩阵）见 [DESIGN §3](../DESIGN.md)。
+
 ---
 
 ## 4. 决策规则维护规范
@@ -57,5 +59,33 @@
 - 风险提示、构建流程、验证方法
 
 ---
+
+## 5. 多维度评估量化策略
+
+为支持“各种性判断”，评估指标应转化为 `decision-rules.yaml` 中的可量化策略。建议维度与执行层干预：
+
+| 维度 | 核心量化指标 | 执行层干预 |
+|------|--------------|------------|
+| 安全性 | 敏感指令白名单、文件系统读写范围、**指令意图校验** | MCP Server + Semantic Gateway 拦截敏感/等价绕过 shell 调用 |
+| 可实现性 | 原子工具可用性（Docker/Deb） | inspect 阶段先探测环境依赖 |
+| 必要性 | 原子任务覆盖度与冗余率 | Forge.md 强制说明“为何不使用现成库” |
+| AI 可调用性 | 参数结构复杂度、Schema 清晰度 | 复杂工具编写强制 Prompt 辅助指南 |
+
+`decision-rules.yaml` 建议增加 `evaluation` 段（示例）：
+
+```yaml
+evaluation:
+  security:
+    sensitive_command_allowlist: [docker, dpkg-deb]
+    fs_write_scope: [project_dir, dist/]
+  feasibility:
+    atomic_tool_probe: [docker, debhelper]   # inspect 阶段探测
+  necessity:
+    require_justify_existing_lib: true       # 必须说明为何不复用现成库
+  ai_usability:
+    complex_tool_prompt_guide: true
+```
+
+规则应支持**按任务类别索引、按需加载（Rule-Router）**：`build_docker` 仅注入 `[Docker_Security, Build_Optimization]` 等子集，避免 100 条规则全量注入（详见 DESIGN §11.2 / §11.5C）。
 
 *本规范由 ForgeKit 维护。*
