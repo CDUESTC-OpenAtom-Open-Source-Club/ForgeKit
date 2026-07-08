@@ -14,6 +14,7 @@ import type { ForgeKitResult } from '@capabilities/types.js';
 // 真实能力实现（按里程碑逐步接入）
 import { inspectProject } from '@capabilities/inspect-project.js';
 import { generatePackagingPlan } from '@capabilities/generate-packaging-plan.js';
+import { buildDockerImage } from '@capabilities/build-docker-image.js';
 
 /**
  * Execute tool call
@@ -47,7 +48,14 @@ export async function executeTool(
       );
 
     case 'build_docker_image':
-      return runBuildDockerImage(args);
+      return buildDockerImage({
+        source_dir: args.source_dir as string,
+        plan_path: args.plan_path as string,
+        image_name: args.image_name as string,
+        tags: (args.tags as string[]) || ['latest'],
+        platform: (args.platform as string) || 'linux/amd64',
+        dockerfile_path: (args.dockerfile_path as string) || 'Dockerfile',
+      });
 
     case 'pack_deb':
       return runPackDeb(args);

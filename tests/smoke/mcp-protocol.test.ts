@@ -95,7 +95,7 @@ describe('MCP 协议层冒烟测试', () => {
       expect(result.decision_basis).toBeDefined();
     });
 
-    it('构建类工具 plan_path 校验通过后返回 decision_basis', async () => {
+    it('构建类工具 plan_path 校验通过后进入能力层（无 docker 则返回 daemon 错误）', async () => {
       const planPath = path.join(tmpDir, 'Forge.md');
       fs.writeFileSync(planPath, '# Forge Plan');
 
@@ -105,8 +105,8 @@ describe('MCP 协议层冒烟测试', () => {
         image_name: 'test',
       });
 
-      expect(result.status).toBe('success');
-      expect(result.decision_basis).toBeDefined();
+      // plan_path 校验通过（不会返回 plan_not_found）
+      expect(result.error?.code).not.toBe('plan_not_found');
     });
   });
 

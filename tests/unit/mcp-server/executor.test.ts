@@ -51,17 +51,25 @@ describe('Executor - plan_path 强制校验', () => {
     expect(result.error?.code).toBe('plan_not_found');
   });
 
-  it('build_docker_image 提供 plan_path 且文件存在 → 通过校验', async () => {
-    const planPath = path.join(tmpDir, 'Forge.md');
+  it('build_docker_image 提供 plan_path 且文件存在 → 通过 plan 校验（无 docker 则返回 daemon 错误）', async () => {
+    const projDir = path.join(tmpDir, 'build-real');
+    fs.mkdirSync(projDir, { recursive: true });
+    fs.writeFileSync(path.join(projDir, 'app.py'), '');
+    const planPath = path.join(projDir, 'Forge.md');
     fs.writeFileSync(planPath, '# Forge Plan');
 
     const result = await executeTool('build_docker_image', {
-      source_dir: tmpDir,
+      source_dir: projDir,
       plan_path: planPath,
       image_name: 'test',
     });
 
-    expect(result.status).toBe('success');
+    // plan_path 校验通过（不会返回 plan_not_found）
+    expect(result.error?.code).not.toBe('plan_not_found');
+    // 无 docker 环境下应返回 daemon/build 错误
+    expect(['docker_daemon_unavailable', 'docker_build_failed', 'dockerfile_not_found']).toContain(
+      result.error?.code
+    );
   });
 });
 
