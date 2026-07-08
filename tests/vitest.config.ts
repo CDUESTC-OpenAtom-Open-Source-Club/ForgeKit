@@ -1,6 +1,15 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@mcp-server': path.resolve(__dirname, '../src/mcp-server'),
+      '@capabilities': path.resolve(__dirname, '../src/capabilities'),
+      '@knowledge': path.resolve(__dirname, '../src/knowledge'),
+      '@templates': path.resolve(__dirname, '../src/packaging'),
+    },
+  },
   test: {
     globals: true,
     environment: 'node',

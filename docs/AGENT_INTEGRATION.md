@@ -43,6 +43,8 @@
 | Skill / Markdown 文档 | 简单、可读、适合教学 | 不能强约束参数和执行结果 | 辅助说明（不是接入协议） |
 | CLI | 对人友好、易调试 | Agent 不需要，所有 Agent 都支持 MCP | ❌ 不作为 Agent 接入方式 |
 
+> **和与现有 MCP Server 的差异（市场调研方向二）**：Docker MCP Catalog 已有的 300+ Server 多为 API 转发器（GitHub 管 Issue/PR、Stripe 收付款、Grafana 监控等），**没有一个是"交付契约层"**。它们只转发命令，不提供决策依据与结果观测。ForgeKit 的不同之处：每个工具都强制 `plan_path`（契约前置）、返回 `decision_basis`（决策依据）与 `result.json`（观测回溯）——是带"决策 + 观测"的交付契约 MCP，而非又一个转发器。
+
 ---
 
 ## 4. MCP Server 工具列表（多端）

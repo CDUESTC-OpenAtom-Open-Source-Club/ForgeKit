@@ -3,8 +3,8 @@
 /**
  * ForgeKit MCP Server - Main Entry
  *
- * Agent-Native Build & Release Platform
- * 让「会指挥 AI」的人，就具备从代码到多平台发布的完整能力。
+ * Agent-Native 多端打包工具箱
+ * 所有 AI Agent 通过 MCP 协议接入
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -16,8 +16,9 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 
-// Tool definitions
+// Tool definitions and executor
 import { registerTools } from './tools/registry.js';
+import { executeTool } from './tools/executor.js';
 
 // Server configuration
 const SERVER_NAME = 'forgekit-mcp-server';
@@ -45,6 +46,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 /**
  * Handler: Execute tool call
+ *
+ * M1 阶段：使用 executor 路由（协议层）
+ * - 构建类工具强制校验 plan_path
+ * - 所有调用返回结构化结果
  */
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
@@ -58,13 +63,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
     }
 
-    // Execute tool logic (will be implemented in tools/*.ts)
-    // For now, return placeholder response
+    // Execute tool (with plan_path enforcement in executor)
+    const result = await executeTool(name, args || {});
+
+    // Return structured result as JSON (Agent 可解析)
     return {
       content: [
         {
           type: 'text',
-          text: `Tool "${name}" called with arguments: ${JSON.stringify(args)}\n\nNote: Tool implementation pending (编码阶段实现)`,
+          text: JSON.stringify(result, null, 2),
         },
       ],
     };
@@ -85,6 +92,7 @@ async function main() {
 
   console.error(`${SERVER_NAME} v${SERVER_VERSION} started`);
   console.error('ForgeKit MCP Server ready for AI agent connections');
+  console.error('已注册工具：inspect_project, generate_packaging_plan, build_docker_image, pack_deb');
 }
 
 main().catch((error) => {

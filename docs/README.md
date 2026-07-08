@@ -9,6 +9,9 @@
 - [技术落地](./TECHNICAL_PLAN.md) — 怎么实现、开发顺序
 - [路线图](./ROADMAP.md) — 分阶段目标
 - [评审清单](./REVIEW.md) — 发布前核对
+- [市场调研](./MARKET_RESEARCH.md) — 三方向调研与转型研判
+- [蓝海扩展方向](./BLUE_OCEAN.md) — 三片蓝海与双轮驱动
+- [v0.1 实现路径](./V0.1_IMPLEMENTATION.md) — 员工可执行的 MVP 落地计划
 
 ## 规范子文档（`specs/`）
 > 具体契约与标准：Agent 怎么接、打包计划怎么写、项目框架怎么合规、决策规则怎么来。
