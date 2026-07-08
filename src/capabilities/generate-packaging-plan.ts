@@ -94,6 +94,29 @@ export async function generatePackagingPlan(
   };
 }
 
+// ========== 项目名推导 ==========
+
+function inferProjectName(sourceDir: string): string {
+  // 优先 pyproject.toml [project] name
+  const pyproject = readTextFile(path.join(sourceDir, 'pyproject.toml'));
+  if (pyproject) {
+    const m = pyproject.match(/name\s*=\s*["']([^"']+)["']/);
+    if (m) return m[1];
+  }
+  // 其次 package.json name
+  const pkg = readTextFile(path.join(sourceDir, 'package.json'));
+  if (pkg) {
+    try {
+      const parsed = JSON.parse(pkg);
+      if (parsed.name) return parsed.name;
+    } catch {
+      // ignore
+    }
+  }
+  // 兜底：目录名
+  return path.basename(path.resolve(sourceDir));
+}
+
 // ========== 决策规则加载 ==========
 
 interface DecisionRules {
@@ -212,7 +235,7 @@ function renderForgeMd(ctx: {
     template = FALLBACK_TEMPLATE;
   }
 
-  const projectName = path.basename(path.resolve(ctx.sourceDir));
+  const projectName = inferProjectName(ctx.sourceDir);
   const entry = insp.entrypoints?.[0] || '（未检测到）';
   const primaryArtifact = goals[0] || 'Docker image';
   const secondaryArtifact = goals[1] || '无';
