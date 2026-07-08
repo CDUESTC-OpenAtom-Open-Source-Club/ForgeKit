@@ -1,20 +1,20 @@
-# ForgeKit 系统适配框架总览
+# ForgeKit 多端适配框架总览
 
-> 本文档汇总 ForgeKit 支持的所有操作系统、版本和打包方式
-> 位置：`src/systems/` 目录
+> 本文档是 ForgeKit 多端打包能力的架构总览
+> 核心定位：源码 → 可直接分发的多端安装包（不上架）
 
 ---
 
-## 支持的操作系统总览
+## 多端架构设计
 
-| 系统 | 包格式 | 推荐版本 | 架构支持 | 文档位置 |
-|------|--------|----------|----------|----------|
-| Ubuntu | deb | 20.04 / 22.04 LTS | x86_64 / aarch64 | [ubuntu/](./ubuntu/) |
-| Debian | deb | 11 / 12 Stable | x86_64 / aarch64 | [debian/](./debian/) |
-| CentOS | rpm | 9 Stream | x86_64 / aarch64 | [centos/](./centos/) |
-| EulerOS | rpm | 2.2 / 2.3 / 2.9 | x86_64 / aarch64 | [euleros/](./euleros/) |
-| Fedora | rpm | 38 / 39 | x86_64 / aarch64 | [fedora/](./fedora/) |
-| openSUSE | rpm | Leap 15.5 | x86_64 / aarch64 | [opensuse/](./opensuse/) |
+ForgeKit 支持四种目标端：
+
+| 端类型 | 覆盖范围 | 产物格式 | 典型用户场景 |
+|--------|----------|----------|-------------|
+| **servers** | Ubuntu、Debian、CentOS、EulerOS、Fedora | Docker镜像、deb、rpm | 服务器端部署、系统级安装 |
+| **mobile** | Android、iOS | APK、IPA | 移动端应用（不上架，直接分发） |
+| **web** | PWA、Hybrid应用 | PWA包、混合应用APK/IPA | Web项目转移动端（离线可用） |
+| **desktop** | Windows、macOS、Linux桌面 | exe、app、AppImage | 桌面应用打包（可选） |
 
 ---
 
@@ -22,229 +22,265 @@
 
 ```
 src/systems/
-├── ubuntu/                        # ✅ 完整框架（已实现）
-│   ├── versions.yaml              # Ubuntu 版本清单（20.04/22.04/24.04）
-│   ├── packaging-guide.md         # Ubuntu deb 打包完整指南（523 行）
-│   ├── templates/                 # Ubuntu 打包模板文件（6 个文件）
-│   │   ├── Dockerfile.ubuntu-22.04
-│   │   ├── Dockerfile.ubuntu-20.04（待添加）
-│   │   ├── Dockerfile.ubuntu-24.04（待添加）
-│   │   ├── control.template
-│   │   ├── rules.template
-│   │   ├── changelog.template
-│   │   ├── postinst.template
-│   │   ├── service.template
-│   ├── issues/                    # Ubuntu 已知问题（待添加）
-│   │   ├── glibc-dependency.md（待添加）
-│   │   ├── python-versions.md（待添加）
-│
-├── debian/                        # 🟡 基础框架（待完善）
-│   ├── versions.yaml              # Debian 版本清单（10/11/12）
-│   ├── packaging-guide.md         # 待完善（编码阶段）
-│   ├── templates/                 # 待完善（编码阶段，可复用 Ubuntu 模板）
-│   ├── issues/                    # 待添加（v0.2）
-│
-├── centos/                        # 🟡 基础框架（待完善）
-│   ├── versions.yaml              # CentOS 版本清单（7/8/9）
-│   ├── packaging-guide.md         # 待完善（编码阶段）
-│   ├── templates/                 # 待完善（编码阶段）
-│   │   ├── Dockerfile.centos-9（待添加）
-│   │   ├── spec.template（待添加）
-│   │   ├── rpmmacros.template（待添加）
-│   ├── issues/                    # 待添加（v0.2）
-│
-├── euleros/                       # 🟡 基础框架（待完善）
-│   ├── versions.yaml              # EulerOS 版本清单（2.2/2.3/2.9）
-│   ├── packaging-guide.md         # 待完善（编码阶段）
-│   ├── templates/                 # 待完善（编码阶段）
-│   ├── issues/                    # 待添加（v0.2）
-│
-├── fedora/                        # 🟡 基础框架（待完善）
-│   ├── versions.yaml              # Fedora 版本清单（38/39/40）
-│   ├── packaging-guide.md         # 待完善（v0.2）
-│   ├── templates/                 # 待完善（v0.2）
-│   ├── issues/                    # 待添加（v0.2）
-│
-├── opensuse/                      # 📅 规划中（待添加）
-│   ├── versions.yaml              # 待添加（v0.2）
-│   ├── packaging-guide.md         # 待添加（v0.2）
-│   ├── templates/                 # 待添加（v0.2）
-│
-├── README.md                      # 本文档（系统适配框架总览）
+  servers/                        # ✅ 服务器端（已实现）
+    ubuntu/
+      versions.yaml               # Ubuntu 20.04/22.04/24.04 LTS
+      packaging-guide.md          # Ubuntu deb 打包完整指南
+      templates/                  # Dockerfile、control、rules等
+      decision-rules.yaml         # 服务器端决策规则
+    debian/
+    centos/
+    euleros/
+    fedora/
+
+  mobile/                         # 🟡 移动端（规划中，v0.3实现）
+    android/
+      versions.yaml               # Android 11/12/13/14（API 30-34）
+      packaging-guide.md          # Android APK 打包指南
+      templates/                  # AndroidManifest、Gradle配置、签名模板
+      decision-rules.yaml         # Android 决策规则（版本选择、签名配置）
+      issues/                     # 已知问题（证书管理、签名风险）
+        keystore-management.md
+        signing-risks.md
+    ios/
+      versions.yaml               # iOS 14/15/16/17
+      packaging-guide.md          # iOS IPA 打包指南
+      templates/                  # Info.plist、Xcode配置、签名模板
+      decision-rules.yaml         # iOS 决策规则（版本选择、开发者账号）
+      issues/                     # 已知问题（开发者账号、证书管理）
+        developer-account.md
+        certificate-management.md
+
+  web/                            # 🟡 Web端（规划中，v0.3实现）
+    pwa/
+      packaging-guide.md          # PWA 打包指南
+      templates/                  # manifest.json、service-worker配置
+      decision-rules.yaml         # PWA 决策规则（浏览器兼容性、离线功能）
+    hybrid/                       # 混合应用（Web转移动端）
+      cordova/
+        packaging-guide.md        # Cordova 打包指南
+        templates/                # config.xml、项目结构模板
+        decision-rules.yaml       # Cordova 决策规则（插件选择、平台适配）
+      capacitor/
+        packaging-guide.md        # Capacitor 打包指南
+        templates/                # capacitor.config.json、项目结构模板
+        decision-rules.yaml       # Capacitor 决策规则（现代框架适配）
+
+  desktop/                        # 📅 桌面端（可选扩展，v0.5实现）
+    windows/
+      versions.yaml               # Windows 10/11
+      packaging-guide.md          # Windows exe 打包指南
+      templates/                  # NSIS/Inno Setup 安装程序模板
+      decision-rules.yaml         # Windows 决策规则（安装程序选择）
+    macos/
+      versions.yaml               # macOS 12/13/14
+      packaging-guide.md          # macOS app 打包指南
+      templates/                  # .app bundle 模板、签名配置
+      decision-rules.yaml         # macOS 决策规则（签名、公证）
+    linux-app/
+      versions.yaml               # AppImage/Snap/Flatpak
+      packaging-guide.md          # Linux 桌面应用打包指南
+      templates/                  # AppImage、Snap、Flatpak配置模板
+      decision-rules.yaml         # Linux 桌面决策规则（打包格式选择）
 ```
 
-**实现状态对照**：
-- ✅ **Ubuntu**：完整实现（versions + guide + templates + 基础架构）
-- 🟡 **Debian/CentOS/EulerOS/Fedora**：versions.yaml 完成，其他待完善
-- 📅 **openSUSE**：整体待添加（v0.2）
+**实现状态**：
+- ✅ **servers**：已完整实现（Ubuntu框架已建立）
+- 🟡 **mobile/web**：规划中，v0.3开始实现
+- 📅 **desktop**：可选扩展，v0.5确认需求后实现
 
 ---
 
-## 快速使用指南
+## 多端决策路径（核心）
 
-### 1. 查找目标系统版本
+每个端都有 `decision-rules.yaml`，这是 Forge.md 生成决策依据的核心：
+
+### 决策流程
+
+```
+用户源码项目
+      ↓
+inspect_project 分析
+      ↓
+项目类型识别（servers/mobile/web/desktop）
+      ↓
+读取对应端的 decision-rules.yaml
+      ↓
+应用决策规则（版本选择、打包方式、签名配置）
+      ↓
+生成 Forge.md（记录决策依据）
+      ↓
+用户确认
+      ↓
+执行打包（pack_* 工具）
+      ↓
+更新 Forge.md Results
+      ↓
+可分发的安装包
+```
+
+### decision-rules.yaml 结构示例
+
+```yaml
+端类型: servers/mobile/web/desktop
+平台: android/ubuntu/pwa/windows 等
+产物格式: APK/deb/PWA/exe
+
+决策规则:
+  版本选择:
+    规则1:
+      条件: "具体场景描述"
+      建议: "推荐选择"
+      风险: "可能风险"
+      next_actions: ["后续建议操作"]
+
+  打包方式:
+    规则1:
+      条件: "场景描述"
+      建议: "推荐方式"
+
+风险提示:
+  - "该端特有的风险"
+  - "用户需注意的事项"
+
+构建流程:
+  1. "步骤1"
+  2. "步骤2"
+  3. "步骤3"
+```
+
+---
+
+## 多端关键差异对比
+
+| 维度 | servers | mobile | web | desktop |
+|------|---------|--------|------|---------|
+| **构建工具** | Docker、dpkg、rpm | Gradle、Xcode | Web打包工具、Cordova/Capacitor | Electron、NSIS、app打包工具 |
+| **签名需求** | 不需要 | ✅ 必需（APK/IPA） | 不需要 | macOS需要签名，Windows可选 |
+| **上架流程** | 不涉及 | **明确不做**（只做本地打包） | 不涉及 | 不涉及 |
+| **证书管理** | 不涉及 | ✅ 用户自管理（keystore/certificate） | 不涉及 | macOS需要开发者证书 |
+| **分发方式** | Docker镜像、系统包 | 直接分发APK/IPA（不上架） | HTTPS托管、PWA | 直接分发安装包 |
+| **复杂度** | ✅ 低 | 🟡 中 | 🟡 中 | 🟡 中 |
+
+---
+
+## 快速使用示例（多端）
+
+### 服务器端打包
 
 ```bash
-# 查看某个系统支持的版本
-cat src/systems/ubuntu/versions.yaml
-cat src/systems/centos/versions.yaml
+# 用户对 Agent 说：
+"把这个 Python 项目打包成可以在 Ubuntu 服务器上运行的版本"
 
-# 查看所有系统的推荐版本
-grep "recommended: true" src/systems/*/versions.yaml
+# ForgeKit 执行：
+1. 识别为 servers 端
+2. 读取 src/systems/servers/ubuntu/decision-rules.yaml
+3. 生成 Forge.md：
+   - 目标端：servers
+   - 平台：Ubuntu 22.04 LTS
+   - 产物：Docker镜像 + deb包（可选）
+   - 决策依据：glibc 2.35、Python 3.10、稳定 LTS
+4. 用户确认后执行打包
+5. 输出：demo-api:latest（Docker）、demo-api_1.0.0.deb
 ```
 
-### 2. 使用打包模板
+### 移动端打包（Android）
 
 ```bash
-# Ubuntu deb 打包（完整示例）
-cd your-project
-cp src/systems/ubuntu/templates/control.template debian/control
-cp src/systems/ubuntu/templates/rules.template debian/rules
-docker build -f src/systems/ubuntu/templates/Dockerfile.ubuntu-22.04 .
+# 用户对 Agent 说：
+"把这个 Android 项目打包成可以直接安装的 APK"
 
-# CentOS RPM 打包（基础示例）
-cd your-project
-cp src/systems/centos/templates/spec.template package.spec
-rpmbuild -bb package.spec
+# ForgeKit 执行：
+1. 识别为 mobile 端
+2. 读取 src/systems/mobile/android/decision-rules.yaml
+3. 生成 Forge.md：
+   - 目标端：mobile
+   - 平台：Android
+   - 版本：Android 11（API 30，覆盖90%设备）
+   - 产物：APK
+   - 签名：release keystore（用户自管理）
+   - 决策依据：兼容性、覆盖率、签名要求
+   - 风险提示：证书丢失无法更新、不上架需自行分发
+4. 用户配置 keystore 路径和密码
+5. 执行打包
+6. 输出：app-release.apk（可直接安装）
 ```
 
-### 3. 查看打包指南
+### Web→移动端打包（PWA）
 
 ```bash
-# Ubuntu 详细打包指南（推荐）
-cat src/systems/ubuntu/packaging-guide.md
+# 用户对 Agent 说：
+"把这个 Web 项目打包成可以在手机上离线使用的版本"
 
-# 其他系统打包指南（后续完善）
-cat src/systems/centos/packaging-guide.md  # 待添加
-cat src/systems/euleros/packaging-guide.md  # 待添加
+# ForgeKit 执行：
+1. 识别为 web 端
+2. 读取 src/systems/web/pwa/decision-rules.yaml
+3. 生成 Forge.md：
+   - 目标端：web
+   - 平台：PWA
+   - 版本：现代浏览器（Chrome 80+ / Safari 13+）
+   - 产物：PWA包（manifest + service worker）
+   - 决策依据：离线使用、移动端体验、无需原生代码
+   - 风险提示：Safari PWA功能有限、需HTTPS托管
+4. 用户确认后执行打包
+5. 输出：PWA包（可部署到HTTPS服务器）
 ```
 
 ---
 
-## 系统版本详细对照表
+## 后续扩展计划
 
-### glibc 版本对照
-
-| 系统 | 版本 | glibc | 兼容性说明 |
-|------|------|-------|-----------|
-| Ubuntu 20.04 | LTS | 2.31 | 低版本，构建产物可向上兼容 |
-| Ubuntu 22.04 | LTS | 2.35 | 中版本，推荐用于构建 |
-| Ubuntu 24.04 | LTS | 2.39 | 高版本，产物不可向下兼容 |
-| Debian 11 | Stable | 2.31 | 与 Ubuntu 20.04 相同 |
-| Debian 12 | Stable | 2.36 | 介于 Ubuntu 22.04-24.04 |
-| CentOS 7 | EOL | 2.17 | 极低版本，建议容器化 |
-| CentOS 9 | Stream | 2.34 | 中版本，推荐用于构建 |
-| EulerOS 2.2 | LTS | 2.17 | 兼容 CentOS 7 |
-| EulerOS 2.3 | LTS | 2.28 | 兼容 CentOS 8 |
-| EulerOS 2.9 | LTS | 2.34 | 兼容 CentOS 9 |
-
-**关键结论**：
-- ✅ 在 **glibc 低版本**构建，产物可向上兼容
-- ❌ 在 **glibc 高版本**构建，产物不可向下兼容
-- 🎯 **推荐构建版本**：Ubuntu 20.04（glibc 2.31）、CentOS 9（glibc 2.34）
+| 优先级 | 任务 | 阶段 |
+|--------|------|------|
+| P0 | 完善 Ubuntu 服务器端框架 | v0.1（已完成） |
+| P1 | 创建 mobile/android 决策规则和模板 | v0.3 规划 |
+| P1 | 创建 mobile/ios 决策规则和模板 | v0.3 规划 |
+| P1 | 创建 web/pwa 决策规则和模板 | v0.3 规划 |
+| P1 | 创建 web/hybrid 决策规则和模板 | v0.3 规划 |
+| P2 | 创建 desktop 决策规则和模板（可选） | v0.5 规划 |
+| P2 | 补充各端已知问题文档 | v0.3-v0.5 |
 
 ---
 
-### Python 版本对照
+## 知识层对应结构
 
-| 系统 | 版本 | Python 默认 | 推荐最低要求 |
-|------|------|-------------|-------------|
-| Ubuntu 20.04 | LTS | 3.8 | Python >= 3.8 |
-| Ubuntu 22.04 | LTS | 3.10 | Python >= 3.8 |
-| Ubuntu 24.04 | LTS | 3.12 | Python >= 3.8 |
-| Debian 11 | Stable | 3.9 | Python >= 3.8 |
-| Debian 12 | Stable | 3.11 | Python >= 3.8 |
-| CentOS 9 | Stream | 3.9 | Python >= 3.9 |
-| EulerOS 2.3 | LTS | 3.7 | Python >= 3.7 |
-| EulerOS 2.9 | LTS | 3.9 | Python >= 3.9 |
-
-**关键结论**：
-- ✅ 使用 **Python >= 3.8** 声明，覆盖大部分 LTS 系统
-- 🟡 EulerOS 2.3 需要特殊处理（Python 3.7）
-- 🎯 **推荐最低要求**：Python >= 3.8（兼容 Ubuntu 20.04+）
-
----
-
-## 已知问题与解决方案
-
-### glibc 版本不兼容
-
-**问题**：在 Ubuntu 22.04（glibc 2.35）构建的包，无法在 Ubuntu 20.04（glibc 2.31）上运行
-
-**解决方案**：
-1. 在目标系统最低版本构建（Ubuntu 20.04）
-2. 使用静态链接（Go/Rust）
-3. 使用容器化部署（Docker）
-
-**详细文档**：`src/systems/ubuntu/issues/glibc-dependency.md`
-
----
-
-### Python 版本不匹配
-
-**问题**：依赖 `python3 >= 3.10`，但 Ubuntu 20.04 只有 Python 3.8
-
-**解决方案**：
-1. 使用最低 Python 版本声明（`python3 >= 3.8`）
-2. 在 postinst 中安装指定版本
-3. 使用虚拟环境隔离
-
-**详细文档**：`src/systems/ubuntu/issues/python-versions.md`
-
----
-
-### aarch64 交叉编译
-
-**问题**：在 x86_64 上构建 aarch64 包需要配置
-
-**解决方案**：
-1. 使用 Docker buildx（`docker buildx build --platform linux/arm64`）
-2. 使用 QEMU 模拟
-3. 使用原生 ARM 实例（华为云鲲鹏、AWS Graviton）
-
----
-
-## 后续完善计划
-
-| 优先级 | 任务 | 预计完成时间 |
-|--------|------|-------------|
-| P0 | 完善 Ubuntu 打包指南（已完成） | ✅ 已完成 |
-| P1 | 完善 CentOS/EulerOS RPM 打包指南 | 编码阶段 |
-| P1 | 完善 Debian 打包指南 | 编码阶段 |
-| P1 | 补充 Dockerfile（CentOS/Debian/EulerOS） | 编码阶段 |
-| P2 | 补充 openSUSE 打包指南 | v0.2 |
-| P2 | 补充各系统已知问题文档 | v0.2 |
-
----
-
-## 使用 ForgeKit MCP 调用示例
-
-### 打包指定版本系统
-
-```bash
-# 在 Claude Code 中说：
-"把这个 Python 项目打包成 Ubuntu 22.04 的 deb 包"
-
-# ForgeKit MCP 会自动：
-1. 读取 src/systems/ubuntu/versions.yaml
-2. 选择 Ubuntu 22.04（jammy）构建镜像
-3. 使用 templates/Dockerfile.ubuntu-22.04
-4. 生成符合规范的 deb 包
-5. 输出 decision_basis（为什么选择 Ubuntu 22.04）
 ```
+src/knowledge/
+  servers/
+    docker-best-practices.yaml    # Docker 最佳实践（已有）
+    deb-packaging.yaml            # deb 打包知识（已有）
+    rpm-packaging.yaml            # rpm 打包知识（v0.2新增）
 
-### 多版本构建
+  mobile/                         # v0.3新增
+    android-packaging.yaml        # Android 打包知识
+    ios-packaging.yaml            # iOS 打包知识
+    signing-rules.yaml            # 签名配置规则
 
-```bash
-# 在 Claude Code 中说：
-"把这个项目打包成 Ubuntu 20.04/22.04 和 CentOS 9 的包"
+  web/                            # v0.3新增
+    pwa-best-practices.yaml       # PWA 最佳实践
+    hybrid-app.yaml               # 混合应用打包知识
 
-# ForgeKit MCP 会自动：
-1. 并行构建 3 个版本（Ubuntu 20.04/22.04 + CentOS 9）
-2. 处理 glibc 版本兼容性
-3. 统一命名产物：package_ubuntu-20.04.deb, package_centos-9.rpm
+  desktop/                        # v0.5新增（可选）
+    electron-packaging.yaml       # Electron 打包知识
+    native-packaging.yaml         # 原生桌面打包知识
 ```
 
 ---
 
-*本框架由 ForgeKit 维护，基于实战经验和官方规范持续更新。*
+## 与 MCP 工具的映射关系
+
+| MCP 工具 | 对应端 | 读取的 decision-rules.yaml |
+|----------|--------|---------------------------|
+| `build_docker_image` | servers | servers/ubuntu/decision-rules.yaml |
+| `pack_deb` | servers | servers/ubuntu/decision-rules.yaml |
+| `pack_rpm` | servers | servers/centos/decision-rules.yaml |
+| `pack_android_apk` | mobile | mobile/android/decision-rules.yaml |
+| `pack_ios_ipa` | mobile | mobile/ios/decision-rules.yaml |
+| `pack_pwa` | web | web/pwa/decision-rules.yaml |
+| `pack_hybrid_app` | web | web/hybrid/*/decision-rules.yaml |
+| `pack_windows_exe` | desktop | desktop/windows/decision-rules.yaml |
+| `pack_macos_app` | desktop | desktop/macos/decision-rules.yaml |
+
+---
+
+*本框架由 ForgeKit 维护，基于多端需求和复杂度评估持续更新。*

@@ -1,119 +1,117 @@
-# ForgeKit 文档评审清单 (Review Guide)
+# ForgeKit Review Guide
 
-> **评审背景**：本文档是 ForgeKit 项目 v0.1 的系统评审指引。
-> - **受众**：项目核心成员 + 邀请的社区评审人
-> - **时机**：文档定稿阶段（编码开始前）
-> - **方式**：评审人对照本文档逐项检查，填写反馈
-> - **后续**：反馈合并 → 文档定稿 → 进入编码
+> 阶段：开发前规划评审
+> 目标：确认需求、设计和技术计划足够清楚，再进入深度开发。
 
-> **当前状态**：✅ 已完成首轮评审 + P0/P1 改进，待定问题已决策（见下方 Q1-Q4）。
+## 1. 评审结论要求
 
----
+评审只给三种结论：
 
-## 评审范围
+| 结论 | 含义 |
+|------|------|
+| Go | 可以进入下一阶段 |
+| Revise | 需要修改文档后复审 |
+| Stop | 当前方向缺乏需求或可行性，应重新定位 |
 
-| 文档 | 内容 | 评审重点 |
-|------|------|----------|
-| [README.md](../README.md) | 项目定位、架构概览、能力表 | 定位是否清晰？和 Vector 区分是否足够？ |
-| [REQUIREMENTS.md](./REQUIREMENTS.md) | 需求定义、MVP 范围、成功指标 | MVP 范围是否合理？指标是否可量化？ |
-| [DESIGN.md](./DESIGN.md) | 架构设计、技术选型、演进路线 | 分层是否合理？待定问题怎么选？ |
+没有明确 Go 结论，不进入能力层开发。
 
----
+## 2. 评审范围
 
-## 核心评审问题
+| 文档 | 评审重点 |
+|------|----------|
+| [REQUIREMENTS.md](./REQUIREMENTS.md) | 用户是否真实、痛点是否成立、MVP 是否合理、商业价值是否可信 |
+| [DESIGN.md](./DESIGN.md) | 架构是否可执行、分层是否必要、边界是否清楚 |
+| [TECHNICAL_PLAN.md](./TECHNICAL_PLAN.md) | 技术落地是否具体、开发顺序是否合理、测试是否可执行 |
+| [AGENT_INTEGRATION.md](./specs/AGENT_INTEGRATION.md) | 是否清楚支持 Codex、Claude Code、Cline 等 Agent，MCP 是否作为主协议 |
+| [PACKAGING_DOCUMENT.md](./specs/PACKAGING_DOCUMENT.md) | `Forge.md` 是否足够独特、可读、可执行 |
+| [PROJECT_FRAMEWORK.md](./specs/PROJECT_FRAMEWORK.md) | 项目框架规范与非合规适配是否合理 |
+| [ROADMAP.md](./ROADMAP.md) | 阶段边界是否清晰，是否防止过早扩范围 |
+| [README.md](../README.md) | 对外定位是否准确，有无夸大当前能力 |
 
-### 1. 定位与差异化
-- **"Agent-Native Build & Release Platform"** 这个定位是否清晰？
-- 和 Vector 等工业平台的区分是否足够？会不会被误解成"阉割版"？
-- 目标用户（社团成员 + 独立开发者）是否覆盖合理？
+## 3. 需求评审问题
 
-### 2. MVP 范围
-- v0.1 只做 `pack_deb` + `build_docker_image` + 1 个 Python 模板，是否太窄/太宽？
-- MVP 验收标准（"AI 调用 → 产物可用"）是否足够验证范式？
+1. 目标用户是否足够具体，而不是“所有开发者”？
+2. 用户痛点是否近期真实发生？
+3. ForgeKit 相比 GitHub Actions、Dockerfile、Buildpacks、fpm、nfpm、GoReleaser 的差异是否清楚？
+4. v0.1 选择 Python + Docker/deb 是否合理？
+5. 如果调研显示 Docker-first 更合理，文档是否允许调整？
+6. Agent 使用路径是否清楚：先生成打包计划，再调用 MCP 工具？
+7. 商业价值是否建立在真实采用路径上，而不是泛泛说“市场很大”？
 
-### 3. 架构分层
-- 5 层架构（接入/知识/能力/模板/底座）是否合理？有无冗余/缺失？
-- 知识层作为核心差异化（一半价值在知识），这个判断是否正确？
-- 能力层原子化规范（含 `decision_basis`）是否足够 Agent 友好？
+## 4. 设计评审问题
 
-### 4. 技术选型
-- MCP Server 用 TypeScript 还是 Python？（见待定问题 1）
-- 知识库用 Markdown + YAML 是否合适？要不要用更结构化的方案（JSON Schema / 数据库）？
+1. MCP 是否应该是主入口，还是 CLI 主入口 + MCP 适配更合理？
+2. MCP Interface、Capability、System Adapter、Knowledge、Local Tooling 的边界是否清楚？
+3. Agent Integration（接入策略）和 Packaging Plan / `Forge.md`（产物规范）是否必要，是否增加了真实独特性，而非被误建成空运行时代码？
+4. v0.1 是否过早引入复杂知识库？
+5. `decision_basis` 是否真的能提升用户信任？
+6. 本地优先是否能满足试点用户？
+7. 是否存在“看起来像平台，但实际做不完”的风险？
 
-### 5. 成功指标
-- Agent 调用成功率 60%（MVP）→ 90%（长期），这个梯度是否合理？
-- 社团成员使用人数 3 → 20+，是否有推广计划支撑？
+## 5. 技术计划评审问题
 
----
+1. 目录结构是否支持后续扩展，但不过度设计？
+2. 工具接口是否足够稳定？
+3. 错误结构是否对 Agent 友好？
+4. `inspect_project` 与 `generate_packaging_plan` 是否应先于构建能力？
+5. 测试是否覆盖用户可见行为？
+6. 第一轮开发是否过大？
+7. `tsconfig`、构建、测试职责是否清楚分离？
 
-## 待定问题（已决策）
+## 6. Agent 协议与打包文档评审问题
 
-来自 DESIGN.md Section 10，多专家评审已给出结论：
+1. v0.1 选择 MCP 作为主协议是否合理？
+2. Skill / Markdown 指南是否足够覆盖 Codex 等非 MCP 优先场景？是否补齐了最小 CLI（`forgekit plan .` / `forgekit build .`）兜底？
+3. 是否明确不在 v0.1 自研协议？
+4. `Forge.md` 是否比普通 README 更有价值？是否存在生成后无人维护的腐烂风险？
+5. 打包文档是否能被人类、Agent、CI 同时复用？
+6. `build_docker_image` / `pack_deb` 是否强制要求先有 `Forge.md`（Plan-before-build 是否被强制而非靠 Agent 自律）？
+7. v0.1 是否明确 `Docker 为硬闭环、deb 为可选`，且各文档口径一致？
 
-### Q1: MCP Server 语言选型
-- **选项 A**：TypeScript（官方 SDK 成熟，类型安全，社团熟悉）
-- **选项 B**：Python（社团更熟，但 MCP SDK 不如 TS 完善）
-- **✅ 决策**：**TypeScript**
-- **理由**：4 位专家一致通过。官方 `@modelcontextprotocol/sdk` 更成熟，类型安全对工具 Schema 定义更友好，社团技术栈统一。
+## 7. 路线图评审问题
 
-### Q2: 社团私有源 / registry 地址
-- apt/yum 私有源用什么地址？（社团是否有现有基础设施？）
-- Docker registry 用 Docker Hub、GitHub Packages、还是自建？
-- **✅ 决策**：**MVP 阶段不做私有源**，产物存 GitHub Releases
-- **理由**：0 成本起步，MVP 验证范式优先。v0.2 调研 GitHub Packages，社团规模扩大后再考虑自建。
-- **分阶段计划**：
-  - v0.1（MVP）：产物存 GitHub Releases，本地验证
-  - v0.2：调研 GitHub Packages（apt/yum 源 + Docker registry）
-  - v1.0：社团自托管（如有需求）
+1. v0.0 是否真正阻止了过早开发？
+2. v0.1 是否能在有限时间内完成？
+3. v0.2 是否基于真实项目反馈，而不是凭空扩功能？
+4. v0.3/v1.0 是否只作为方向，不影响 v0.1 收敛？
 
-### Q3: 能力层与底座调用方式
-- **选项 A**：CLI 调用（底座封装成命令行工具）
-- **选项 B**：HTTP API（底座暴露 REST/gRPC）
-- **选项 C**：直接复用 GitHub Actions workflow（Agent 触发 workflow）
-- **✅ 决策**：**CLI 调用**
-- **理由**：最轻量，调试方便，CI/本地都可运行。调用链：`Agent → MCP Server → CLI → Docker 容器`。每层可独立测试。
-- **架构**：
-  ```
-  Agent → MCP Server (TypeScript)
-           ↓ child_process.spawn()
-          CLI (底座命令行工具)
-           ↓ exec()
-          Docker 容器（隔离构建环境）
-  ```
+## 8. 打分表
 
-### Q4: 鉴权需求
-- **选项 A**：暂不做鉴权（MVP 私有开发，后期再加）
-- **选项 B**：社团内部用简单 token，外部开源后做 OAuth
-- **✅ 决策**：**MVP 不做鉴权**，预留 auth middleware 插槽
-- **理由**：内部社团使用，降低试用门槛。MVP 私有开发，加鉴权增加复杂度无收益。
-- **扩展点设计**：MCP Server 入口预留 header-based auth middleware 插槽，v0.4 后再实现。
+| 项目 | 分数 1-5 | 说明 |
+|------|----------|------|
+| 需求真实性 |  | 是否有真实用户和真实痛点 |
+| MVP 聚焦度 |  | 是否足够小且能验证核心假设 |
+| 架构可执行性 |  | 是否能落地，不只是概念 |
+| 技术计划清晰度 |  | 是否能指导开发 |
+| Agent 接入清晰度 |  | 是否清楚 MCP、Skill/Markdown 和未来协议边界 |
+| 打包文档独特性 |  | `Forge.md` 是否有清晰价值 |
+| 商业/采用价值 |  | 是否有明确采用路径 |
+| 风险控制 |  | 是否知道什么不做 |
 
----
+Go 标准：总分不低于 32/40，且“需求真实性”“架构可执行性”“Agent 接入清晰度”都不低于 4。
 
-## 评审反馈格式
-
-请按以下结构回复：
+## 9. 评审输出模板
 
 ```markdown
-## 评审结论
-- 定位清晰度：★☆☆☆☆ / ★★☆☆☆ / ★★★☆☆ / ★★★★☆ / ★★★★★
-- MVP 范围合理性：...
-- 架构设计合理性：...
-- 整体评分：X / 10
+## 结论
+Go / Revise / Stop
 
-## 具体建议
-- [定位/范围/架构/技术选型/指标]：...
+## 分数
+- 需求真实性：
+- MVP 聚焦度：
+- 架构可执行性：
+- 技术计划清晰度：
+- Agent 接入清晰度：
+- 打包文档独特性：
+- 商业/采用价值：
+- 风险控制：
 
-## 待定问题反馈
-- Q1：...
-- Q2：...
-- Q3：...
-- Q4：...
-
-## 其他建议
+## 必改项
 - ...
+
+## 可后置项
+- ...
+
+## 是否允许进入开发
+是 / 否
 ```
-
----
-
-*感谢评审！反馈会直接合并到下一版文档。*

@@ -1,0 +1,23 @@
+# ForgeKit 文档导航
+
+> 文档原则：**精而不多**。少量核心文档 + 必要的规范子文档。
+> 分类依据：**按文档职能**，而非按"设计"这种既当文件名又当文件夹名的混淆命名。
+
+## 核心文档（根目录，决策与治理）
+- [需求与价值](./REQUIREMENTS.md) — 做什么、为谁做、为什么
+- [架构设计](./DESIGN.md) — 整体架构与原则（统领 `specs/` 下的规范子文档）
+- [技术落地](./TECHNICAL_PLAN.md) — 怎么实现、开发顺序
+- [路线图](./ROADMAP.md) — 分阶段目标
+- [评审清单](./REVIEW.md) — 发布前核对
+
+## 规范子文档（`specs/`）
+> 具体契约与标准：Agent 怎么接、打包计划怎么写、项目框架怎么合规。
+
+- [Agent 接入方案](./specs/AGENT_INTEGRATION.md)
+- [Forge.md 打包文档规范](./specs/PACKAGING_DOCUMENT.md)
+- [项目框架规范与适配](./specs/PROJECT_FRAMEWORK.md)
+
+## 归档
+- [archive/](./archive/README.md) — 阶段性 / 过时文档（暂不移动现行文档）
+
+详细规划见各文档；根目录 [README.md](../README.md) 为对外总览。
