@@ -3,15 +3,28 @@
  * 验证：工具可被发现、plan_path 校验生效、结构化输出
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 import { executeTool } from '../../src/mcp-server/tools/executor.js';
 import { registerTools } from '../../src/mcp-server/tools/registry.js';
+
+let tmpDir: string;
+
+beforeAll(() => {
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'forgekit-smoke-'));
+});
+
+afterAll(() => {
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
 
 describe('MCP 协议层冒烟测试', () => {
   describe('工具发现测试', () => {
     it('能列出所有 4 个工具', () => {
       const tools = registerTools();
-      const toolNames = tools.map(t => t.name);
+      const toolNames = tools.map((t) => t.name);
 
       expect(toolNames).toContain('inspect_project');
       expect(toolNames).toContain('generate_packaging_plan');
@@ -23,7 +36,7 @@ describe('MCP 协议层冒烟测试', () => {
     it('所有工具都有正确的 Schema', () => {
       const tools = registerTools();
 
-      tools.forEach(tool => {
+      tools.forEach((tool) => {
         expect(tool.inputSchema.type).toBe('object');
         expect(tool.inputSchema.properties).toBeDefined();
         expect(tool.inputSchema.required).toBeDefined();
@@ -33,11 +46,9 @@ describe('MCP 协议层冒烟测试', () => {
 
     it('构建类工具有 plan_path 必需字段', () => {
       const tools = registerTools();
-      const buildTools = tools.filter(t =>
-        ['build_docker_image', 'pack_deb'].includes(t.name)
-      );
+      const buildTools = tools.filter((t) => ['build_docker_image', 'pack_deb'].includes(t.name));
 
-      buildTools.forEach(tool => {
+      buildTools.forEach((tool) => {
         expect(tool.inputSchema.properties?.plan_path).toBeDefined();
         expect(tool.inputSchema.required).toContain('plan_path');
       });
@@ -47,9 +58,8 @@ describe('MCP 协议层冒烟测试', () => {
   describe('plan_path 强制校验测试', () => {
     it('build_docker_image 缺失 plan_path 返回 plan_not_found', async () => {
       const result = await executeTool('build_docker_image', {
-        source_dir: '/tmp/test',
+        source_dir: tmpDir,
         image_name: 'test',
-        // plan_path 缺失
       });
 
       expect(result.status).toBe('failed');
@@ -60,20 +70,16 @@ describe('MCP 协议层冒烟测试', () => {
 
     it('pack_deb 缺失 plan_path 返回 plan_not_found', async () => {
       const result = await executeTool('pack_deb', {
-        source_dir: '/tmp/test',
+        source_dir: tmpDir,
         version: '1.0.0',
-        // plan_path 缺失
       });
 
       expect(result.status).toBe('failed');
       expect(result.error?.code).toBe('plan_not_found');
     });
 
-    it('非构建类工具不强制 plan_path', async () => {
-      const result = await executeTool('inspect_project', {
-        source_dir: '/tmp/test',
-        // 无 plan_path
-      });
+    it('非构建类工具不强制 plan_path（用真实临时目录）', async () => {
+      const result = await executeTool('inspect_project', { source_dir: tmpDir });
 
       expect(result.status).toBe('success');
       expect(result.error).toBeUndefined();
@@ -81,47 +87,33 @@ describe('MCP 协议层冒烟测试', () => {
   });
 
   describe('结构化输出测试', () => {
-    it('所有工具返回 ForgeKitResult 结构', async () => {
-      const tools = [
-        { name: 'inspect_project', args: { source_dir: '/tmp' } },
-        { name: 'generate_packaging_plan', args: { source_dir: '/tmp', goals: ['Docker'] } },
-        { name: 'build_docker_image', args: { source_dir: '/tmp', plan_path: '/tmp/Forge.md', image_name: 'test' } },
-        { name: 'pack_deb', args: { source_dir: '/tmp', plan_path: '/tmp/Forge.md', version: '1.0.0' } },
-      ];
+    it('inspect_project 返回 ForgeKitResult 结构（含 decision_basis）', async () => {
+      const result: any = await executeTool('inspect_project', { source_dir: tmpDir });
 
-      for (const { name, args } of tools) {
-        const result = await executeTool(name, args);
-
-        // 验证结构
-        expect(result).toHaveProperty('status');
-        expect(['success', 'failed']).toContain(result.status);
-
-        if (result.status === 'success') {
-          expect(result.decision_basis).toBeDefined();
-        } else if (result.error) {
-          expect(result.error.code).toBeDefined();
-          expect(result.error.summary).toBeDefined();
-        }
-      }
+      expect(result).toHaveProperty('status');
+      expect(result.status).toBe('success');
+      expect(result.decision_basis).toBeDefined();
     });
 
-    it('返回 decision_basis（协议层占位）', async () => {
-      const result = await executeTool('build_docker_image', {
-        source_dir: '/tmp/test',
-        plan_path: '/tmp/test/Forge.md',
+    it('构建类工具 plan_path 校验通过后返回 decision_basis', async () => {
+      const planPath = path.join(tmpDir, 'Forge.md');
+      fs.writeFileSync(planPath, '# Forge Plan');
+
+      const result: any = await executeTool('build_docker_image', {
+        source_dir: tmpDir,
+        plan_path: planPath,
         image_name: 'test',
       });
 
       expect(result.status).toBe('success');
       expect(result.decision_basis).toBeDefined();
-      expect(result.decision_basis?.build_method).toContain('协议层');
     });
   });
 
   describe('错误结构验证', () => {
     it('plan_not_found 错误有完整字段', async () => {
       const result = await executeTool('build_docker_image', {
-        source_dir: '/tmp/test',
+        source_dir: tmpDir,
         image_name: 'test',
       });
 

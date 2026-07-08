@@ -1,0 +1,211 @@
+/**
+ * inspect_project - 项目识别能力
+ *
+ * 识别：语言、入口、已有打包配置、推荐打包目标
+ * 符合 V0.1_IMPLEMENTATION M2 / DESIGN §5.1
+ */
+
+import * as path from 'path';
+import {
+  assertSourceDir,
+  PathValidationError,
+  listFiles,
+  readTextFile,
+  pathExists,
+} from './utils/filesystem.js';
+import type { InspectProjectOutput, ExistingPackaging } from './types.js';
+
+export async function inspectProject(sourceDir: string): Promise<InspectProjectOutput> {
+  // 1. 校验源目录
+  try {
+    assertSourceDir(sourceDir);
+  } catch (e) {
+    if (e instanceof PathValidationError) {
+      return {
+        status: 'failed',
+        error: {
+          code: e.code as any,
+          summary: e.message,
+          suggested_fix: '请提供有效的项目根目录路径',
+        },
+      };
+    }
+    throw e;
+  }
+
+  // 2. 识别已有打包配置
+  const existingPackaging = detectExistingPackaging(sourceDir);
+
+  // 3. 识别语言
+  const { language, runtime } = detectLanguage(sourceDir, existingPackaging);
+
+  // 4. 识别入口
+  const entrypoints = detectEntrypoints(sourceDir, language);
+
+  // 5. 生成推荐
+  const recommendations = generateRecommendations(language, existingPackaging, entrypoints);
+
+  // 6. 决策依据
+  const decisionBasis = {
+    build_method: language
+      ? `识别为 ${language} 项目`
+      : '未识别出已知语言（需用户确认）',
+    compatibility_notes: runtime ? [`${language} 运行时: ${runtime}`] : [],
+  };
+
+  // 7. 风险提示
+  const warnings: string[] = [];
+  if (!language) {
+    warnings.push('未识别出项目语言，可能需要手动指定');
+  }
+  if (entrypoints.length === 0) {
+    warnings.push('未找到明确入口，构建时可能需要手动指定');
+  }
+  if (!existingPackaging.dockerfile && language) {
+    warnings.push('项目缺少 Dockerfile，生成计划时可选择自动生成');
+  }
+
+  return {
+    status: 'success',
+    language,
+    runtime,
+    entrypoints,
+    existing_packaging: existingPackaging,
+    recommendations,
+    warnings,
+    decision_basis: decisionBasis,
+  };
+}
+
+// ========== 已有打包配置检测 ==========
+
+function detectExistingPackaging(sourceDir: string): ExistingPackaging {
+  return {
+    dockerfile: pathExists(path.join(sourceDir, 'Dockerfile')),
+    docker_compose:
+      pathExists(path.join(sourceDir, 'docker-compose.yml')) ||
+      pathExists(path.join(sourceDir, 'docker-compose.yaml')),
+    setup_py: pathExists(path.join(sourceDir, 'setup.py')),
+    pyproject_toml: pathExists(path.join(sourceDir, 'pyproject.toml')),
+    requirements_txt: pathExists(path.join(sourceDir, 'requirements.txt')),
+    package_json: pathExists(path.join(sourceDir, 'package.json')),
+    gradle_build:
+      pathExists(path.join(sourceDir, 'build.gradle')) ||
+      pathExists(path.join(sourceDir, 'build.gradle.kts')),
+    xcode_project:
+      listFiles(sourceDir).some((f) => f.endsWith('.xcodeproj')) ||
+      pathExists(path.join(sourceDir, 'Package.swift')),
+  };
+}
+
+// ========== 语言检测 ==========
+
+function detectLanguage(
+  sourceDir: string,
+  packaging: ExistingPackaging
+): { language?: string; runtime?: string } {
+  // Python
+  if (
+    packaging.setup_py ||
+    packaging.pyproject_toml ||
+    packaging.requirements_txt ||
+    listFiles(sourceDir).some((f) => f.endsWith('.py'))
+  ) {
+    const runtime = detectPythonRuntime(sourceDir);
+    return { language: 'Python', runtime };
+  }
+
+  // Node.js / TypeScript
+  if (packaging.package_json) {
+    const pkg = readTextFile(path.join(sourceDir, 'package.json'));
+    const isTypeScript = pkg?.includes('"typescript"') || listFiles(sourceDir).some((f) => f.endsWith('.ts'));
+    return {
+      language: isTypeScript ? 'TypeScript' : 'JavaScript',
+      runtime: 'Node.js',
+    };
+  }
+
+  // Go
+  if (listFiles(sourceDir).some((f) => f.endsWith('.go')) || pathExists(path.join(sourceDir, 'go.mod'))) {
+    return { language: 'Go', runtime: 'Go' };
+  }
+
+  return {};
+}
+
+function detectPythonRuntime(sourceDir: string): string {
+  const pyproject = readTextFile(path.join(sourceDir, 'pyproject.toml'));
+  if (pyproject) {
+    const match = pyproject.match(/python_requires\s*=\s*["']([^"']+)["']/);
+    if (match) return `Python ${match[1]}`;
+  }
+  return 'Python 3.x';
+}
+
+// ========== 入口检测 ==========
+
+function detectEntrypoints(sourceDir: string, language?: string): string[] {
+  const entries: string[] = [];
+
+  if (language === 'Python') {
+    const commonEntries = ['app.py', 'main.py', 'run.py', 'server.py', 'wsgi.py'];
+    for (const entry of commonEntries) {
+      if (pathExists(path.join(sourceDir, entry))) {
+        entries.push(entry);
+      }
+    }
+  } else if (language === 'JavaScript' || language === 'TypeScript') {
+    const pkg = readTextFile(path.join(sourceDir, 'package.json'));
+    if (pkg) {
+      try {
+        const parsed = JSON.parse(pkg);
+        if (parsed.main) entries.push(parsed.main);
+        if (parsed.scripts?.start) entries.push('npm start');
+      } catch {
+        // ignore parse error
+      }
+    }
+    if (entries.length === 0) {
+      const commonEntries = ['index.js', 'index.ts', 'server.js', 'app.js'];
+      for (const entry of commonEntries) {
+        if (pathExists(path.join(sourceDir, entry))) {
+          entries.push(entry);
+        }
+      }
+    }
+  } else if (language === 'Go') {
+    if (pathExists(path.join(sourceDir, 'main.go'))) entries.push('main.go');
+  }
+
+  return entries;
+}
+
+// ========== 推荐生成 ==========
+
+function generateRecommendations(
+  language: string | undefined,
+  packaging: ExistingPackaging,
+  entrypoints: string[]
+): string[] {
+  const recs: string[] = [];
+
+  if (language === 'Python') {
+    recs.push('推荐打包目标：Docker 镜像（v0.1 硬闭环）');
+    if (!packaging.dockerfile) {
+      recs.push('建议生成 Dockerfile（基于 python:3.10-slim）');
+    }
+    recs.push('可选：Ubuntu deb 包（仅当目标为 Ubuntu + systemd）');
+  } else if (language === 'JavaScript' || language === 'TypeScript') {
+    recs.push('推荐打包目标：Docker 镜像（基于 node:18-alpine）');
+  } else if (language === 'Go') {
+    recs.push('推荐打包目标：Docker 镜像（多阶段构建，最终 scratch/distroless）');
+  } else {
+    recs.push('未识别出已知语言，需用户手动指定打包目标');
+  }
+
+  if (entrypoints.length === 0) {
+    recs.push('未检测到入口，构建前需确认启动命令');
+  }
+
+  return recs;
+}

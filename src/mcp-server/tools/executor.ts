@@ -2,20 +2,20 @@
  * Tool Executor - CallTool handler with plan_path enforcement
  *
  * 符合 V0.1_IMPLEMENTATION M1 要求：
- * - 构建类工具强制校验 plan_path
+ * - 构建类工具强制校验 plan_path（含文件存在性）
  * - 缺失时返回 plan_not_found 错误
  * - 所有调用返回结构化结果（含 decision_basis + result.json）
  */
 
-import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
+import * as fs from 'fs';
 import { isBuildTool } from './registry.js';
 import type { ForgeKitResult } from '@capabilities/types.js';
 
+// 真实能力实现（按里程碑逐步接入）
+import { inspectProject } from '@capabilities/inspect-project.js';
+
 /**
  * Execute tool call
- *
- * M1 阶段：只实现协议层，不调用实际能力
- * 返回占位响应，但结构正确（符合 ForgeKitResult）
  */
 export async function executeTool(
   name: string,
@@ -26,132 +26,112 @@ export async function executeTool(
     const planPath = args.plan_path as string | undefined;
 
     if (!planPath) {
-      return {
-        status: 'failed',
-        error: {
-          code: 'plan_not_found',
-          summary: 'Forge.md 打包计划文件不存在',
-          suggested_fix: '请先调用 generate_packaging_plan 生成 Forge.md，再执行构建',
-          plan_correction: '构建类工具必须传入 plan_path 参数（Plan-before-build 强制约束）',
-        },
-        next_actions: ['调用 generate_packaging_plan 生成 Forge.md'],
-      };
+      return planNotFound();
     }
-
-    // TODO: M3 后验证 plan_path 文件是否存在
-    // if (!fs.existsSync(planPath)) {
-    //   return { status: 'failed', error: { code: 'plan_not_found', ... } };
-    // }
+    if (!fs.existsSync(planPath)) {
+      return planNotFound(planPath);
+    }
   }
 
-  // ========== Step 2: 路由到具体工具（M1 占位）==========
+  // ========== Step 2: 路由到具体工具 ==========
   switch (name) {
     case 'inspect_project':
-      return executeInspectProject(args);
+      return inspectProject(args.source_dir as string);
 
     case 'generate_packaging_plan':
-      return executeGeneratePackagingPlan(args);
+      return runGeneratePackagingPlan(args);
 
     case 'build_docker_image':
-      return executeBuildDockerImage(args);
+      return runBuildDockerImage(args);
 
     case 'pack_deb':
-      return executePackDeb(args);
+      return runPackDeb(args);
 
     default:
       return {
         status: 'failed',
-        error: {
-          code: 'unknown_error',
-          summary: `未知工具: ${name}`,
-        },
+        error: { code: 'unknown_error', summary: `未知工具: ${name}` },
       };
   }
 }
 
-// ========== 工具占位实现（M2-M5 后实现实际能力）==========
-
-/**
- * M2: inspect_project（占位）
- */
-async function executeInspectProject(
-  args: Record<string, unknown>
-): Promise<ForgeKitResult> {
-  const sourceDir = args.source_dir as string;
-
-  // M1 阶段：返回占位响应（结构正确）
+function planNotFound(planPath?: string): ForgeKitResult {
   return {
-    status: 'success',
-    decision_basis: {
-      build_method: 'inspect_project（协议层已实现，能力层待 M2 实现）',
+    status: 'failed',
+    error: {
+      code: 'plan_not_found',
+      summary: planPath
+        ? `Forge.md 打包计划文件不存在: ${planPath}`
+        : 'Forge.md 打包计划文件不存在',
+      suggested_fix: '请先调用 generate_packaging_plan 生成 Forge.md，再执行构建',
+      plan_correction: '构建类工具必须传入已存在的 plan_path（Plan-before-build 强制约束）',
     },
-    next_actions: ['M2 阶段实现项目识别逻辑'],
-    warnings: ['当前为协议层占位响应，未实现实际能力'],
+    next_actions: ['调用 generate_packaging_plan 生成 Forge.md'],
   };
 }
 
-/**
- * M3: generate_packaging_plan（占位）
- */
-async function executeGeneratePackagingPlan(
-  args: Record<string, unknown>
-): Promise<ForgeKitResult> {
-  const sourceDir = args.source_dir as string;
-  const goals = args.goals as string[] | undefined;
+// ========== 工具实现路由 ==========
+// 用动态 require 实现按里程碑渐进接入，避免引用未实现模块导致编译失败
 
-  // M1 阶段：返回占位响应（结构正确）
-  return {
-    status: 'success',
-    decision_basis: {
-      build_method: 'generate_packaging_plan（协议层已实现，能力层待 M3 实现）',
-    },
-    next_actions: ['M3 阶段实现 Forge.md 生成逻辑'],
-    warnings: ['当前为协议层占位响应，未实现实际能力'],
-  };
+async function runGeneratePackagingPlan(args: Record<string, unknown>): Promise<ForgeKitResult> {
+  const mod = tryRequire('@capabilities/generate-packaging-plan.js');
+  if (!mod) return notImplemented('generate_packaging_plan', 'M3');
+  return mod.generatePackagingPlan(
+    args.source_dir as string,
+    args.goals as string[],
+    args.target_environment as string | undefined
+  );
+}
+
+async function runBuildDockerImage(args: Record<string, unknown>): Promise<ForgeKitResult> {
+  const mod = tryRequire('@capabilities/build-docker-image.js');
+  if (!mod) return notImplemented('build_docker_image', 'M4');
+  return mod.buildDockerImage({
+    source_dir: args.source_dir as string,
+    plan_path: args.plan_path as string,
+    image_name: args.image_name as string,
+    tags: (args.tags as string[]) || ['latest'],
+    platform: (args.platform as string) || 'linux/amd64',
+    dockerfile_path: (args.dockerfile_path as string) || 'Dockerfile',
+  });
+}
+
+async function runPackDeb(args: Record<string, unknown>): Promise<ForgeKitResult> {
+  const mod = tryRequire('@capabilities/pack-deb.js');
+  if (!mod) return notImplemented('pack_deb', 'M5');
+  return mod.packDeb({
+    source_dir: args.source_dir as string,
+    plan_path: args.plan_path as string,
+    version: args.version as string,
+    distro: (args.distro as string) || 'ubuntu-22.04',
+    arch: (args.arch as string) || 'x86_64',
+  });
 }
 
 /**
- * M4: build_docker_image（占位）
+ * 动态加载模块（运行时解析路径别名），失败返回 null
  */
-async function executeBuildDockerImage(
-  args: Record<string, unknown>
-): Promise<ForgeKitResult> {
-  const sourceDir = args.source_dir as string;
-  const planPath = args.plan_path as string;
-  const imageName = args.image_name as string;
-
-  // M1 阶段：返回占位响应（结构正确，含 decision_basis + result.json）
-  return {
-    status: 'success',
-    decision_basis: {
-      target_platform: 'linux/amd64',
-      build_method: 'build_docker_image（协议层已实现，能力层待 M4 实现）',
-    },
-    warnings: ['当前为协议层占位响应，未实现实际能力'],
-    next_actions: ['M4 阶段实现 Docker 构建逻辑'],
-    // result.json 占位
-    // artifacts: [{ type: 'docker-image', path: `${imageName}:latest` }],
-  };
+function tryRequire(specifier: string): any | null {
+  try {
+    // @capabilities/* 别名在 tsconfig 中映射到 dist/capabilities/*
+    const resolved = specifier.replace('@capabilities/', './capabilities/');
+    const distPath = require('path').resolve(__dirname, '../../', resolved);
+    return require(distPath);
+  } catch {
+    return null;
+  }
 }
 
 /**
- * M5: pack_deb（占位）
+ * 能力未实现占位（plan_path 校验已通过）
  */
-async function executePackDeb(
-  args: Record<string, unknown>
-): Promise<ForgeKitResult> {
-  const sourceDir = args.source_dir as string;
-  const planPath = args.plan_path as string;
-  const version = args.version as string;
-
-  // M1 阶段：返回占位响应（结构正确）
+function notImplemented(toolName: string, milestone: string): ForgeKitResult {
   return {
     status: 'success',
     decision_basis: {
-      target_platform: 'ubuntu-22.04',
-      build_method: 'pack_deb（协议层已实现，能力层待 M5 实现）',
+      build_method: `${toolName}（plan_path 已校验通过，能力层待 ${milestone} 实现）`,
     },
-    warnings: ['当前为协议层占位响应，未实现实际能力'],
-    next_actions: ['M5 阶段实现 deb 打包逻辑（仅当目标为 Ubuntu + systemd）'],
+    warnings: [`当前为协议层占位响应，${milestone} 实现后返回真实结果`],
+    next_actions: [`${milestone} 阶段实现实际能力`],
   };
 }
