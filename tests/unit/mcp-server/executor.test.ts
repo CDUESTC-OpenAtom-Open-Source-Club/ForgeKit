@@ -51,7 +51,7 @@ describe('Executor - plan_path 强制校验', () => {
     expect(result.error?.code).toBe('plan_not_found');
   });
 
-  it('build_docker_image 提供 plan_path 且文件存在 → 通过 plan 校验（无 docker 则返回 daemon 错误）', async () => {
+  it('build_docker_image 提供 plan_path 且文件存在 → 通过 plan 校验（结果取决于 Docker 环境）', async () => {
     const projDir = path.join(tmpDir, 'build-real');
     fs.mkdirSync(projDir, { recursive: true });
     fs.writeFileSync(path.join(projDir, 'app.py'), '');
@@ -66,10 +66,15 @@ describe('Executor - plan_path 强制校验', () => {
 
     // plan_path 校验通过（不会返回 plan_not_found）
     expect(result.error?.code).not.toBe('plan_not_found');
-    // 无 docker 环境下应返回 daemon/build 错误
-    expect(['docker_daemon_unavailable', 'docker_build_failed', 'dockerfile_not_found']).toContain(
-      result.error?.code
-    );
+    // 结果取决于 Docker 环境：
+    // - Docker 可用 → success 或 docker_build_failed
+    // - Docker 不可用 → docker_daemon_unavailable
+    // - 无 Dockerfile 且语言无法识别 → dockerfile_not_found
+    if (result.status === 'failed') {
+      expect(['docker_daemon_unavailable', 'docker_build_failed', 'dockerfile_not_found']).toContain(result.error?.code);
+    } else {
+      expect(result.status).toBe('success');
+    }
   });
 });
 
