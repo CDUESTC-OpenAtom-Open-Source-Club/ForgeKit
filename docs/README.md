@@ -11,7 +11,7 @@
 - [评审清单](./REVIEW.md) — 发布前核对
 - [市场调研](./MARKET_RESEARCH.md) — 三方向调研与转型研判
 - [蓝海扩展方向](./BLUE_OCEAN.md) — 三片蓝海与双轮驱动
-- [v0.1 实现路径](./V0.1_IMPLEMENTATION.md) — 员工可执行的 MVP 落地计划
+- [v0.1 验收报告](./V0.1_ACCEPTANCE.md) — MVP 交付验收，对照 REQUIREMENTS §9 成功指标
 
 ## 规范子文档（`specs/`）
 > 具体契约与标准：Agent 怎么接、打包计划怎么写、项目框架怎么合规、决策规则怎么来。
@@ -25,6 +25,7 @@
 - [试点候选与拍板记录](./PILOTS.md) — v0.0 退出门槛证据（试点 + 已拍板决策）
 
 ## 归档
-- [archive/](./archive/README.md) — 阶段性 / 过时文档（暂不移动现行文档）
+- [archive/](./archive/README.md) — 阶段性 / 过时文档
+- [archive/v0.1-mvp/](./archive/v0.1-mvp/) — v0.1 实施计划与 MVP 报告（测试成功后归档）
 
 详细规划见各文档；根目录 [README.md](../README.md) 为对外总览。

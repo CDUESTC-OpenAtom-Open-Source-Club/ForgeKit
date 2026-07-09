@@ -56,9 +56,43 @@ ForgeKit 的解法不是再写一个打包器，而是填补"Agent 交付层"空
 当前 MCP Server 入口：
 
 ```bash
+git clone https://github.com/muzimu217/ForgeKit.git
+cd ForgeKit
+npm install
 npm run build
+npm test          # 51 个测试（协议层 + 能力层 + E2E）
 node dist/mcp-server/index.js
 ```
+
+### Agent 接入配置
+
+在你的 MCP 客户端（Claude Code / Cline / Cursor / Codex / Windsurf）配置中：
+
+```json
+{
+  "mcpServers": {
+    "forgekit": {
+      "command": "node",
+      "args": ["/absolute/path/to/ForgeKit/dist/mcp-server/index.js"]
+    }
+  }
+}
+```
+
+### 使用示例（Agent 闭环）
+
+在 Agent 中说："把这个 Python 项目打包成可以在服务器上运行的版本。"
+
+Agent 自动执行：
+
+| 步骤 | 工具 | 输出 |
+|------|------|------|
+| 1 | `inspect_project` | 识别为 Python 项目，入口 app.py，已有 Dockerfile |
+| 2 | `generate_packaging_plan` | 生成 `Forge.md`（含 Decisions/Risks 决策依据） |
+| 3 | 用户审查 `Forge.md` | 确认目标平台、风险 |
+| 4 | `build_docker_image` | 构建 Docker 镜像（**强制 plan_path**），返回 `decision_basis` + `result.json` |
+
+**Plan-before-build 强制约束**：构建类工具（`build_docker_image` / `pack_deb`）必须传入已存在的 `Forge.md` 路径，缺失返回 `plan_not_found`。
 
 
 ## v0.1 初始版本范围（最具战略价值的 MVP）
