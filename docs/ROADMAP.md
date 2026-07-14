@@ -404,7 +404,7 @@ src/systems/
 
 ## 蓝海扩展方向（双轮驱动）
 
-除主路线图外，存在三片蓝海（教育沙箱 / 边缘构建集群 / 开源发布矩阵），均由 v0.1 契约层支撑，是教育传播 + 商业变现的延展。详见 [`docs/BLUE_OCEAN.md`](./BLUE_OCEAN.md)；v0.1 执行路径见 [`docs/V0.1_IMPLEMENTATION.md`](./V0.1_IMPLEMENTATION.md)。
+除主路线图外，存在三片蓝海（教育沙箱 / 边缘构建集群 / 开源发布矩阵），均由 v0.1 契约层支撑，是教育传播 + 商业变现的延展。详见 [`docs/BLUE_OCEAN.md`](./BLUE_OCEAN.md)；v0.1 执行路径见 [`docs/V0.1_IMPLEMENTATION.md`](./archive/v0.1-mvp/V0.1_IMPLEMENTATION.md)。
 
 ---
 

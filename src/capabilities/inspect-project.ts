@@ -3,6 +3,10 @@
  *
  * 识别：语言、入口、已有打包配置、推荐打包目标
  * 符合 V0.1_IMPLEMENTATION M2 / DESIGN §5.1
+ *
+ * 性能优化（v0.1+）:
+ * - 单次会话内缓存结果
+ * - 基于顶层文件指纹自动失效
  */
 
 import * as path from 'path';
@@ -13,9 +17,31 @@ import {
   readTextFile,
   pathExists,
 } from './utils/filesystem.js';
+import { globalCache } from './utils/cache.js';
 import type { InspectProjectOutput, ExistingPackaging } from './types.js';
 
 export async function inspectProject(sourceDir: string): Promise<InspectProjectOutput> {
+  // 1. 尝试从缓存获取
+  const cached = globalCache.get(sourceDir);
+  if (cached) {
+    return cached;
+  }
+
+  // 2. 执行项目分析
+  const result = inspectProjectImpl(sourceDir);
+
+  // 3. 成功时缓存结果
+  if (result.status === 'success') {
+    globalCache.set(sourceDir, result);
+  }
+
+  return result;
+}
+
+/**
+ * 项目分析实现（内部函数）
+ */
+function inspectProjectImpl(sourceDir: string): InspectProjectOutput {
   // 1. 校验源目录
   try {
     assertSourceDir(sourceDir);
