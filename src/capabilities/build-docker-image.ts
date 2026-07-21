@@ -7,14 +7,10 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-  assertSourceDir,
-  assertFileExists,
-  PathValidationError,
-  pathExists,
-} from './utils/filesystem.js';
+import { assertSourceDir, PathValidationError, pathExists } from './utils/filesystem.js';
 import { runCommand, runCommandWithLog, commandExists, snippet } from './utils/command.js';
 import type { BuildDockerImageOutput, BuildResult } from './types.js';
+import { diagnoseBuildError } from './utils/error-diagnostic.js';
 
 export interface BuildDockerInput {
   source_dir: string;
@@ -47,7 +43,11 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
 
   // 2. 校验 plan_path（executor 已校验，此处双重保险）
   if (!pathExists(plan_path)) {
-    return failed('plan_not_found', `Forge.md 不存在: ${plan_path}`, '先调用 generate_packaging_plan');
+    return failed(
+      'plan_not_found',
+      `Forge.md 不存在: ${plan_path}`,
+      '先调用 generate_packaging_plan'
+    );
   }
 
   // 3. Dockerfile 检测/自动生成
@@ -91,8 +91,10 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
   const fullImageRefs = tags.map((t) => `${image_name}:${t}`);
   const buildArgs = [
     'build',
-    '--platform', platform,
-    '-f', absDockerfile,
+    '--platform',
+    platform,
+    '-f',
+    absDockerfile,
     ...fullImageRefs.flatMap((ref) => ['-t', ref]),
     source_dir,
   ];
@@ -103,8 +105,30 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
     logFileName: `build-docker-image-${image_name}-${Date.now()}.log`,
   });
 
-  // 6. 失败处理
+  // 6. 失败处理（使用智能诊断）
   if (!buildResult.success) {
+    // 尝试智能诊断
+    const diagnostic = diagnoseBuildError(
+      buildResult.stderr || buildResult.stdout,
+      buildResult.stderr
+    );
+
+    if (diagnostic) {
+      return failed(
+        diagnostic.code,
+        diagnostic.summary,
+        diagnostic.suggested_fix,
+        buildResult.logPath,
+        {
+          exit_code: buildResult.exitCode,
+          stdout_snippet: snippet(buildResult.stdout),
+          stderr_snippet: snippet(buildResult.stderr),
+          ...(diagnostic.detail && { diagnostic_detail: diagnostic.detail }),
+        }
+      );
+    }
+
+    // 未匹配到已知模式，返回通用错误
     return failed(
       'docker_build_failed',
       `docker build 失败（exit ${buildResult.exitCode}）`,
@@ -208,7 +232,10 @@ function detectLanguageForDockerfile(sourceDir: string): string | null {
     const pkg = fs.readFileSync(path.join(sourceDir, 'package.json'), 'utf-8');
     return pkg.includes('"typescript"') ? 'TypeScript' : 'JavaScript';
   }
-  if (pathExists(path.join(sourceDir, 'go.mod')) || fs.readdirSync(sourceDir).some((f) => f.endsWith('.go'))) {
+  if (
+    pathExists(path.join(sourceDir, 'go.mod')) ||
+    fs.readdirSync(sourceDir).some((f) => f.endsWith('.go'))
+  ) {
     return 'Go';
   }
   return null;
