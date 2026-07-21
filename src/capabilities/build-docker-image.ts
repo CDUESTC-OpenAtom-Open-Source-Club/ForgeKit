@@ -11,6 +11,7 @@ import { assertSourceDir, PathValidationError, pathExists } from './utils/filesy
 import { runCommand, runCommandWithLog, commandExists, snippet } from './utils/command.js';
 import type { BuildDockerImageOutput, BuildResult } from './types.js';
 import { diagnoseBuildError } from './utils/error-diagnostic.js';
+import { generateReleaseManifest, saveReleaseManifest } from './manifest-generator.js';
 
 export interface BuildDockerInput {
   source_dir: string;
@@ -87,7 +88,8 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
     );
   }
 
-  // 5. 构建
+  // 5. 构建（记录开始时间）
+  const buildStartTime = Date.now();
   const fullImageRefs = tags.map((t) => `${image_name}:${t}`);
   const buildArgs = [
     'build',
@@ -104,6 +106,8 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
     timeout: 300000,
     logFileName: `build-docker-image-${image_name}-${Date.now()}.log`,
   });
+
+  const buildDurationMs = Date.now() - buildStartTime;
 
   // 6. 失败处理（使用智能诊断）
   if (!buildResult.success) {
@@ -170,6 +174,33 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
   if (dockerfileGenerated) {
     warnings.push(`已自动生成 ${path.relative(source_dir, absDockerfile)}，请审查内容`);
   }
+
+  // 9. 生成Release Manifest（Git追溯）
+  const manifest = generateReleaseManifest({
+    sourceDir: source_dir,
+    planPath: plan_path,
+    targetPlatform: platform,
+    targetArchitecture: platform.split('/')[1] || 'amd64',
+    decisions: decision_basis.compatibility_notes,
+    risksAcknowledged: [],
+    artifacts: [
+      {
+        type: 'docker-image',
+        name: fullImageRefs[0],
+        path: fullImageRefs[0],
+        size_bytes: sizeBytes || 0,
+        checksum: {
+          sha256: 'calculated-at-runtime', // TODO: 实际计算镜像digest
+        },
+      },
+    ],
+    buildDurationMs,
+    dockerVersion: daemonCheck.stdout.trim(),
+  });
+
+  // 保存Manifest
+  const manifestPath = saveReleaseManifest(manifest, source_dir);
+  warnings.push(`Release Manifest已保存到 ${path.basename(manifestPath)}`);
 
   return {
     status: 'success',
