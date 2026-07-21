@@ -73,9 +73,7 @@ function inspectProjectImpl(sourceDir: string): InspectProjectOutput {
 
   // 6. 决策依据
   const decisionBasis = {
-    build_method: language
-      ? `识别为 ${language} 项目`
-      : '未识别出已知语言（需用户确认）',
+    build_method: language ? `识别为 ${language} 项目` : '未识别出已知语言（需用户确认）',
     compatibility_notes: runtime ? [`${language} 运行时: ${runtime}`] : [],
   };
 
@@ -144,7 +142,8 @@ function detectLanguage(
   // Node.js / TypeScript
   if (packaging.package_json) {
     const pkg = readTextFile(path.join(sourceDir, 'package.json'));
-    const isTypeScript = pkg?.includes('"typescript"') || listFiles(sourceDir).some((f) => f.endsWith('.ts'));
+    const isTypeScript =
+      pkg?.includes('"typescript"') || listFiles(sourceDir).some((f) => f.endsWith('.ts'));
     return {
       language: isTypeScript ? 'TypeScript' : 'JavaScript',
       runtime: 'Node.js',
@@ -152,7 +151,10 @@ function detectLanguage(
   }
 
   // Go
-  if (listFiles(sourceDir).some((f) => f.endsWith('.go')) || pathExists(path.join(sourceDir, 'go.mod'))) {
+  if (
+    listFiles(sourceDir).some((f) => f.endsWith('.go')) ||
+    pathExists(path.join(sourceDir, 'go.mod'))
+  ) {
     return { language: 'Go', runtime: 'Go' };
   }
 
@@ -163,7 +165,9 @@ function detectPythonRuntime(sourceDir: string): string {
   const pyproject = readTextFile(path.join(sourceDir, 'pyproject.toml'));
   if (pyproject) {
     const match = pyproject.match(/python_requires\s*=\s*["']([^"']+)["']/);
-    if (match) return `Python ${match[1]}`;
+    if (match) {
+      return `Python ${match[1]}`;
+    }
   }
   return 'Python 3.x';
 }
@@ -185,8 +189,12 @@ function detectEntrypoints(sourceDir: string, language?: string): string[] {
     if (pkg) {
       try {
         const parsed = JSON.parse(pkg);
-        if (parsed.main) entries.push(parsed.main);
-        if (parsed.scripts?.start) entries.push('npm start');
+        if (parsed.main) {
+          entries.push(parsed.main);
+        }
+        if (parsed.scripts?.start) {
+          entries.push('npm start');
+        }
       } catch {
         // ignore parse error
       }
@@ -200,7 +208,9 @@ function detectEntrypoints(sourceDir: string, language?: string): string[] {
       }
     }
   } else if (language === 'Go') {
-    if (pathExists(path.join(sourceDir, 'main.go'))) entries.push('main.go');
+    if (pathExists(path.join(sourceDir, 'main.go'))) {
+      entries.push('main.go');
+    }
   }
 
   return entries;

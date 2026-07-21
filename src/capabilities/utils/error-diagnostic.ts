@@ -13,10 +13,10 @@
  * - 端口冲突诊断
  */
 
-import type { ForgeKitResult } from '../types.js';
+import type { ForgeKitResult, ErrorCode } from '../types.js';
 
 export interface ErrorDiagnostic {
-  code: string;              // 错误码（与ForgeKitResult.error.code对应）
+  code: ErrorCode;              // 错误码（与ForgeKitResult.error.code对应）
   summary: string;           // 简短描述（一句话）
   detail?: string;           // 详细日志片段
   suggested_fix: string;     // 修复建议（可操作的步骤）
@@ -186,7 +186,9 @@ export class ErrorDiagnostician {
     for (const line of lines) {
       if (pattern.test(line)) {
         matchedLines.push(line.trim());
-        if (matchedLines.length >= 5) break; // 最多5行
+        if (matchedLines.length >= 5) {
+          break; // 最多5行
+        }
       }
     }
 

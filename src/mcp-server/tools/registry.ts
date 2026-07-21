@@ -32,6 +32,35 @@ export function registerTools(): Tool[] {
       },
     },
 
+    // ========== Preflight Check（v0.2新增）==========
+    {
+      name: 'preflight_check',
+      description:
+        '构建前环境检查（v0.2 P0）。' +
+        '检查 Docker 可用性、源目录有效性、磁盘空间、计划文件、镜像仓库连通性等。' +
+        '建议在 build_docker_image 或 pack_deb 前调用，提前发现环境问题。' +
+        '不强制要求 plan_path（非构建类工具）。',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          source_dir: {
+            type: 'string',
+            description: '项目根目录路径',
+          },
+          plan_path: {
+            type: 'string',
+            description: '可选：Forge.md 路径（如果已知）',
+          },
+          checks: {
+            type: 'array',
+            items: { type: 'string' },
+            description: '可选：指定检查项（默认全部），如 ["docker_availability", "source_directory"]',
+          },
+        },
+        required: ['source_dir'],
+      },
+    },
+
     // ========== M3: generate_packaging_plan ==========
     {
       name: 'generate_packaging_plan',

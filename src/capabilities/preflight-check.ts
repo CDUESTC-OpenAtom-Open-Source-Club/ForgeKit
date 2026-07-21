@@ -17,7 +17,6 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as os from 'os';
 import { commandExists, runCommand } from './utils/command.js';
 import { pathExists } from './utils/filesystem.js';
 import type { ForgeKitResult } from './types.js';
@@ -56,6 +55,7 @@ export async function preflightCheck(input: PreflightCheckInput): Promise<Prefli
     'docker_availability',
     'disk_space',
     'plan_file',
+    'registry_connectivity',
   ];
 
   const checksToRun = checks || defaultChecks;
@@ -78,6 +78,11 @@ export async function preflightCheck(input: PreflightCheckInput): Promise<Prefli
   // 检查4：计划文件（如果提供）
   if (checksToRun.includes('plan_file') && plan_path) {
     results.push(checkPlanFile(plan_path));
+  }
+
+  // 检查5：镜像仓库连通性
+  if (checksToRun.includes('registry_connectivity')) {
+    results.push(await checkRegistryConnectivity());
   }
 
   // 统计结果
@@ -196,32 +201,25 @@ function checkDiskSpace(sourceDir: string): CheckResult {
   const MIN_BYTES = MIN_GB * 1024 * 1024 * 1024;
 
   try {
-    // 获取源目录所在分区的磁盘信息
-    // 注意：这是一个简化实现，实际应该使用statfs（Linux）或GetDiskFreeSpace（Windows）
-    const stats = fs.statSync(sourceDir);
+    const stats = fs.statfsSync(sourceDir);
+    const availableBytes = stats.bavail * stats.bsize;
+    const availableGB = availableBytes / 1024 / 1024 / 1024;
 
-    // 简化：使用os模块获取系统总内存和空闲内存作为参考
-    // 实际应该使用df命令或其他方式获取磁盘空间
-    const freeMem = os.freemem();
-    const totalMem = os.totalmem();
-
-    // 简化判断：如果空闲内存大于2GB，假设磁盘空间足够
-    // 这不是一个准确的检查，但可以作为一个参考指标
-    if (freeMem < MIN_BYTES) {
+    if (availableBytes < MIN_BYTES) {
       return {
         name: 'disk_space',
         status: 'fail',
-        message: `系统内存不足（少于${MIN_GB}GB）`,
-        details: `可用内存: ${(freeMem / 1024 / 1024 / 1024).toFixed(2)} GB`,
-        suggested_fix: '释放内存或磁盘空间',
+        message: `磁盘空间不足（少于${MIN_GB}GB）`,
+        details: `可用磁盘空间: ${availableGB.toFixed(2)} GB`,
+        suggested_fix: '释放源目录所在分区的磁盘空间',
       };
     }
 
     return {
       name: 'disk_space',
       status: 'pass',
-      message: `系统资源充足`,
-      details: `可用内存: ${(freeMem / 1024 / 1024 / 1024).toFixed(2)} GB`,
+      message: '磁盘空间充足',
+      details: `可用磁盘空间: ${availableGB.toFixed(2)} GB`,
     };
   } catch (error) {
     return {
@@ -271,4 +269,65 @@ function checkPlanFile(planPath: string): CheckResult {
     status: 'pass',
     message: `计划文件有效: ${planPath}`,
   };
+}
+
+/**
+ * 检查镜像仓库连通性
+ *
+ * 尝试连接Docker Hub或其他镜像仓库
+ * 超时时间：10秒
+ */
+async function checkRegistryConnectivity(): Promise<CheckResult> {
+  const REGISTRY_URL = 'https://registry-1.docker.io';
+  const TIMEOUT_MS = 10000;
+
+  try {
+    // 使用curl测试连通性（跨平台）
+    const result = runCommand('curl', [
+      '-sf',
+      '--max-time', String(TIMEOUT_MS / 1000),
+      '-o', '/dev/null',
+      '-w', '%{http_code}',
+      REGISTRY_URL,
+    ]);
+
+    if (result.success && result.stdout.trim().match(/^2\d{2}$/)) {
+      return {
+        name: 'registry_connectivity',
+        status: 'pass',
+        message: `镜像仓库可达（${REGISTRY_URL}）`,
+      };
+    }
+
+    // 如果curl失败，尝试使用docker pull测试
+    const dockerTest = runCommand('docker', [
+      'pull',
+      '--quiet',
+      'hello-world',
+    ], { timeout: TIMEOUT_MS });
+
+    if (dockerTest.success) {
+      return {
+        name: 'registry_connectivity',
+        status: 'pass',
+        message: '镜像仓库可达（通过docker pull测试）',
+      };
+    }
+
+    return {
+      name: 'registry_connectivity',
+      status: 'fail',
+      message: '镜像仓库不可达',
+      details: '无法连接到Docker Hub或镜像拉取失败',
+      suggested_fix: '检查网络连接，或配置国内镜像源（如docker.m.daocloud.io）',
+    };
+  } catch (error) {
+    return {
+      name: 'registry_connectivity',
+      status: 'fail',
+      message: '镜像仓库连通性检查失败',
+      details: String(error),
+      suggested_fix: '检查网络连接或跳过此检查（使用国内镜像源时）',
+    };
+  }
 }

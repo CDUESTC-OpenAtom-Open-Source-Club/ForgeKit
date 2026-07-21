@@ -22,7 +22,7 @@ afterAll(() => {
 
 describe('MCP 协议层冒烟测试', () => {
   describe('工具发现测试', () => {
-    it('能列出所有 4 个工具', () => {
+    it('能列出所有 5 个工具', () => {
       const tools = registerTools();
       const toolNames = tools.map((t) => t.name);
 
@@ -30,7 +30,8 @@ describe('MCP 协议层冒烟测试', () => {
       expect(toolNames).toContain('generate_packaging_plan');
       expect(toolNames).toContain('build_docker_image');
       expect(toolNames).toContain('pack_deb');
-      expect(tools.length).toBe(4);
+      expect(toolNames).toContain('preflight_check'); // v0.2新增
+      expect(tools.length).toBe(5);
     });
 
     it('所有工具都有正确的 Schema', () => {

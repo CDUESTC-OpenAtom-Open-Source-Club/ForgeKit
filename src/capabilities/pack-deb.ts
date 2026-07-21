@@ -7,12 +7,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-  assertSourceDir,
-  PathValidationError,
-  pathExists,
-} from './utils/filesystem.js';
-import { runCommand, runCommandWithLog, commandExists, snippet } from './utils/command.js';
+import { assertSourceDir, PathValidationError, pathExists } from './utils/filesystem.js';
+import { runCommandWithLog, commandExists } from './utils/command.js';
 import { sha256File } from './utils/checksum.js';
 import type { PackDebOutput } from './types.js';
 
@@ -25,13 +21,7 @@ export interface PackDebInput {
 }
 
 export async function packDeb(input: PackDebInput): Promise<PackDebOutput> {
-  const {
-    source_dir,
-    plan_path,
-    version,
-    distro = 'ubuntu-22.04',
-    arch = 'x86_64',
-  } = input;
+  const { source_dir, plan_path, version, distro = 'ubuntu-22.04', arch = 'x86_64' } = input;
 
   // 1. 校验 source_dir
   try {
@@ -45,7 +35,11 @@ export async function packDeb(input: PackDebInput): Promise<PackDebOutput> {
 
   // 2. plan_path 校验
   if (!pathExists(plan_path)) {
-    return failed('plan_not_found', `Forge.md 不存在: ${plan_path}`, '先调用 generate_packaging_plan');
+    return failed(
+      'plan_not_found',
+      `Forge.md 不存在: ${plan_path}`,
+      '先调用 generate_packaging_plan'
+    );
   }
 
   // 3. 校验是 Python 项目（v0.1 范围）
@@ -69,7 +63,13 @@ export async function packDeb(input: PackDebInput): Promise<PackDebOutput> {
   // 5. 准备构建目录（dist/forgekit/deb/<name>_<version>_<arch>）
   const debArch = arch === 'aarch64' ? 'arm64' : 'amd64';
   const packageName = inferPackageName(source_dir);
-  const buildDir = path.join(source_dir, 'dist', 'forgekit', 'deb', `${packageName}_${version}_${debArch}`);
+  const buildDir = path.join(
+    source_dir,
+    'dist',
+    'forgekit',
+    'deb',
+    `${packageName}_${version}_${debArch}`
+  );
   fs.mkdirSync(path.join(buildDir, 'DEBIAN'), { recursive: true });
   fs.mkdirSync(path.join(buildDir, 'usr', 'local', 'bin'), { recursive: true });
 
@@ -83,10 +83,14 @@ export async function packDeb(input: PackDebInput): Promise<PackDebOutput> {
   // 8. 构建 deb
   const debFileName = `${packageName}_${version}_${debArch}.deb`;
   const distDir = path.join(source_dir, 'dist', 'forgekit', 'deb');
-  const buildResult = runCommandWithLog('dpkg-deb', ['--build', buildDir, path.join(distDir, debFileName)], {
-    timeout: 120000,
-    logFileName: `pack-deb-${packageName}-${version}.log`,
-  });
+  const buildResult = runCommandWithLog(
+    'dpkg-deb',
+    ['--build', buildDir, path.join(distDir, debFileName)],
+    {
+      timeout: 120000,
+      logFileName: `pack-deb-${packageName}-${version}.log`,
+    }
+  );
 
   if (!buildResult.success) {
     return failed(
@@ -136,7 +140,12 @@ export async function packDeb(input: PackDebInput): Promise<PackDebOutput> {
 
 // ========== 辅助函数 ==========
 
-function failed(code: string, summary: string, suggestedFix: string, detailLog?: string): PackDebOutput {
+function failed(
+  code: string,
+  summary: string,
+  suggestedFix: string,
+  detailLog?: string
+): PackDebOutput {
   return {
     status: 'failed',
     error: { code: code as any, summary, detail_log: detailLog, suggested_fix: suggestedFix },
@@ -157,8 +166,13 @@ function inferPackageName(sourceDir: string): string {
     ? fs.readFileSync(path.join(sourceDir, 'pyproject.toml'), 'utf-8')
     : '';
   const match = pyproject.match(/name\s*=\s*["']([^"']+)["']/);
-  if (match) return match[1].toLowerCase().replace(/[^a-z0-9+\-.]/g, '-');
-  return path.basename(path.resolve(sourceDir)).toLowerCase().replace(/[^a-z0-9+\-.]/g, '-');
+  if (match) {
+    return match[1].toLowerCase().replace(/[^a-z0-9+\-.]/g, '-');
+  }
+  return path
+    .basename(path.resolve(sourceDir))
+    .toLowerCase()
+    .replace(/[^a-z0-9+\-.]/g, '-');
 }
 
 function generateControl(name: string, version: string, arch: string, sourceDir: string): string {
@@ -185,7 +199,9 @@ function copyProjectFiles(sourceDir: string, buildDir: string): void {
   const binDir = path.join(buildDir, 'usr', 'local', 'bin');
   const entries = fs.readdirSync(sourceDir);
   for (const entry of entries) {
-    if (entry === 'dist' || entry === 'node_modules' || entry === '.git') continue;
+    if (entry === 'dist' || entry === 'node_modules' || entry === '.git') {
+      continue;
+    }
     const src = path.join(sourceDir, entry);
     const stat = fs.statSync(src);
     if (stat.isFile()) {

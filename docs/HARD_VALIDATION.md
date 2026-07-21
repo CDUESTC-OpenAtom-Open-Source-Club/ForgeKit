@@ -21,8 +21,8 @@
 | ESLint | 通过，0 errors；遗留边界类型 warnings 不阻断 |
 | TypeScript 类型检查 | 通过 |
 | 干净构建 | 通过，重新生成 `dist` |
-| 自动化测试 | 72/72 通过 |
-| 测试文件 | 11/11 通过 |
+| 自动化测试 | 98/98 通过 |
+| 测试文件 | 14/14 通过 |
 | 编译后 MCP stdio 通信 | 通过 |
 | MCP 工具发现 | 4 个工具完整返回 |
 | 编译后 `inspect_project` | 成功识别 Python fixture 与 `app.py` |
@@ -66,17 +66,22 @@
 
 ### 验证结果
 
-**✅ 核心功能全部通过**：
+**✅ 已验证通过**：
 - inspect_project：成功识别Python项目
 - generate_packaging_plan：成功生成Forge.md
-- build_docker_image：正确调用构建流程（网络原因未完成镜像拉取）
+- build_docker_image：隔离 Node 试点成功生成镜像
+- 容器运行：`/health` 返回 `healthy`
+- Release Manifest：记录 Git commit、dirty state、构建环境、镜像大小和 digest
 - Plan-before-build约束：强制检查生效
-- 错误结构化返回：正常工作
+- 错误结构化返回：Docker Hub 超时被识别为 `network_unreachable`
 
-**🔴 发现并修复的架构问题**：
-- TypeScript编译环境不一致（已修复）
-- ESLint配置缺失（已修复）
-- 项目结构不规范（已修复）
+**🔴 真实环境发现的缺口**：
+- 服务器 `docker` 命令实际由 Podman 4.9.4 提供，当前结果未显式区分 runtime 类型。
+- Docker Hub 在该环境不可达；Preflight 尚未检查目标 Registry 连通性。
+- TypeScript fixture 缺少 lockfile，却使用 `npm ci --only=production` 后编译 TypeScript，真实构建失败。
+- Preflight 未提供 `plan_path` 时会跳过计划检查，但返回结果没有明确的 skip 项。
+- 初次生成的镜像校验和是占位符；本轮已改为读取镜像 digest，并增加回归测试。
+- macOS 工作区快照会携带 UID 和 AppleDouble 元数据；正式安装必须验证 npm 发布物，不应复制开发目录。
 
 ### 架构改进成果（2026-07-21）
 
@@ -87,9 +92,12 @@
 - 编译产物现在使用相对路径
 - 提高代码可移植性
 
-**验证**：
+**本轮验证**：
 ```
-npm test: 72/72 passed ✅
+npm test: 98/98 passed ✅
 npm run verify: 全部通过 ✅
-编译产物一致性: 本地与服务器一致 ✅
+服务器 npm ci + 干净编译 + MCP runtime smoke: 通过 ✅
+Node 镜像构建 + 容器健康检查: 通过 ✅
+Python 镜像构建: Docker Hub 网络阻塞，不计为通过
+TypeScript fixture 构建: 模板缺陷，不计为通过
 ```

@@ -9,13 +9,14 @@
 
 import * as fs from 'fs';
 import { isBuildTool } from './registry.js';
-import type { ForgeKitResult } from '@capabilities/types.js';
+import type { ForgeKitResult } from '../../capabilities/types.js';
 
 // 真实能力实现（M2-M5 全部接入）
-import { inspectProject } from '@capabilities/inspect-project.js';
-import { generatePackagingPlan } from '@capabilities/generate-packaging-plan.js';
-import { buildDockerImage } from '@capabilities/build-docker-image.js';
-import { packDeb } from '@capabilities/pack-deb.js';
+import { inspectProject } from '../../capabilities/inspect-project.js';
+import { generatePackagingPlan } from '../../capabilities/generate-packaging-plan.js';
+import { buildDockerImage } from '../../capabilities/build-docker-image.js';
+import { packDeb } from '../../capabilities/pack-deb.js';
+import { preflightCheck } from '../../capabilities/preflight-check.js';
 
 /**
  * Execute tool call
@@ -40,6 +41,13 @@ export async function executeTool(
   switch (name) {
     case 'inspect_project':
       return inspectProject(args.source_dir as string);
+
+    case 'preflight_check':
+      return preflightCheck({
+        source_dir: args.source_dir as string,
+        plan_path: args.plan_path as string | undefined,
+        checks: args.checks as string[] | undefined,
+      });
 
     case 'generate_packaging_plan':
       return generatePackagingPlan(

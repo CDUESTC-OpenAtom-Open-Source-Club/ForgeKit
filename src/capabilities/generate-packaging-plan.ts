@@ -101,14 +101,18 @@ function inferProjectName(sourceDir: string): string {
   const pyproject = readTextFile(path.join(sourceDir, 'pyproject.toml'));
   if (pyproject) {
     const m = pyproject.match(/name\s*=\s*["']([^"']+)["']/);
-    if (m) return m[1];
+    if (m) {
+      return m[1];
+    }
   }
   // 其次 package.json name
   const pkg = readTextFile(path.join(sourceDir, 'package.json'));
   if (pkg) {
     try {
       const parsed = JSON.parse(pkg);
-      if (parsed.name) return parsed.name;
+      if (parsed.name) {
+        return parsed.name;
+      }
     } catch {
       // ignore
     }
@@ -163,9 +167,13 @@ function deriveDecisions(
   // Ubuntu 版本选择
   let ubuntuVersion = '22.04';
   if (targetEnvironment) {
-    if (targetEnvironment.includes('20.04')) ubuntuVersion = '20.04';
-    else if (targetEnvironment.includes('24.04')) ubuntuVersion = '24.04';
-    else if (targetEnvironment.includes('22.04')) ubuntuVersion = '22.04';
+    if (targetEnvironment.includes('20.04')) {
+      ubuntuVersion = '20.04';
+    } else if (targetEnvironment.includes('24.04')) {
+      ubuntuVersion = '24.04';
+    } else if (targetEnvironment.includes('22.04')) {
+      ubuntuVersion = '22.04';
+    }
   }
 
   // 基础镜像
@@ -183,17 +191,24 @@ function deriveDecisions(
   const compatTable = rules?.兼容性对照表;
   if (compatTable && compatTable[`Ubuntu_${ubuntuVersion.replace('.', '_')}`]) {
     const row = compatTable[`Ubuntu_${ubuntuVersion.replace('.', '_')}`];
-    compatNotes.push(`Ubuntu ${ubuntuVersion}: glibc ${row.glibc}, Python ${row.python}, Node ${row.node}`);
+    compatNotes.push(
+      `Ubuntu ${ubuntuVersion}: glibc ${row.glibc}, Python ${row.python}, Node ${row.node}`
+    );
     compatNotes.push(`兼容性：${row.remark}`);
   }
 
   const buildMethodParts: string[] = [];
-  if (isDocker) buildMethodParts.push('Docker 镜像构建（v0.1 硬闭环）');
-  if (isDeb) buildMethodParts.push('Ubuntu deb 包（可选，仅 systemd 目标）');
+  if (isDocker) {
+    buildMethodParts.push('Docker 镜像构建（v0.1 硬闭环）');
+  }
+  if (isDeb) {
+    buildMethodParts.push('Ubuntu deb 包（可选，仅 systemd 目标）');
+  }
 
   return {
     target_platform: `ubuntu-${ubuntuVersion}`,
     target_version: `Ubuntu ${ubuntuVersion} LTS`,
+    base_image: baseImage,
     build_method: buildMethodParts.join(' + ') || 'Docker 镜像（默认硬闭环）',
     compatibility_notes: compatNotes,
     risks_acknowledged: [],
@@ -264,9 +279,8 @@ function renderForgeMd(ctx: {
   const nextActionsSection = nextActions.join('\n');
 
   // verify command
-  const verifyCommand = insp.language === 'Python'
-    ? `docker run ${projectName}:latest`
-    : 'docker run <image>:latest';
+  const verifyCommand =
+    insp.language === 'Python' ? `docker run ${projectName}:latest` : 'docker run <image>:latest';
 
   return template
     .replace(/{{generated_at}}/g, new Date().toISOString())
@@ -279,9 +293,19 @@ function renderForgeMd(ctx: {
     .replace(/{{secondary_artifact}}/g, secondaryArtifact)
     .replace(/{{target_platform}}/g, decisions.target_platform || 'linux/amd64')
     .replace(/{{target_users}}/g, '社团成员/独立开发者（本地分发）')
-    .replace(/{{docker_strategy}}/g, goals.some((g) => g.toLowerCase().includes('docker')) ? 'build local linux/amd64 image' : '可选')
-    .replace(/{{deb_strategy}}/g, goals.some((g) => g.toLowerCase().includes('deb')) ? 'package app + systemd service（可选）' : '不构建')
-    .replace(/{{base_image}}/g, (decisions as any).baseImage || 'python:3.10-slim')
+    .replace(
+      /{{docker_strategy}}/g,
+      goals.some((g) => g.toLowerCase().includes('docker'))
+        ? 'build local linux/amd64 image'
+        : '可选'
+    )
+    .replace(
+      /{{deb_strategy}}/g,
+      goals.some((g) => g.toLowerCase().includes('deb'))
+        ? 'package app + systemd service（可选）'
+        : '不构建'
+    )
+    .replace(/{{base_image}}/g, decisions.base_image || 'python:3.10-slim')
     .replace(/{{system_target}}/g, decisions.target_version || 'ubuntu-22.04')
     .replace(/{{decisions_section}}/g, decisionsSection)
     .replace(/{{risks_section}}/g, risksSection)

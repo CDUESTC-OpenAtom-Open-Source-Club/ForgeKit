@@ -4,10 +4,9 @@
  * 用于 docker build、dpkg-deb 等本地工具调用
  */
 
-import { execFileSync, ExecFileSyncOptions } from 'child_process';
+import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { pathExists } from './filesystem.js';
 
 export interface CommandResult {
   exitCode: number;
@@ -112,6 +111,8 @@ export function runCommandWithLog(
  * 截取字符串片段（用于 stdout_snippet）
  */
 export function snippet(text: string, maxLen = 2000): string {
-  if (text.length <= maxLen) return text;
+  if (text.length <= maxLen) {
+    return text;
+  }
   return text.slice(-maxLen) + '\n... [truncated]';
 }

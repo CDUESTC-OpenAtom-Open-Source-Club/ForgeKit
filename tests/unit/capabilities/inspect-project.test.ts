@@ -18,15 +18,14 @@ afterAll(() => {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
-function writeFile(name: string, content: string) {
-  fs.writeFileSync(path.join(tmpDir, name), content);
-}
-
 describe('M2: inspect_project', () => {
   it('Python 项目识别（pyproject.toml + app.py）', async () => {
     const dir = path.join(tmpDir, 'python-project');
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, 'pyproject.toml'), '[project]\nname = "demo"\npython_requires = ">=3.10"\n');
+    fs.writeFileSync(
+      path.join(dir, 'pyproject.toml'),
+      '[project]\nname = "demo"\npython_requires = ">=3.10"\n'
+    );
     fs.writeFileSync(path.join(dir, 'app.py'), 'from flask import Flask\napp = Flask(__name__)');
 
     const result = await inspectProject(dir);
@@ -80,7 +79,11 @@ describe('M2: inspect_project', () => {
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(
       path.join(dir, 'package.json'),
-      JSON.stringify({ name: 'ts-demo', main: 'dist/index.js', dependencies: { typescript: '^5.0.0' } })
+      JSON.stringify({
+        name: 'ts-demo',
+        main: 'dist/index.js',
+        dependencies: { typescript: '^5.0.0' },
+      })
     );
 
     const result = await inspectProject(dir);
