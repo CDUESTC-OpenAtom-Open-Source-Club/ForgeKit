@@ -1,5 +1,7 @@
 # ForgeKit Roadmap
 
+> **执行状态（2026-07-20）**：下述多端与多版本内容属于后续路线，不代表当前承诺或已实现能力。当前阶段冻结扩张范围，集中用于教学、契约演示、质量完善和可复现验证。详见 [CURRENT_OBJECTIVES.md](./CURRENT_OBJECTIVES.md)。
+
 > 本路线图是 ForgeKit 的**交付契约层**扩展规划入口。
 > 核心定位：面向 AI Agent 的可验证交付契约层——把"能跑的代码"可靠推进到"可直接分发的产物"。
 > 每届 MVP 的价值阶梯与 v0.1 最高战略价值判定见 [REQUIREMENTS.md §8](./REQUIREMENTS.md)。

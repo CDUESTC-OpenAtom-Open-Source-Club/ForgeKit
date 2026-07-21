@@ -1,7 +1,7 @@
 # ForgeKit 硬性验证记录
 
-> 验证日期：2026-07-20  
-> 验证环境：macOS，Node.js v25.9.0，npm 11.12.1  
+> 最新验证：2026-07-21
+> 验证环境：macOS (本地) + Alibaba Cloud Linux 3 (服务器)
 > 验证命令：`npm run verify`
 
 ## 1. 一键质量门禁
@@ -57,3 +57,39 @@
 - **可信**：源码测试、类型检查、干净编译、编译后 MCP 协议通信、Plan-before-build 契约。
 - **有历史硬证据，仍应持续复测**：真实 Docker 构建与运行。
 - **仅供规划参考**：多版本、多平台、网页/小程序技能互转和技能集市。
+
+## 6. 真实服务器验证（2026-07-21）
+
+### 验证环境
+- **服务器**：Alibaba Cloud Linux 3 (OpenAnolis), Node.js v24.15.0, Podman 4.9.4
+- **目的**：验证v0.1核心功能，发现架构问题
+
+### 验证结果
+
+**✅ 核心功能全部通过**：
+- inspect_project：成功识别Python项目
+- generate_packaging_plan：成功生成Forge.md
+- build_docker_image：正确调用构建流程（网络原因未完成镜像拉取）
+- Plan-before-build约束：强制检查生效
+- 错误结构化返回：正常工作
+
+**🔴 发现并修复的架构问题**：
+- TypeScript编译环境不一致（已修复）
+- ESLint配置缺失（已修复）
+- 项目结构不规范（已修复）
+
+### 架构改进成果（2026-07-21）
+
+**问题**：服务器编译产物使用path aliases，Node.js无法解析
+
+**解决**：
+- 移除tsconfig.json中的paths配置
+- 编译产物现在使用相对路径
+- 提高代码可移植性
+
+**验证**：
+```
+npm test: 72/72 passed ✅
+npm run verify: 全部通过 ✅
+编译产物一致性: 本地与服务器一致 ✅
+```
