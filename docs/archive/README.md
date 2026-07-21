@@ -13,12 +13,24 @@
 
 ## 当前状态
 
-截至 v0.0 规划冻结期，以下 7 份均为现行、互相引用的文档，**暂无过时文档需要归档**：
+## 归档文档列表
 
-- `docs/REQUIREMENTS.md`
-- `docs/DESIGN.md`
-- `docs/TECHNICAL_PLAN.md`
-- `docs/ROADMAP.md`
-- `docs/REVIEW.md`
-- `docs/AGENT_INTEGRATION.md`
-- `docs/PACKAGING_DOCUMENT.md`
+### v0.1-mvp/
+- 归档时间：2026-07-08
+- 内容：v0.1实施计划与MVP报告
+- 原因：v0.1测试成功后归档历史文档
+
+### beian-page/
+- 归档时间：2026-07-21
+- 内容：备案页面相关文件（HTML、部署脚本、修复计划等）
+- 原因：2026-07-09的临时文件，已过使用期
+- 包含：
+  - BEIAN_NUMBER_ADDED.md - 备案号添加记录
+  - DEPLOY.md - 部署说明
+  - DEPLOYMENT_STATUS.md - 部署状态
+  - FINAL_REPORT.md - 最终报告
+  - FIX_PLAN.md - 修复计划
+  - index.html - 备案页面
+  - restore-frontend.sh / restore-service.sh - 恢复脚本
+  - sism-beian-index*.html - 备案页面版本
+  - TEMP_REPLACE.md - 临时替换说明
