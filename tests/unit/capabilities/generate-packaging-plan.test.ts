@@ -62,6 +62,21 @@ describe('M3: generate_packaging_plan', () => {
     }
   });
 
+  it('根据项目语言写入对应基础镜像', async () => {
+    const dir = makeProject('typescript-image');
+    fs.writeFileSync(
+      path.join(dir, 'package.json'),
+      JSON.stringify({ name: 'typescript-image', scripts: { start: 'node index.js' } })
+    );
+    fs.writeFileSync(path.join(dir, 'index.js'), 'console.log("ready")');
+
+    const result = await generatePackagingPlan(dir, ['Docker']);
+
+    expect(result.status).toBe('success');
+    expect(result.decision_basis?.base_image).toBe('node:18-alpine');
+    expect(fs.readFileSync(result.plan_path!, 'utf-8')).toContain('Base image: node:18-alpine');
+  });
+
   it('Docker + deb 双目标时生成对应决策', async () => {
     const dir = makeProject('python-deb');
     fs.writeFileSync(path.join(dir, 'app.py'), '');

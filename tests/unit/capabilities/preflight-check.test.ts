@@ -7,11 +7,11 @@ import { preflightCheck } from '../../../src/capabilities/preflight-check.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
 describe('preflightCheck', () => {
   it('应对有效源目录返回成功', async () => {
-    const fixturesDir = path.resolve(__dirname, '../../fixtures');
+    const fixturesDir = path.resolve(currentDir, '../../fixtures');
     const result = await preflightCheck({
       source_dir: fixturesDir,
       checks: ['source_directory'],

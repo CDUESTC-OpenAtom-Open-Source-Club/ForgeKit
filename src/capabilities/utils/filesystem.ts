@@ -35,14 +35,14 @@ export function assertWithinRoot(target: string, rootDir: string): void {
   const resolvedRoot = resolvePath(rootDir);
 
   // 相同路径允许
-  if (resolvedTarget === resolvedRoot) return;
+  if (resolvedTarget === resolvedRoot) {
+    return;
+  }
 
   // target 必须以 root + sep 开头
   const rootWithSep = resolvedRoot + path.sep;
   if (!resolvedTarget.startsWith(rootWithSep)) {
-    throw new Error(
-      `路径越界：${target} 不在根目录 ${rootDir} 内（解析为 ${resolvedTarget}）`
-    );
+    throw new Error(`路径越界：${target} 不在根目录 ${rootDir} 内（解析为 ${resolvedTarget}）`);
   }
 }
 

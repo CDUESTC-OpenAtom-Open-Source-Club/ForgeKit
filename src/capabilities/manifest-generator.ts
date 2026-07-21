@@ -10,6 +10,7 @@
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
+import { createHash } from 'crypto';
 import type { ReleaseManifest, ArtifactInfo } from './release-manifest.js';
 import { MANIFEST_VERSION, MANIFEST_FILENAME } from './release-manifest.js';
 import { getGitInfo } from './utils/git-info.js';
@@ -105,18 +106,28 @@ export function generateReleaseManifest(options: GenerateManifestOptions): Relea
  */
 function collectBuildEnvironment(
   dockerVersion?: string,
-  buildDurationMs: number = 0
+  buildDurationMs = 0
 ): ReleaseManifest['build'] {
   return {
     forgekit_version: getForgeKitVersion(),
     forgekit_commit: getForgeKitCommit(),
     hostname: sanitizeHostname(os.hostname()),
     platform: os.platform(),
-    architecture: os.arch(),
+    architecture: normalizeArchitecture(os.arch()),
     node_version: process.version,
     docker_version: dockerVersion,
     build_duration_ms: buildDurationMs,
   };
+}
+
+function normalizeArchitecture(architecture: string): string {
+  if (architecture === 'x64') {
+    return 'amd64';
+  }
+  if (architecture === 'arm64') {
+    return 'arm64';
+  }
+  return architecture;
 }
 
 /**
@@ -221,13 +232,9 @@ export function saveReleaseManifest(
  * 计算文件SHA256校验和
  */
 export function calculateSHA256(filePath: string): string {
-  // 注意：这里简化实现，实际应该使用crypto模块
-  // 在Node.js中应该用：crypto.createHash('sha256').update(content).digest('hex')
-  // 但这里先返回占位符，实际集成时需要真实计算
   try {
-    const crypto = require('crypto');
     const content = fs.readFileSync(filePath);
-    return crypto.createHash('sha256').update(content).digest('hex');
+    return createHash('sha256').update(content).digest('hex');
   } catch (error) {
     return 'sha256-placeholder';
   }

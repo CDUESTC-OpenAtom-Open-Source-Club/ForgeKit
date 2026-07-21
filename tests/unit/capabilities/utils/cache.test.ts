@@ -65,8 +65,6 @@ describe('InspectCache', () => {
     });
 
     it('子目录不影响指纹', async () => {
-      const fp1 = cache.getFingerprint(tmpDir);
-
       // 创建子目录和子文件
       fs.mkdirSync(path.join(tmpDir, 'subdir'));
       fs.writeFileSync(path.join(tmpDir, 'subdir', 'nested.txt'), 'nested');

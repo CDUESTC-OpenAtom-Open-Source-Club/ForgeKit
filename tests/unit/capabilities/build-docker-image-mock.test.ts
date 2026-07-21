@@ -12,9 +12,20 @@ import * as os from 'os';
 vi.mock('../../../src/capabilities/utils/command.js', () => ({
   commandExists: () => true,
   runCommand: (_cmd: string, args: string[]) => {
-    if (args[0] === 'version') return { success: true, exitCode: 0, stdout: '24.0.0\n', stderr: '' };
-    if (args[0] === 'image' && args[1] === 'inspect')
+    if (args[0] === 'version') {
+      return { success: true, exitCode: 0, stdout: '24.0.0\n', stderr: '' };
+    }
+    if (args[0] === 'image' && args[1] === 'inspect') {
+      if (args[4] === '{{.Digest}}') {
+        return {
+          success: true,
+          exitCode: 0,
+          stdout: 'sha256:abcdef0123456789\n',
+          stderr: '',
+        };
+      }
       return { success: true, exitCode: 0, stdout: '12345678\n', stderr: '' };
+    }
     return { success: true, exitCode: 0, stdout: 'build ok\n', stderr: '' };
   },
   runCommandWithLog: () => ({
@@ -78,5 +89,10 @@ describe('M4: build_docker_image 成功路径结构', () => {
     // logs
     expect(result.logs?.summary).toContain('构建成功');
     expect(result.logs?.full_available).toBe(true);
+
+    const manifest = JSON.parse(
+      fs.readFileSync(path.join(dir, 'release-manifest.json'), 'utf8')
+    ) as { artifacts: Array<{ checksum: { sha256: string } }> };
+    expect(manifest.artifacts[0].checksum.sha256).toBe('abcdef0123456789');
   });
 });

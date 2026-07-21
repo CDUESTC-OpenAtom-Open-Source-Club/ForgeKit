@@ -7,8 +7,8 @@ import { inspectProject } from '../../../src/capabilities/inspect-project.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const fixturesDir = path.resolve(__dirname, '../../fixtures');
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const fixturesDir = path.resolve(currentDir, '../../fixtures');
 
 describe('inspect_project: 项目模板识别', () => {
   describe('TypeScript 项目', () => {

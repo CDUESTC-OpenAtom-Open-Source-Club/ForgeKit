@@ -9,14 +9,18 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:clean": "npm run clean && tsc --build --force",
     "dev": "tsc --watch",
     "test": "vitest run",
+    "test:runtime": "npm run build:clean && node tests/runtime/compiled-mcp-smoke.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint src tests --ext .ts",
     "lint:fix": "eslint src tests --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "clean": "rm -rf dist",
+    "verify": "npm run lint && npm run typecheck && npm run build:clean && npm test && node tests/runtime/compiled-mcp-smoke.mjs",
     "prepare": "npm run build"
   },
   "keywords": [
@@ -65,6 +69,7 @@
   "files": [
     "dist",
     "src/knowledge",
+    "src/packaging",
     "src/templates",
     "src/systems",
     "README.md",

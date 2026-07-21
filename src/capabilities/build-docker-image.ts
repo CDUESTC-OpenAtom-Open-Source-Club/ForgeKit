@@ -148,6 +148,7 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
 
   // 7. 采集镜像信息
   const sizeBytes = getImageSize(fullImageRefs[0]);
+  const imageDigest = getImageDigest(fullImageRefs[0]);
 
   const result_json: BuildResult = {
     exit_code: buildResult.exitCode,
@@ -190,7 +191,7 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
         path: fullImageRefs[0],
         size_bytes: sizeBytes || 0,
         checksum: {
-          sha256: 'calculated-at-runtime', // TODO: 实际计算镜像digest
+          sha256: imageDigest,
         },
       },
     ],
@@ -248,6 +249,30 @@ function getImageSize(imageRef: string): number | undefined {
     return isNaN(size) ? undefined : size;
   }
   return undefined;
+}
+
+function getImageDigest(imageRef: string): string {
+  const digestResult = runCommand('docker', [
+    'image',
+    'inspect',
+    imageRef,
+    '--format',
+    '{{.Digest}}',
+  ]);
+  const digest = digestResult.success ? digestResult.stdout.trim() : '';
+  if (digest.startsWith('sha256:') && digest.length > 'sha256:'.length) {
+    return digest.slice('sha256:'.length);
+  }
+
+  const idResult = runCommand('docker', [
+    'image',
+    'inspect',
+    imageRef,
+    '--format',
+    '{{.Id}}',
+  ]);
+  const imageId = idResult.success ? idResult.stdout.trim() : '';
+  return imageId.startsWith('sha256:') ? imageId.slice('sha256:'.length) : imageId;
 }
 
 function detectLanguageForDockerfile(sourceDir: string): string | null {
