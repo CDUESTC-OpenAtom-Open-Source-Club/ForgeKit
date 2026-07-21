@@ -32,6 +32,7 @@ export interface LogInfo {
 export interface DecisionBasis {
   target_platform?: string;
   target_version?: string;
+  base_image?: string;
   build_method?: string;
   compatibility_notes?: string[];
   risks_acknowledged?: string[];
@@ -55,6 +56,19 @@ export type ErrorCode =
   | 'docker_daemon_unavailable'
   | 'dockerfile_not_found'
   | 'docker_build_failed'
+  | 'docker_copy_failed'
+  | 'docker_permission_denied'
+  // 依赖相关
+  | 'npm_dependency_conflict'
+  | 'pip_package_not_found'
+  | 'module_not_found'
+  // 权限相关
+  | 'permission_denied'
+  | 'write_permission_denied'
+  // 端口相关
+  | 'port_conflict'
+  // 网络相关
+  | 'network_unreachable'
   // deb 相关
   | 'deb_build_failed'
   | 'dpkg_unavailable'
