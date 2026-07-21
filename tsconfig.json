@@ -15,14 +15,6 @@
     "sourceMap": true,
     "incremental": true,
     "moduleResolution": "node",
-    "baseUrl": "./src",
-    "paths": {
-      "@/*": ["./*"],
-      "@mcp-server/*": ["mcp-server/*"],
-      "@capabilities/*": ["capabilities/*"],
-      "@knowledge/*": ["knowledge/*"],
-      "@templates/*": ["templates/*"]
-    },
     "typeRoots": ["./node_modules/@types"],
     "types": ["node"]
   },
