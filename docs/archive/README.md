@@ -1,36 +1,41 @@
-# ForgeKit 文档归档（Archive）
+# ForgeKit 文档归档
 
-本目录用于存放**阶段性、已被新版本取代或不再适应当前阶段的文档**。
+本目录存放**阶段性完成、已被取代或详细参考资料**的历史文档。
 
-现行规划文档（v0.0 / v0.1 规划冻结期）仍留在 `docs/` 根目录，彼此互相引用，保持连贯，不在此处。
-
-## 归档策略
-
-- **阶段切换时整体归档**：当某个阶段结束（例如 v0.1 开发完成、进入 v0.2），将对应的规划稿整体移入 `docs/archive/<stage>/`，例如 `docs/archive/v0.0-planning/`。
-- **单文档被取代时归档**：某份文档被新版本取代，移入 `docs/archive/` 并保留原文件名，必要时在文件名后加日期后缀（如 `DESIGN.2026-07-08.md`）。
-- **链接处理**：移入归档的文档不再参与当前交叉引用；若其他现行文档仍引用它，需将链接更新为指向现行版本，或改为引用归档路径。
-- **归档不是删除**：归档文档保留以便回溯决策历史与演进脉络。
-
-## 当前状态
-
-## 归档文档列表
+## 归档分类
 
 ### v0.1-mvp/
-- 归档时间：2026-07-08
-- 内容：v0.1实施计划与MVP报告
-- 原因：v0.1测试成功后归档历史文档
+v0.1 MVP阶段完成的实施计划和验收报告
+- `ACCEPTANCE.md` - v0.1验收报告
+- `PHASE1_MVP_REPORT.md` - 第一阶段MVP报告
+- `V0.1_IMPLEMENTATION.md` - v0.1实施计划
+
+### v0.2-planning/
+v0.2规划阶段的历史草案和架构准备
+- `OLD_PLAN.md` - 早期v0.2计划草案
+- `v0.2-architecture-prep.md` - v0.2架构准备文档
 
 ### beian-page/
-- 归档时间：2026-07-21
-- 内容：备案页面相关文件（HTML、部署脚本、修复计划等）
-- 原因：2026-07-09的临时文件，已过使用期
-- 包含：
-  - BEIAN_NUMBER_ADDED.md - 备案号添加记录
-  - DEPLOY.md - 部署说明
-  - DEPLOYMENT_STATUS.md - 部署状态
-  - FINAL_REPORT.md - 最终报告
-  - FIX_PLAN.md - 修复计划
-  - index.html - 备案页面
-  - restore-frontend.sh / restore-service.sh - 恢复脚本
-  - sism-beian-index*.html - 备案页面版本
-  - TEMP_REPLACE.md - 临时替换说明
+2026-07-09备案页面临时文件（已过期）
+- 备案页面HTML、部署脚本、修复计划等
+
+### reference/
+详细参考文档，核心文档中保留摘要和链接
+- `MARKET_RESEARCH.md` - 完整市场调研报告
+- `AGENT_INTEGRATION.md` - 详细Agent接入方案
+- `BLUE_OCEAN.md` - 蓝海扩展方向分析
+- `PILOTS.md` - 试点候选与拍板记录
+- `REVIEW.md` - 发布前评审清单
+
+## 文档策略
+
+- **现行文档**：保持在 `docs/` 根目录，精简清晰
+- **参考文档**：详细内容归档到 `reference/`，核心文档保留摘要
+- **历史文档**：阶段性文档归档到对应版本目录
+
+## 引用方式
+
+核心文档中通过相对路径引用归档文档：
+```markdown
+详细市场调研见 [archive/reference/MARKET_RESEARCH.md](./archive/reference/MARKET_RESEARCH.md)
+```
