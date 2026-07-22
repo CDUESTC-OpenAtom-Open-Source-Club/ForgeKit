@@ -1,0 +1,63 @@
+name: 部署与 Docker 构建研究问卷
+description: 分享一次真实经历，帮助我们判断哪类问题值得继续解决
+title: "研究问卷："
+labels: [research, feedback]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        这是公开的用户研究问卷，不是产品推销。请勿填写邮箱、微信、Discord 私信账号、密钥或私有项目内容。提交内容会公开显示在 GitHub。
+  - type: textarea
+    id: recent_task
+    attributes:
+      label: 最近一次真实任务
+      description: 最近一次需要构建、打包或部署 Agent/MCP/服务项目时，你要完成什么？
+    validations:
+      required: true
+  - type: textarea
+    id: current_solution
+    attributes:
+      label: 当前解决方式
+      description: 你用了 Docker、Compose、CI、云平台还是手工脚本？哪些部分已经足够好？
+    validations:
+      required: true
+  - type: textarea
+    id: failure
+    attributes:
+      label: 最近一次失败与处理时间
+      description: 如果遇到失败，请描述错误类型、定位方式和大致耗时；没有失败也可以直接说明。
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 如果只能改进一项
+      options:
+        - 让 Agent 自动完成打包流程
+        - 更快解释并验证 Docker 构建
+        - 改善安装与部署文档
+        - 现有方案已经足够
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: 选择原因
+      description: 为什么这一项比其他选项更重要？
+    validations:
+      required: true
+  - type: checkboxes
+    id: trial
+    attributes:
+      label: 后续试用
+      options:
+        - label: 我愿意用一个公开或脱敏项目完成一次约15分钟的试用
+        - label: 我愿意在首次试用后一周内反馈是否第二次使用
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: 公开与隐私确认
+      options:
+        - label: 我知道本问卷内容会公开，并确认没有提交私人联系方式、密钥或私有项目内容
+          required: true
