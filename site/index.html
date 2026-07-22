@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="ForgeKit：面向初学者与 AI Agent 的可验证交付工具。先理解，再构建，每一步都有解释。" />
+    <meta name="description" content="ForgeKit：面向初学者与 AI Agent 的 Docker 构建诊断与验证助手。" />
     <meta name="theme-color" content="#f7fbff" />
     <title>ForgeKit 文档站｜让每个人都能看懂项目交付</title>
     <link rel="stylesheet" href="./styles.css?v=f1b7bf8" />
@@ -31,17 +31,17 @@
     <main id="main">
       <section id="top" class="hero section-shell">
         <div class="hero-copy">
-          <p class="plain-note">免费、开源、面向学习与真实项目</p>
-          <h1>让 AI 写出的代码，成为大家都能看懂的交付物。</h1>
+          <p class="plain-note">免费、开源、先解决真实构建失败</p>
+          <h1>Docker 构建失败，不该只留下一整屏日志。</h1>
           <p class="hero-lead">
-            ForgeKit 不替代 Git、Docker 或你的开发工具。它把“为什么这样构建、构建前要检查什么、结果是否可信”整理成一条清楚的流程。
+            ForgeKit 不替代 Docker。它帮助 Agent 在构建前发现问题，在失败后解释原因，并验证最终镜像真的能够运行。
           </p>
           <div class="hero-actions">
             <a class="button primary" href="#start">从 10 分钟上手开始</a>
             <a class="button secondary" href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/issues">提出问题</a>
           </div>
           <ul class="hero-facts" aria-label="项目特点">
-            <li><strong>先计划</strong><span>先生成 Forge.md，再开始构建</span></li>
+            <li><strong>先检查</strong><span>目录、Docker、磁盘和网络提前确认</span></li>
             <li><strong>早检查</strong><span>提前发现 Docker、磁盘与网络问题</span></li>
             <li><strong>可追溯</strong><span>记录源码提交、环境与产物校验值</span></li>
           </ul>
@@ -68,8 +68,8 @@
       <section class="why section-shell" aria-labelledby="why-title">
         <div class="section-heading">
           <span>先解决最常见的问题</span>
-          <h2 id="why-title">初学者真正卡住的，常常不是写代码。</h2>
-          <p>而是代码写完以后，不知道该交付什么、不知道为什么失败，也不知道 AI 是否真的完成了任务。</p>
+          <h2 id="why-title">初学者真正卡住的，常常是看不懂构建为什么失败。</h2>
+          <p>ForgeKit 当前不追求覆盖所有平台，先把 Docker 构建问题检查清楚、解释清楚、验证清楚。</p>
         </div>
         <div class="problem-list">
           <article><span>问题 1</span><h3>“这个项目该怎么给别人运行？”</h3><p>ForgeKit 先识别项目，再给出适合当前范围的交付建议，不要求你先成为发布工程师。</p></article>
