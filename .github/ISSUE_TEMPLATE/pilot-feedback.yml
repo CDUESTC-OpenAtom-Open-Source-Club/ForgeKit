@@ -1,0 +1,55 @@
+name: 试点反馈
+description: 按真实项目记录一次 ForgeKit 安装、检查或构建体验
+title: "试点反馈："
+labels: [pilot, feedback]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢参与试点。请只提交公开且已脱敏的信息，不要粘贴密钥、Token、私有源码或生产日志。
+  - type: input
+    id: project_type
+    attributes:
+      label: 项目类型
+      description: 例如 Python Flask、TypeScript API、Go 服务
+      placeholder: Python Flask
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 环境
+      description: 操作系统、Node.js、Docker 版本
+      placeholder: Ubuntu 24.04 / Node 20 / Docker 28
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: 结果
+      options:
+        - 成功构建并运行
+        - 构建成功但运行失败
+        - 在 preflight 阶段失败
+        - 构建失败
+        - 尚未完成安装
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 写出你执行的命令或 Agent 操作，以及关键输出
+      placeholder: |
+        1. npm ci
+        2. npm run verify
+        3. 在 MCP 客户端调用 inspect_project ...
+    validations:
+      required: true
+  - type: textarea
+    id: feedback
+    attributes:
+      label: 对初学者的反馈
+      description: 哪一步最容易理解？哪一步需要更清楚？
+    validations:
+      required: true
