@@ -1,5 +1,7 @@
 # ForgeKit Requirements
 
+> **历史状态说明（2026-07-22）**：本文保留 v0.1 时期的“Agent 交付契约/多端打包”需求背景，不再作为当前开发承诺。当前定位、范围和版本顺序以 [当前目标](./CURRENT_OBJECTIVES.md)、[产品迭代计划](./PRODUCT_ITERATION_PLAN.md)、[路线图](./ROADMAP.md)和[版本范围契约](./VERSION_SCOPE.md)为准。
+
 > 版本：v0.1 规划稿
 > 阶段：需求定义与调研规划
 > 原则：需求、设计、技术计划通过后，才进入深度开发。

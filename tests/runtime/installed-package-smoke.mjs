@@ -52,6 +52,7 @@ try {
   const { tools } = await client.listTools();
   assert.deepEqual(tools.map((tool) => tool.name).sort(), [
     'build_docker_image',
+    'diagnose_build_failure',
     'generate_packaging_plan',
     'inspect_project',
     'pack_deb',
@@ -67,6 +68,14 @@ try {
   assert.ok(fs.existsSync(path.join(fixtureDir, 'Forge.md')));
   const plan = fs.readFileSync(path.join(fixtureDir, 'Forge.md'), 'utf8');
   assert.match(plan, /Distribution method: local/);
+
+  const diagnosisResponse = await client.callTool({
+    name: 'diagnose_build_failure',
+    arguments: { log_text: 'ERROR: No matching distribution found for demo==99.0' },
+  });
+  const diagnosisResult = JSON.parse(diagnosisResponse.content[0].text);
+  assert.equal(diagnosisResult.status, 'success');
+  assert.equal(diagnosisResult.diagnosis.code, 'pip_package_not_found');
 
   console.log('Installed npm package smoke test passed');
 } finally {

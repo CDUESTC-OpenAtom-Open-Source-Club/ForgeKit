@@ -1,0 +1,18 @@
+[
+  { "name": "docker daemon unavailable", "log": "Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?", "expected_code": "docker_daemon_unavailable" },
+  { "name": "docker socket permission", "log": "permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock", "expected_code": "docker_permission_denied" },
+  { "name": "dockerfile missing", "log": "failed to read dockerfile: open Dockerfile: no such file or directory", "expected_code": "dockerfile_not_found" },
+  { "name": "buildkit copy missing", "log": "#7 [3/4] COPY package.json ./\n#7 ERROR: failed to calculate checksum of ref: \"/package.json\": not found", "expected_code": "docker_copy_failed" },
+  { "name": "dockerfile syntax", "log": "Dockerfile parse error line 4: unknown instruction: RNU", "expected_code": "build_config_invalid" },
+  { "name": "npm peer conflict multiline", "log": "npm ERR! code ERESOLVE\nnpm ERR! ERESOLVE unable to resolve dependency tree\nnpm ERR! peer react@^17 required", "expected_code": "npm_dependency_conflict" },
+  { "name": "npm lock out of sync", "log": "npm ci can only install packages when your package.json and package-lock.json are in sync", "expected_code": "npm_dependency_conflict" },
+  { "name": "pip resolution conflict", "log": "ERROR: Cannot install numpy==1.24 and numpy==1.26 because these package versions have conflicting dependencies.\nERROR: ResolutionImpossible", "expected_code": "pip_dependency_conflict" },
+  { "name": "pip distribution missing", "log": "ERROR: Could not find a version that satisfies the requirement demo==99.0\nERROR: No matching distribution found for demo==99.0", "expected_code": "pip_package_not_found" },
+  { "name": "python module missing", "log": "ModuleNotFoundError: No module named 'requests'", "expected_code": "module_not_found" },
+  { "name": "apt package missing", "log": "E: Unable to locate package libdoesnotexist", "expected_code": "system_package_not_found" },
+  { "name": "disk exhausted", "log": "failed to copy: write /var/lib/docker/tmp/blob: no space left on device", "expected_code": "disk_space_exhausted" },
+  { "name": "registry authorization", "log": "pull access denied for private/image, repository does not exist or may require authorization", "expected_code": "registry_auth_failed" },
+  { "name": "registry network timeout", "log": "failed to do request: dial tcp 203.0.113.1:443: i/o timeout", "expected_code": "network_unreachable" },
+  { "name": "architecture mismatch", "log": "standard_init_linux.go: exec user process caused: exec format error", "expected_code": "architecture_mismatch" },
+  { "name": "generic file permission", "log": "error opening /app/config.json: Permission denied", "expected_code": "permission_denied" }
+]

@@ -60,7 +60,9 @@ export type ErrorCode =
   | 'docker_permission_denied'
   // 依赖相关
   | 'npm_dependency_conflict'
+  | 'pip_dependency_conflict'
   | 'pip_package_not_found'
+  | 'system_package_not_found'
   | 'module_not_found'
   // 权限相关
   | 'permission_denied'
@@ -69,6 +71,9 @@ export type ErrorCode =
   | 'port_conflict'
   // 网络相关
   | 'network_unreachable'
+  | 'registry_auth_failed'
+  | 'architecture_mismatch'
+  | 'disk_space_exhausted'
   // deb 相关
   | 'deb_build_failed'
   | 'dpkg_unavailable'
@@ -80,6 +85,9 @@ export type ErrorCode =
   | 'language_not_supported'
   | 'entrypoint_not_found'
   | 'build_config_invalid'
+  | 'invalid_input'
+  | 'log_too_large'
+  | 'log_read_failed'
   // 通用
   | 'unknown_error';
 
@@ -116,6 +124,7 @@ export interface BuildDockerImageOutput extends ForgeKitResult {
   size_bytes?: number;
   build_log?: string;
   result_json?: BuildResult;
+  diagnosis?: import('./utils/error-diagnostic.js').ErrorDiagnostic;
 }
 
 export interface BuildResult {

@@ -2,8 +2,8 @@
  * Tool Registry - Register all available MCP tools
  *
  * 符合 V0.1_IMPLEMENTATION M1 要求：
- * - 注册 5 个工具：inspect_project, preflight_check, generate_packaging_plan,
- *   build_docker_image, pack_deb
+ * - 注册 6 个工具：inspect_project, preflight_check, diagnose_build_failure,
+ *   generate_packaging_plan, build_docker_image, pack_deb
  * - 构建类工具标注是否要求 plan_path
  */
 
@@ -59,6 +59,38 @@ export function registerTools(): Tool[] {
           },
         },
         required: ['source_dir'],
+      },
+    },
+
+    // ========== Build Failure Diagnosis（v0.2.1新增）==========
+    {
+      name: 'diagnose_build_failure',
+      description:
+        '只读分析 Docker/BuildKit 构建失败日志。' +
+        '必须且只能提供 log_text 或 log_path；使用 log_path 时必须提供 source_dir，且文件必须位于该目录内。' +
+        '返回错误类别、脱敏证据、可能原因、置信度、安全建议和验证步骤。' +
+        '不会执行修复命令或修改项目。',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          log_text: {
+            type: 'string',
+            description: 'Docker/BuildKit 失败日志文本（最大 1 MiB）',
+          },
+          log_path: {
+            type: 'string',
+            description: '日志文件路径；使用时必须同时提供 source_dir',
+          },
+          source_dir: {
+            type: 'string',
+            description: '可选项目根目录；使用 log_path 时必需，用于限制日志读取范围',
+          },
+        },
+        required: [],
+        oneOf: [
+          { required: ['log_text'] },
+          { required: ['log_path', 'source_dir'] },
+        ],
       },
     },
 

@@ -1,8 +1,14 @@
 # ForgeKit 当前目标与范围
 
-> 状态日期：2026-07-21
+> 状态日期：2026-07-22
 > 当前阶段：Docker 构建诊断需求验证
 > 产品原则：先证明能够更快解释真实构建失败，再扩展交付平台。
+
+## 0. 最新证据校准
+
+2026-07-22 收到的 5 条公开问卷回答来自同一个 GitHub 账号，当前记为 5 条场景线索，而不是 5 名独立受访者。回答支持继续测试 Docker 失败诊断、可审查自动化和 MCP 配置三个假设，但尚未验证任何一个需求成立。
+
+当前开发按 [v0.2 产品迭代计划](./PRODUCT_ITERATION_PLAN.md)执行；问卷证据边界与逐条综合见[公开问卷证据综述](./validation/QUESTIONNAIRE_SYNTHESIS_2026-07-22.md)。
 
 ## 1. 当前唯一主线
 
@@ -61,15 +67,18 @@ source tree / Dockerfile
 
 ## 4. 当前必须完成的可用产品
 
-当前能力以五个 MCP 工具为基础：
+当前能力以六个 MCP 工具为基础：
 
 | 工具 | 当前职责 | 可用性要求 |
 |------|----------|------------|
 | `inspect_project` | 识别项目、入口和现有构建配置 | 对不支持的项目给出明确原因和下一步 |
 | `preflight_check` | 构建前检查环境、计划、磁盘与 Registry | 每项明确返回通过、失败或跳过，不修改系统配置 |
+| `diagnose_build_failure` | 只读分析已有 Docker/BuildKit 失败日志 | 返回脱敏证据、可能原因、置信度、安全建议和验证步骤 |
 | `generate_packaging_plan` | 生成可审查的 `Forge.md` | 默认值合理，减少必须由用户填写的字段 |
 | `build_docker_image` | 构建服务器端 OCI/Docker 产物 | 强制计划前置，并验证镜像真实存在 |
 | `pack_deb` | 生成 Ubuntu/systemd 场景的可选 deb | 只在明确适用时推荐，不作为普遍默认 |
+
+第六个只读工具 `diagnose_build_failure` 已进入代码实现，允许分析已有 Docker/BuildKit 日志。该工具与 `build_docker_image` 复用诊断内核，不执行建议命令，也不修改用户项目。
 
 本阶段必须补齐的不是新平台，而是完整用户体验：
 

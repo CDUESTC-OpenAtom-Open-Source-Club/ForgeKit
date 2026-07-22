@@ -17,6 +17,7 @@
     "test:package": "node tests/runtime/installed-package-smoke.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "evaluate:diagnostics": "npm run build:clean && node scripts/evaluate-diagnostics.mjs tests/fixtures/diagnostic-public-cases.json",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests --ext .ts",
     "lint:fix": "eslint src tests --ext .ts --fix",

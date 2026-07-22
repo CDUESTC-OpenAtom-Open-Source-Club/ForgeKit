@@ -1,0 +1,50 @@
+- generic [active] [ref=e1]:
+  - link "跳到主要内容" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=e3]:
+    - link "返回 ForgeKit 首页" [ref=e4] [cursor=pointer]:
+      - /url: ./
+      - generic [ref=e5]: F
+      - generic [ref=e6]: ForgeKit
+    - navigation "访谈导航" [ref=e7]:
+      - link "文档站" [ref=e8] [cursor=pointer]:
+        - /url: ./
+      - link "填写公开问卷" [ref=e9] [cursor=pointer]:
+        - /url: https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/issues/new?template=research-interview.yml
+  - main [ref=e10]:
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - generic [ref=e13]: 用户研究 · 不做产品推销
+        - heading "你现在怎样把 Agent 或 MCP 项目交给别人使用？" [level=1] [ref=e14]
+        - paragraph [ref=e15]: 我们正在比较两个尚未证实的方向：Agent 是否需要自动打包技能，以及开发者是否更需要 Docker 构建诊断。我们希望先听真实经历，再决定是否继续开发。
+        - generic [ref=e16]:
+          - link "填写 5–10 分钟公开问卷" [ref=e17] [cursor=pointer]:
+            - /url: https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/issues/new?template=research-interview.yml
+          - link "查看访谈提纲" [ref=e18] [cursor=pointer]:
+            - /url: https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/blob/main/docs/validation/INTERVIEW_KIT.md
+      - generic [ref=e19]:
+        - article [ref=e20]:
+          - generic [ref=e21]: "01"
+          - heading "最近一次真实任务" [level=3] [ref=e22]
+          - paragraph [ref=e23]: 你实际构建或部署过什么？用了哪些工具？
+        - article [ref=e24]:
+          - generic [ref=e25]: "02"
+          - heading "现有方案与失败" [level=3] [ref=e26]
+          - paragraph [ref=e27]: 哪些地方已经够好？哪里需要搜索、重试或人工判断？
+        - article [ref=e28]:
+          - generic [ref=e29]: "03"
+          - heading "是否愿意真实试用" [level=3] [ref=e30]
+          - paragraph [ref=e31]: 口头兴趣不算验证；我们记录是否完成试用以及是否第二次使用。
+    - generic [ref=e33]:
+      - generic [ref=e34]: 隐私边界
+      - heading "公开问卷不收集私人联系方式。" [level=2] [ref=e35]
+      - paragraph [ref=e36]: GitHub 回答会公开显示。请勿填写邮箱、微信、Discord 私信账号、Token、密钥、私有仓库地址或生产日志。愿意访谈时只需在问卷中勾选，维护者再通过你已经公开的渠道联系。
+  - contentinfo [ref=e37]:
+    - generic [ref=e38]:
+      - strong [ref=e39]: ForgeKit 用户研究
+      - generic [ref=e40]: 真实行为优先于口头兴趣。
+    - generic [ref=e41]:
+      - link "返回文档站" [ref=e42] [cursor=pointer]:
+        - /url: ./
+      - link "GitHub" [ref=e43] [cursor=pointer]:
+        - /url: https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit

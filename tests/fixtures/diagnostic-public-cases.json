@@ -1,0 +1,72 @@
+[
+  {
+    "name": "BuildKit ADD source missing",
+    "source_url": "https://github.com/openremote/openremote/issues/3025",
+    "retrieved_on": "2026-07-22",
+    "log": "#12 ERROR: failed to calculate checksum of ref: \"/deployment\": not found",
+    "expected_code": "docker_copy_failed"
+  },
+  {
+    "name": "BuildKit COPY config missing",
+    "source_url": "https://github.com/mitre/grid-watch/issues/1",
+    "retrieved_on": "2026-07-22",
+    "log": "COPY config/caldera/local.yml conf/local.yml\nfailed to solve: failed to compute cache key: failed to calculate checksum of ref: \"/config/caldera/local.yml\": not found",
+    "expected_code": "docker_copy_failed"
+  },
+  {
+    "name": "pip social-auth-core conflict",
+    "source_url": "https://github.com/uncch-rdmc/dataverse-corere/issues/35",
+    "retrieved_on": "2026-07-22",
+    "log": "ERROR: Cannot install social-auth-core 4.1.0 and social-auth-core==4.0.3 because these package versions have conflicting dependencies.",
+    "expected_code": "pip_dependency_conflict"
+  },
+  {
+    "name": "pip transformers conflict",
+    "source_url": "https://github.com/jina-ai/dalle-flow/issues/149",
+    "retrieved_on": "2026-07-22",
+    "log": "ERROR: Cannot install transformers 4.27.0.dev0 and dalle-mini 0.1.4 because these package versions have conflicting dependencies.\nERROR: ResolutionImpossible",
+    "expected_code": "pip_dependency_conflict"
+  },
+  {
+    "name": "Docker build package manager reports no free space",
+    "source_url": "https://github.com/moby/moby/issues/52721",
+    "retrieved_on": "2026-07-22",
+    "log": "error: not enough free disk space\nerror: failed to commit transaction (not enough free disk space)",
+    "expected_code": "disk_space_exhausted"
+  },
+  {
+    "name": "Docker ARM64 recursive chown exhausts disk",
+    "source_url": "https://github.com/asyncapi/cli/issues/1966",
+    "retrieved_on": "2026-07-22",
+    "log": "RUN chown -R asyncapi:nodejs /app\nNo space left on device",
+    "expected_code": "disk_space_exhausted"
+  },
+  {
+    "name": "ARM64 image manifest unavailable",
+    "source_url": "https://github.com/ggml-org/whisper.cpp/issues/2081",
+    "retrieved_on": "2026-07-22",
+    "log": "docker pull --platform linux/arm64 ghcr.io/ggerganov/whisper.cpp:main\nno matching manifest for linux/arm64 in the manifest list entries",
+    "expected_code": "architecture_mismatch"
+  },
+  {
+    "name": "Dockerfile unknown COMMENTED instruction",
+    "source_url": "https://github.com/docker/awesome-compose/issues/239",
+    "retrieved_on": "2026-07-22",
+    "log": "dockerfile parse error line 22: unknown instruction: COMMENTED",
+    "expected_code": "build_config_invalid"
+  },
+  {
+    "name": "Dockerfile unknown APT-GET instruction",
+    "source_url": "https://github.com/docker/awesome-compose/issues/347",
+    "retrieved_on": "2026-07-22",
+    "log": "dockerfile parse error line 19: unknown instruction: APT-GET",
+    "expected_code": "build_config_invalid"
+  },
+  {
+    "name": "Registry pull access denied",
+    "source_url": "https://github.com/YelpArchive/dockersh/issues/30",
+    "retrieved_on": "2026-07-22",
+    "log": "pull access denied for google/golang, repository does not exist or may require 'docker login': denied: requested access to the resource is denied",
+    "expected_code": "registry_auth_failed"
+  }
+]

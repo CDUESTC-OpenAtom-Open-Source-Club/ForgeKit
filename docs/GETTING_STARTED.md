@@ -68,11 +68,21 @@ inspect_project
 
 ## 验证成功标准
 
-- MCP 客户端能发现 5 个工具；
+- MCP 客户端能发现 6 个工具；
 - `preflight_check` 返回明确的通过、失败或跳过项；
 - 项目目录生成 `Forge.md`；
 - 构建成功后生成镜像、日志和 `release-manifest.json`；
 - Manifest 中包含真实 Git commit、工具版本和 SHA256。
+
+已有失败日志时，可以跳过构建流程直接调用：
+
+```json
+{
+  "log_text": "failed to calculate checksum: \"/app.py\": not found"
+}
+```
+
+完整字段、置信度和脱敏说明见 [Docker 构建诊断说明](./DIAGNOSTICS.md)。
 
 ## 常见问题
 

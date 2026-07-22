@@ -10,7 +10,7 @@ import * as path from 'path';
 import { assertSourceDir, PathValidationError, pathExists } from './utils/filesystem.js';
 import { runCommand, runCommandWithLog, commandExists, snippet } from './utils/command.js';
 import type { BuildDockerImageOutput, BuildResult } from './types.js';
-import { diagnoseBuildError } from './utils/error-diagnostic.js';
+import { diagnoseBuildError, type ErrorDiagnostic } from './utils/error-diagnostic.js';
 import { generateReleaseManifest, saveReleaseManifest } from './manifest-generator.js';
 
 export interface BuildDockerInput {
@@ -114,8 +114,9 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
   if (!buildResult.success) {
     // 尝试智能诊断
     const diagnostic = diagnoseBuildError(
-      buildResult.stderr || buildResult.stdout,
-      buildResult.stderr
+      'Docker build failed',
+      buildResult.stderr,
+      buildResult.stdout
     );
 
     if (diagnostic) {
@@ -128,8 +129,8 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
           exit_code: buildResult.exitCode,
           stdout_snippet: snippet(buildResult.stdout),
           stderr_snippet: snippet(buildResult.stderr),
-          ...(diagnostic.detail && { diagnostic_detail: diagnostic.detail }),
-        }
+        },
+        diagnostic
       );
     }
 
@@ -234,12 +235,14 @@ function failed(
   summary: string,
   suggestedFix: string,
   detailLog?: string,
-  resultJson?: BuildResult
+  resultJson?: BuildResult,
+  diagnosis?: ErrorDiagnostic
 ): BuildDockerImageOutput {
   return {
     status: 'failed',
     error: { code: code as any, summary, detail_log: detailLog, suggested_fix: suggestedFix },
     result_json: resultJson,
+    diagnosis,
   };
 }
 

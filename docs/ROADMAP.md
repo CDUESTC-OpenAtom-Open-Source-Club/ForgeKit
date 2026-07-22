@@ -50,6 +50,8 @@ ForgeKit 的发展路径为：
 
 ## 3. v0.2：可用性版本
 
+v0.2 的执行拆分为 v0.2.1 诊断内核、v0.2.2 安装配置、v0.2.3 真实试点；详细交付顺序和小版本退出门槛见 [PRODUCT_ITERATION_PLAN.md](./PRODUCT_ITERATION_PLAN.md)。
+
 ### 目标
 
 证明 ForgeKit 能比直接阅读 Docker 日志更快、更清楚地定位构建问题。
@@ -61,7 +63,7 @@ ForgeKit 的发展路径为：
 - 提供 Claude Code、Codex、Cursor、Cline 等客户端的最短配置示例；
 - 增加 preflight/dry-run，提前检查工具链、权限、磁盘和项目入口；
 - 为常见失败返回错误类别、原因、建议动作和重试条件；
-- 提供 `doctor` 或等价诊断能力，但优先复用现有 MCP 接口，避免重复协议；
+- 提供只读 `diagnose_build_failure` 工具分析已有日志，并与构建失败路径复用同一诊断内核；
 - 将 Git commit、dirty state、ForgeKit 版本、目标和产物哈希写入 Release Manifest；
 - 建立脱敏规则，默认不上传源码、密钥和完整环境变量；
 - 完成 5 名非维护者的真实诊断试点及公开案例。

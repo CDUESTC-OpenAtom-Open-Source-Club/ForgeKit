@@ -56,11 +56,13 @@
 ### 范围
 
 - 第五个 MCP 工具 `preflight_check`；
+- 第六个只读 MCP 工具 `diagnose_build_failure`，用于分析已有 Docker/BuildKit 失败日志；
 - 源目录、计划、容器运行时、磁盘和 Registry 连通性检查；
 - 10+ 常见失败模式诊断；
 - Release Manifest 作为辅助证据：Git commit、工具版本、环境、产物大小与 SHA256；
 - npm/npx 安装入口及版本锁定示例；
 - 环境、路径、Dockerfile、依赖、Registry、架构和权限失败样本；
+- 诊断结果包含原始证据、可能原因、置信度、安全建议和验证步骤；
 - Python、Node.js/TypeScript、Go 代表项目试点；
 - Docker Engine 为主支持运行时，Podman CLI 兼容性保持试验性；
 - 国内网络环境的镜像源说明，不自动改写用户系统配置。

@@ -17,6 +17,7 @@ import { generatePackagingPlan } from '../../capabilities/generate-packaging-pla
 import { buildDockerImage } from '../../capabilities/build-docker-image.js';
 import { packDeb } from '../../capabilities/pack-deb.js';
 import { preflightCheck } from '../../capabilities/preflight-check.js';
+import { diagnoseBuildFailure } from '../../capabilities/diagnose-build-failure.js';
 
 /**
  * Execute tool call
@@ -47,6 +48,13 @@ export async function executeTool(
         source_dir: args.source_dir as string,
         plan_path: args.plan_path as string | undefined,
         checks: args.checks as string[] | undefined,
+      });
+
+    case 'diagnose_build_failure':
+      return diagnoseBuildFailure({
+        log_text: args.log_text as string | undefined,
+        log_path: args.log_path as string | undefined,
+        source_dir: args.source_dir as string | undefined,
       });
 
     case 'generate_packaging_plan':

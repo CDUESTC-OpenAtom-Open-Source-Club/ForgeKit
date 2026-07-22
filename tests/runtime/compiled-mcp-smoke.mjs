@@ -31,6 +31,7 @@ try {
   const { tools } = await client.listTools();
   assert.deepEqual(tools.map((tool) => tool.name).sort(), [
     'build_docker_image',
+    'diagnose_build_failure',
     'generate_packaging_plan',
     'inspect_project',
     'pack_deb',
@@ -48,6 +49,14 @@ try {
   assert.equal(result.status, 'success');
   assert.equal(result.language, 'Python');
   assert.ok(result.entrypoints.includes('app.py'));
+
+  const diagnosisResponse = await client.callTool({
+    name: 'diagnose_build_failure',
+    arguments: { log_text: 'failed to calculate checksum: "/missing.txt": not found' },
+  });
+  const diagnosisResult = JSON.parse(diagnosisResponse.content[0].text);
+  assert.equal(diagnosisResult.status, 'success');
+  assert.equal(diagnosisResult.diagnosis.code, 'docker_copy_failed');
 
   console.log('Compiled MCP runtime smoke test passed');
 } finally {

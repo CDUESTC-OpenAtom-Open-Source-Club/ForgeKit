@@ -79,6 +79,15 @@ describe('Executor - plan_path 强制校验', () => {
 });
 
 describe('Executor - 路由到真实能力', () => {
+  it('diagnose_build_failure 路由到只读诊断实现', async () => {
+    const result = await executeTool('diagnose_build_failure', {
+      log_text: 'npm ERR! ERESOLVE unable to resolve dependency tree',
+    });
+
+    expect(result.status).toBe('success');
+    expect((result as { diagnosis?: { code: string } }).diagnosis?.code).toBe('npm_dependency_conflict');
+  });
+
   it('inspect_project 路由到真实实现', async () => {
     const projDir = path.join(tmpDir, 'inspect-target');
     fs.mkdirSync(projDir, { recursive: true });

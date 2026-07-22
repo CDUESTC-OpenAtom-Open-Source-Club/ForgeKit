@@ -22,7 +22,7 @@ afterAll(() => {
 
 describe('MCP 协议层冒烟测试', () => {
   describe('工具发现测试', () => {
-    it('能列出所有 5 个工具', () => {
+    it('能列出所有 6 个工具', () => {
       const tools = registerTools();
       const toolNames = tools.map((t) => t.name);
 
@@ -31,7 +31,8 @@ describe('MCP 协议层冒烟测试', () => {
       expect(toolNames).toContain('build_docker_image');
       expect(toolNames).toContain('pack_deb');
       expect(toolNames).toContain('preflight_check'); // v0.2新增
-      expect(tools.length).toBe(5);
+      expect(toolNames).toContain('diagnose_build_failure');
+      expect(tools.length).toBe(6);
     });
 
     it('所有工具都有正确的 Schema', () => {
@@ -88,6 +89,17 @@ describe('MCP 协议层冒烟测试', () => {
   });
 
   describe('结构化输出测试', () => {
+    it('diagnose_build_failure 返回证据、置信度和验证步骤', async () => {
+      const result = await executeTool('diagnose_build_failure', {
+        log_text: '#6 ERROR: failed to calculate checksum: "/app.py": not found',
+      }) as { status: string; diagnosis?: { evidence: string[]; confidence: string; verification: string[] } };
+
+      expect(result.status).toBe('success');
+      expect(result.diagnosis?.evidence.length).toBeGreaterThan(0);
+      expect(result.diagnosis?.confidence).toBe('high');
+      expect(result.diagnosis?.verification.length).toBeGreaterThan(0);
+    });
+
     it('inspect_project 返回 ForgeKitResult 结构（含 decision_basis）', async () => {
       const result: any = await executeTool('inspect_project', { source_dir: tmpDir });
 

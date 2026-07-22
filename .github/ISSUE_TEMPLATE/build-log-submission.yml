@@ -1,0 +1,121 @@
+name: BuildKit 日志提交
+description: 提交真实的构建失败日志，帮助改进诊断工具
+title: "日志提交："
+labels: [buildkit-log, community-submitted]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你提交真实的BuildKit日志！这些日志将帮助我们改进诊断工具的准确率。
+
+        **隐私提醒**：
+        - 请**不要**提交包含真实密码、API Key、Token、私有仓库地址的日志
+        - 请使用 `[REDACTED]` 替换敏感信息
+        - 用户路径建议替换为 `/Users/[USER]` 或 `/home/[USER]`
+        - 日志内容会**公开显示**在GitHub
+
+  - type: dropdown
+    id: log_source
+    attributes:
+      label: 日志来源
+      description: 这个日志来自哪里？
+      options:
+        - 我自己的项目构建失败
+        - 网上看到的失败案例（如StackOverflow、GitHub Issue）
+        - 教程或文档中的示例
+        - 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: build_context
+    attributes:
+      label: 构建上下文（可选）
+      description: |
+        提供一些背景信息，帮助我们理解：
+        - 项目类型（Python/Node.js/Go等）
+        - 构建工具（Docker/Podman/buildx）
+        - 平台（linux/amd64/linux/arm64）
+      placeholder: |
+        项目：Python Flask应用
+        构建工具：Docker 24.0
+        平台：linux/amd64
+        基础镜像：python:3.11-slim
+    validations:
+      required: false
+
+  - type: textarea
+    id: log_content
+    attributes:
+      label: BuildKit 日志内容
+      description: 粘贴完整的构建失败日志（已脱敏）
+      placeholder: |
+        #0 building with "default" instance using docker driver
+        #1 [internal] load build definition from Dockerfile
+        ...
+        ERROR: failed to solve: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_cause
+    attributes:
+      label: 真实原因（如果已知）
+      description: |
+        如果你已经知道失败原因和解决方法，请填写：
+        - 错误类别（依赖冲突/Dockerfile语法/网络问题等）
+        - 具体原因
+        - 解决方法
+      placeholder: |
+        错误类别：依赖冲突
+        具体原因：requirements.txt中同时指定了numpy 1.24.0和1.26.0
+        解决方法：删除重复的依赖声明
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: diagnosis_feedback
+    attributes:
+      label: 诊断工具反馈（如果已试用）
+      options:
+        - label: 我已运行 ForgeKit 的 diagnose_build_failure 工具
+        - label: 诊断结果正确
+        - label: 诊断结果错误（请在下方说明）
+    validations:
+      required: false
+
+  - type: textarea
+    id: diagnosis_details
+    attributes:
+      label: 诊断工具详细反馈
+      description: 如果诊断结果错误，请说明实际原因和诊断结果的差异
+      placeholder: |
+        诊断工具返回：pip_dependency_conflict
+        实际原因：Dockerfile中的COPY命令路径错误
+        诊断错误原因：日志中包含pip install命令，误导了诊断
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: 隐私与使用确认
+      options:
+        - label: 我已脱敏所有敏感信息（密码、密钥、私有路径、内部地址）
+          required: true
+        - label: 我同意日志公开用于改进ForgeKit诊断工具
+          required: true
+        - label: 我理解提交的内容会公开显示在GitHub
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+
+        **维护者提示**：
+        - 收到日志后，会进行分类和盲测
+        - 如果诊断工具识别错误，会改进规则库
+        - 会在Issue中回复诊断结果和改进情况
+
+        感谢你的贡献！🎉

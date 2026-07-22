@@ -43,6 +43,20 @@ const ForgeKitErrorSchema = z.object({
     'docker_daemon_unavailable',
     'dockerfile_not_found',
     'docker_build_failed',
+    'docker_copy_failed',
+    'docker_permission_denied',
+    'npm_dependency_conflict',
+    'pip_dependency_conflict',
+    'pip_package_not_found',
+    'system_package_not_found',
+    'module_not_found',
+    'permission_denied',
+    'write_permission_denied',
+    'port_conflict',
+    'network_unreachable',
+    'registry_auth_failed',
+    'architecture_mismatch',
+    'disk_space_exhausted',
     'deb_build_failed',
     'dpkg_unavailable',
     'invalid_path',
@@ -51,6 +65,9 @@ const ForgeKitErrorSchema = z.object({
     'language_not_supported',
     'entrypoint_not_found',
     'build_config_invalid',
+    'invalid_input',
+    'log_too_large',
+    'log_read_failed',
     'unknown_error',
   ]).describe('错误代码'),
   summary: z.string().describe('错误摘要'),
@@ -93,6 +110,47 @@ export const InspectProjectOutputSchema = ForgeKitResultSchema.extend({
   recommendations: z.array(z.string()).optional().describe('推荐打包目标'),
 });
 
+const ErrorDiagnosticSchema = z.object({
+  code: ForgeKitErrorSchema.shape.code,
+  category: z.enum([
+    'environment', 'path', 'dockerfile', 'dependency', 'registry',
+    'architecture', 'permission', 'disk', 'runtime', 'unknown',
+  ]),
+  summary: z.string(),
+  probable_cause: z.string(),
+  confidence: z.enum(['high', 'medium', 'low']),
+  evidence: z.array(z.string()),
+  suggested_actions: z.array(z.string()),
+  verification: z.array(z.string()),
+  suggested_fix: z.string(),
+  related_rules: z.array(z.string()).optional(),
+  severity: z.enum(['error', 'warning', 'info']),
+});
+
+export const DiagnoseBuildFailureInputSchema = z.object({
+  log_text: z.string().optional(),
+  log_path: z.string().optional(),
+  source_dir: z.string().optional(),
+}).superRefine((value, context) => {
+  if (Boolean(value.log_text) === Boolean(value.log_path)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: '必须且只能提供 log_text 或 log_path 其中一项',
+    });
+  }
+  if (value.log_path && !value.source_dir) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: '使用 log_path 时必须提供 source_dir',
+    });
+  }
+});
+
+export const DiagnoseBuildFailureOutputSchema = ForgeKitResultSchema.extend({
+  diagnosis: ErrorDiagnosticSchema.optional(),
+  input_source: z.enum(['text', 'file']).optional(),
+});
+
 // generate_packaging_plan
 export const GeneratePackagingPlanInputSchema = z.object({
   source_dir: SourceDirSchema,
@@ -124,6 +182,7 @@ export const BuildDockerImageOutputSchema = ForgeKitResultSchema.extend({
     stderr_snippet: z.string().optional().describe('标准错误摘要'),
     state_delta: z.record(z.unknown()).optional().describe('状态变化'),
   }).optional().describe('构建结果详情'),
+  diagnosis: ErrorDiagnosticSchema.optional().describe('构建失败的结构化诊断'),
 });
 
 // pack_deb（构建类，强制 plan_path）
@@ -144,6 +203,9 @@ export const PackDebOutputSchema = ForgeKitResultSchema.extend({
 
 export type InspectProjectInput = z.infer<typeof InspectProjectInputSchema>;
 export type InspectProjectOutput = z.infer<typeof InspectProjectOutputSchema>;
+
+export type DiagnoseBuildFailureInput = z.infer<typeof DiagnoseBuildFailureInputSchema>;
+export type DiagnoseBuildFailureOutput = z.infer<typeof DiagnoseBuildFailureOutputSchema>;
 
 export type GeneratePackagingPlanInput = z.infer<typeof GeneratePackagingPlanInputSchema>;
 export type GeneratePackagingPlanOutput = z.infer<typeof GeneratePackagingPlanOutputSchema>;
