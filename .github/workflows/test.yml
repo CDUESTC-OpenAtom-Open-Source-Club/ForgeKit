@@ -79,7 +79,14 @@ jobs:
 
               const build = await executeTool('build_docker_image', {source_dir: dir, plan_path: plan.plan_path, image_name:'forgekit-demo', tags:['smoke']});
               console.log('build:', build.status, build.image_ref, 'size=', build.size_bytes);
-              if (build.status !== 'success') { console.error(JSON.stringify(build.error)); process.exit(1); }
+              if (build.status !== 'success') {
+                console.error(JSON.stringify(build.error));
+                if (build.error?.detail_log) {
+                  const fs = require('fs');
+                  console.error(fs.readFileSync(build.error.detail_log, 'utf8'));
+                }
+                process.exit(1);
+              }
               console.log('E2E real build OK');
             })().catch(e=>{console.error(e); process.exit(1);});
           "
