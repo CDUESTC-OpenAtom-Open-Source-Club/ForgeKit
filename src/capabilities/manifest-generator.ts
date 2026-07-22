@@ -16,6 +16,7 @@ import type { ReleaseManifest, ArtifactInfo } from './release-manifest.js';
 import { MANIFEST_VERSION, MANIFEST_FILENAME } from './release-manifest.js';
 import { getGitInfo } from './utils/git-info.js';
 import { runCommand } from './utils/command.js';
+import { parseJson5 } from './utils/json5.js';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -137,6 +138,26 @@ function normalizeArchitecture(architecture: string): string {
  * 检测项目类型
  */
 function detectProjectType(sourceDir: string): { type: string; version?: string } {
+  if (
+    fs.existsSync(path.join(sourceDir, 'AppScope', 'app.json5'))
+    && fs.existsSync(path.join(sourceDir, 'build-profile.json5'))
+  ) {
+    const parsedProfile = parseJson5(
+      fs.readFileSync(path.join(sourceDir, 'build-profile.json5'), 'utf8')
+    );
+    const profile = isRecord(parsedProfile) ? parsedProfile : undefined;
+    const app = isRecord(profile?.app) ? profile.app : undefined;
+    const products = app?.products;
+    let api: string | undefined;
+    if (Array.isArray(products)) {
+      for (const product of products) {
+        api = parseHarmonyApi(isRecord(product) ? product.compatibleSdkVersion : undefined);
+        if (api) {break;}
+      }
+    }
+    return { type: 'ArkTS', version: api ? `HarmonyOS API ${api}` : 'HarmonyOS' };
+  }
+
   // 检查 package.json
   const packageJsonPath = path.join(sourceDir, 'package.json');
   if (fs.existsSync(packageJsonPath)) {
@@ -178,6 +199,14 @@ function detectProjectType(sourceDir: string): { type: string; version?: string 
   return {
     type: 'unknown',
   };
+}
+
+function parseHarmonyApi(value: unknown): string | undefined {
+  if (typeof value === 'number' && Number.isInteger(value)) {return String(value);}
+  if (typeof value !== 'string') {return undefined;}
+  const parenthesized = value.match(/\((\d{1,2})\)\s*$/);
+  if (parenthesized) {return parenthesized[1];}
+  return /^\d{1,2}$/.test(value.trim()) ? value.trim() : undefined;
 }
 
 /**

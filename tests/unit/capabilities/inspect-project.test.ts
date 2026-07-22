@@ -105,6 +105,31 @@ describe('M2: inspect_project', () => {
     expect(result.entrypoints).toContain('main.go');
   });
 
+  it('HarmonyOS Stage 工程识别 ArkTS、API 与 Ability 入口', async () => {
+    const dir = path.join(tmpDir, 'harmony-project');
+    const abilityDir = path.join(dir, 'entry', 'src', 'main', 'ets', 'entryability');
+    fs.mkdirSync(path.join(dir, 'AppScope'), { recursive: true });
+    fs.mkdirSync(abilityDir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'AppScope', 'app.json5'), '{ app: { bundleName: "com.example.demo" } }');
+    fs.writeFileSync(
+      path.join(dir, 'build-profile.json5'),
+      '{ app: { products: [{ compatibleSdkVersion: "5.0.5(17)", }], }, modules: [{ name: "entry", srcPath: "./entry", }], }'
+    );
+    fs.writeFileSync(
+      path.join(dir, 'entry', 'src', 'main', 'module.json5'),
+      '{ module: { mainElement: "EntryAbility", abilities: [{ name: "EntryAbility", srcEntry: "./ets/entryability/EntryAbility.ets", }], }, }'
+    );
+    fs.writeFileSync(path.join(abilityDir, 'EntryAbility.ets'), 'export default class EntryAbility {}');
+
+    const result = await inspectProject(dir);
+
+    expect(result.language).toBe('ArkTS');
+    expect(result.runtime).toBe('HarmonyOS API 17');
+    expect(result.entrypoints).toContain('entry/src/main/ets/entryability/EntryAbility.ets');
+    expect(result.warnings).not.toContain('项目缺少 Dockerfile，生成计划时可选择自动生成');
+    expect(result.recommendations?.some((item) => item.includes('HarmonyOS HAP'))).toBe(true);
+  });
+
   it('无入口时返回警告', async () => {
     const dir = path.join(tmpDir, 'no-entry');
     fs.mkdirSync(dir, { recursive: true });

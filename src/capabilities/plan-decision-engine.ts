@@ -9,7 +9,7 @@ export function deriveDecisions(
 ): DecisionBasis {
   // 鸿蒙（HarmonyOS NEXT）分支
   if (rules?.平台 === 'harmonyos') {
-    const api = parseHarmonyApi(targetEnvironment);
+    const api = parseHarmonyApi(targetEnvironment, inspect.runtime);
     const isApp = goals.some((g) => g.toLowerCase().includes('app'));
     return {
       target_platform: `harmonyos/${api}`,
@@ -124,14 +124,19 @@ function getCompatibilityNotes(rules: DecisionRules | null, version: string): st
   ];
 }
 
-/** 从 targetEnvironment（如 harmonyos-12）解析 API 版本，默认 12（NEXT 稳定版） */
-function parseHarmonyApi(targetEnvironment?: string): string {
+/** 从 targetEnvironment（如 harmonyos-17）解析 API 版本，默认 17。 */
+function parseHarmonyApi(targetEnvironment?: string, detectedRuntime?: string): string {
   const match = targetEnvironment?.match(/(\d{1,2})/);
   if (match) {
     const api = parseInt(match[1], 10);
-    if (api >= 9 && api <= 13) {
+    if (api >= 9 && api <= 24) {
       return String(api);
     }
   }
-  return '12';
+  const detected = detectedRuntime?.match(/API\s+(\d{1,2})/i);
+  if (detected) {
+    const api = parseInt(detected[1], 10);
+    if (api >= 9 && api <= 24) {return String(api);}
+  }
+  return '17';
 }
