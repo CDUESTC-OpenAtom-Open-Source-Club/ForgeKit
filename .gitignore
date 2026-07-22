@@ -3,7 +3,8 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
+# Lockfiles are committed because CI and install reproducibility use npm ci.
+!package-lock.json
 !tests/fixtures/sample-typescript-project/package-lock.json
 yarn.lock
 
