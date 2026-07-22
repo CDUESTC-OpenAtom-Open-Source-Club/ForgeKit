@@ -39,6 +39,7 @@ logs/
 tmp/
 temp/
 .cache/
+.forgekit-validation/
 
 # OS
 Thumbs.db
