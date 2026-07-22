@@ -129,8 +129,8 @@ pre { max-width: 100%; overflow-x: auto; padding: 1.25rem; margin: 0; font-size:
   .problem-list h3, .problem-list p { margin-top: 0; }
   .start-layout { grid-template-columns: minmax(17rem, 0.8fr) minmax(22rem, 1.2fr); gap: 3rem; }
   pre { font-size: 0.88rem; }
-  .tool-flow li { grid-template-columns: 3rem 12rem 1fr; align-items: center; }
-  .tool-flow li > div { display: grid; grid-template-columns: 14rem 1fr; gap: 2rem; align-items: center; }
+  .tool-flow li { grid-template-columns: 3rem minmax(0, 1fr); align-items: center; }
+  .tool-flow li > div { display: grid; grid-template-columns: minmax(12rem, 0.8fr) minmax(0, 1fr); gap: 2rem; align-items: center; min-width: 0; }
   .tool-flow code { grid-column: 1; }
   .tool-flow h3 { grid-column: 1; margin-top: 0.25rem; }
   .tool-flow p { grid-column: 2; grid-row: 1 / span 2; }
