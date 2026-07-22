@@ -15,12 +15,16 @@ try {
   if (command === 'prepare') {
     const corpus = readJson(requiredOption(options, 'corpus'));
     const worksheet = createAnnotationWorksheet(corpus, requiredOption(options, 'reviewer'));
-    writeNewJson(requiredOption(options, 'output'), worksheet);
+    const output = requiredOption(options, 'output');
+    assertNewJsonTargets([output]);
+    writeNewJson(output, worksheet);
   } else if (command === 'compare') {
     const reviewerA = readJson(requiredOption(options, 'reviewer-a'));
     const reviewerB = readJson(requiredOption(options, 'reviewer-b'));
     const comparison = compareAnnotationWorksheets(reviewerA, reviewerB);
-    writeNewJson(requiredOption(options, 'output'), comparison);
+    const output = requiredOption(options, 'output');
+    assertNewJsonTargets([output, ...(options.adjudication ? [options.adjudication] : [])]);
+    writeNewJson(output, comparison);
     if (options.adjudication) {
       writeNewJson(options.adjudication, createAdjudicationTemplate(comparison));
     }
@@ -33,8 +37,11 @@ try {
       comparison,
       adjudication
     );
-    writeNewJson(requiredOption(options, 'output'), lockedCorpus);
-    writeNewJson(requiredOption(options, 'report'), report);
+    const output = requiredOption(options, 'output');
+    const reportPath = requiredOption(options, 'report');
+    assertNewJsonTargets([output, reportPath]);
+    writeNewJson(output, lockedCorpus);
+    writeNewJson(reportPath, report);
   } else {
     usage();
     process.exitCode = 2;
@@ -74,6 +81,18 @@ function writeNewJson(filePath, value) {
   fs.mkdirSync(path.dirname(resolved), { recursive: true });
   fs.writeFileSync(resolved, `${JSON.stringify(value, null, 2)}\n`, { flag: 'wx' });
   console.log(resolved);
+}
+
+function assertNewJsonTargets(filePaths) {
+  const resolvedPaths = filePaths.map((filePath) => path.resolve(filePath));
+  if (new Set(resolvedPaths).size !== resolvedPaths.length) {
+    throw new Error('output paths must be different');
+  }
+  for (const resolved of resolvedPaths) {
+    if (fs.existsSync(resolved)) {
+      throw new Error(`refusing to overwrite existing file: ${resolved}`);
+    }
+  }
 }
 
 function usage() {

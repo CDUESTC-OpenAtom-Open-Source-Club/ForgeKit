@@ -53,6 +53,20 @@ jobs:
         run: npm run gate:diagnostics
       - name: Inspect npm package contents
         run: npm pack --dry-run --json > npm-pack-report.json
+      - name: Create release tag
+        if: ${{ !inputs.dry_run }}
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          git tag "$RELEASE_TAG"
+          git push origin "$RELEASE_TAG"
+
+      - name: Publish npm next
+        if: ${{ !inputs.dry_run }}
+        run: npm publish --tag next --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Create GitHub prerelease
         if: ${{ !inputs.dry_run }}
         env:
@@ -61,16 +75,9 @@ jobs:
           LINUX_EVIDENCE: ${{ inputs.linux_evidence }}
           HARMONY_EVIDENCE: ${{ inputs.harmony_evidence }}
         run: |
-          git tag "$RELEASE_TAG"
-          git push origin "$RELEASE_TAG"
           gh release create "$RELEASE_TAG" --prerelease --generate-notes \
             --notes "Linux evidence: $LINUX_EVIDENCE
           HarmonyOS evidence: $HARMONY_EVIDENCE"
-      - name: Publish npm next
-        if: ${{ !inputs.dry_run }}
-        run: npm publish --tag next --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:

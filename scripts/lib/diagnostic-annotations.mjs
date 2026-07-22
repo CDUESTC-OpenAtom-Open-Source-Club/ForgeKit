@@ -87,6 +87,10 @@ export function lockDiagnosticAnnotations(corpus, comparison, adjudication = und
   if (comparison.totals.cases !== corpus.length) {
     throw new Error('comparison case count does not match the source corpus');
   }
+  const corpusAllowedCodes = [...new Set(corpus.map((item) => item.expected_code))].sort();
+  if (stableJson(comparison.allowed_codes) !== stableJson(corpusAllowedCodes)) {
+    throw new Error('comparison allowed codes do not match the source corpus');
+  }
 
   const labels = new Map(
     comparison.agreements.map((item) => [item.case_id, {
@@ -100,15 +104,27 @@ export function lockDiagnosticAnnotations(corpus, comparison, adjudication = und
     if (comparison.reviewers.includes(adjudicator)) {
       throw new Error('adjudicator must be different from both reviewers');
     }
+    if (adjudication?.corpus_sha256 !== comparison.corpus_sha256) {
+      throw new Error('adjudication does not match the comparison corpus');
+    }
     if (!Array.isArray(adjudication?.resolutions)) {
       throw new Error('adjudication resolutions are required for conflicts');
     }
-    const resolutions = new Map(
-      adjudication.resolutions.map((item) => [
-        requireNonEmptyString(item.case_id, 'resolution case_id'),
-        requireAllowedCode(item.resolved_code, 'resolved_code', comparison.allowed_codes),
-      ])
-    );
+    const conflictIds = new Set(comparison.conflicts.map((item) => item.case_id));
+    const resolutions = new Map();
+    for (const item of adjudication.resolutions) {
+      const id = requireNonEmptyString(item.case_id, 'resolution case_id');
+      if (!conflictIds.has(id)) {
+        throw new Error(`unexpected adjudication for ${id}`);
+      }
+      if (resolutions.has(id)) {
+        throw new Error(`duplicate adjudication for ${id}`);
+      }
+      resolutions.set(
+        id,
+        requireAllowedCode(item.resolved_code, 'resolved_code', comparison.allowed_codes)
+      );
+    }
     for (const conflict of comparison.conflicts) {
       const resolvedCode = resolutions.get(conflict.case_id);
       if (!resolvedCode) {
@@ -167,7 +183,7 @@ export function createAdjudicationTemplate(comparison) {
 
 export function hashCorpus(corpus) {
   validateCorpus(corpus);
-  const blindFields = corpus.map((item, index) => ({
+  return hashBlindCases(corpus.map((item, index) => ({
     case_id: caseId(index),
     name: item.name,
     source_url: item.source_url,
@@ -176,8 +192,7 @@ export function hashCorpus(corpus) {
     runtime: item.runtime,
     target_platform: item.target_platform,
     log: item.log,
-  }));
-  return sha256(stableJson(blindFields));
+  })));
 }
 
 function validateCorpus(corpus) {
@@ -203,6 +218,10 @@ function validateWorksheet(worksheet) {
   if (!Array.isArray(worksheet?.cases) || worksheet.cases.length === 0) {
     throw new Error('worksheet cases must be a non-empty array');
   }
+  if (hashBlindCases(worksheet.cases) !== worksheet.corpus_sha256) {
+    throw new Error('worksheet case content does not match corpus_sha256');
+  }
+  validateAllowedCodes(worksheet.allowed_codes, 'worksheet');
   const allowedCodes = new Set(worksheet.allowed_codes);
   for (const item of worksheet.cases) {
     requireNonEmptyString(item?.case_id, 'worksheet case_id');
@@ -224,6 +243,7 @@ function validateComparison(comparison) {
   if (!Array.isArray(comparison?.allowed_codes) || comparison.allowed_codes.length === 0) {
     throw new Error('comparison allowed_codes must be a non-empty array');
   }
+  validateAllowedCodes(comparison.allowed_codes, 'comparison');
   if (!Array.isArray(comparison?.agreements) || !Array.isArray(comparison?.conflicts)) {
     throw new Error('comparison agreements and conflicts must be arrays');
   }
@@ -233,8 +253,11 @@ function validateComparison(comparison) {
   if (comparison.totals.cases !== comparison.agreements.length + comparison.conflicts.length) {
     throw new Error('comparison totals do not match agreements and conflicts');
   }
+  const caseIds = new Set();
   for (const item of comparison.agreements) {
     requireNonEmptyString(item.case_id, 'agreement case_id');
+    if (caseIds.has(item.case_id)) {throw new Error(`duplicate comparison case ${item.case_id}`);}
+    caseIds.add(item.case_id);
     requireAllowedCode(
       item.selected_code,
       `${item.case_id} selected_code`,
@@ -243,6 +266,8 @@ function validateComparison(comparison) {
   }
   for (const item of comparison.conflicts) {
     requireNonEmptyString(item.case_id, 'conflict case_id');
+    if (caseIds.has(item.case_id)) {throw new Error(`duplicate comparison case ${item.case_id}`);}
+    caseIds.add(item.case_id);
     requireAllowedCode(
       item.reviewer_a_code,
       `${item.case_id} reviewer_a_code`,
@@ -253,6 +278,18 @@ function validateComparison(comparison) {
       `${item.case_id} reviewer_b_code`,
       comparison.allowed_codes
     );
+    if (item.reviewer_a_code === item.reviewer_b_code) {
+      throw new Error(`${item.case_id} is not a real reviewer conflict`);
+    }
+  }
+}
+
+function validateAllowedCodes(codes, label) {
+  const seen = new Set();
+  for (const value of codes) {
+    const code = requireCode(value, `${label} allowed code`);
+    if (seen.has(code)) {throw new Error(`${label} allowed_codes contains duplicate ${code}`);}
+    seen.add(code);
   }
 }
 
@@ -285,6 +322,20 @@ function caseId(index) {
 
 function stableJson(value) {
   return JSON.stringify(value);
+}
+
+function hashBlindCases(cases) {
+  const blindFields = cases.map((item) => ({
+    case_id: item.case_id,
+    name: item.name,
+    source_url: item.source_url,
+    source_type: item.source_type,
+    language: item.language,
+    runtime: item.runtime,
+    target_platform: item.target_platform,
+    log: item.log,
+  }));
+  return sha256(stableJson(blindFields));
 }
 
 function sha256(value) {

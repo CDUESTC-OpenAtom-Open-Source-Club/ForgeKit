@@ -76,6 +76,20 @@ describe('diagnostic annotation workflow', () => {
     );
   });
 
+  it('rejects worksheets whose blind case content was modified', () => {
+    const reviewerA = completedWorksheet('maintainer-a', [
+      'docker_copy_failed', 'disk_space_exhausted',
+    ]);
+    const reviewerB = completedWorksheet('maintainer-b', [
+      'docker_copy_failed', 'disk_space_exhausted',
+    ]);
+    reviewerB.cases[0].log = 'tampered log';
+
+    expect(() => compareAnnotationWorksheets(reviewerA, reviewerB)).toThrow(
+      'case content does not match corpus_sha256'
+    );
+  });
+
   it('requires adjudication for every conflict', () => {
     const comparison = compareAnnotationWorksheets(
       completedWorksheet('maintainer-a', ['docker_copy_failed', 'disk_space_exhausted']),
@@ -85,12 +99,48 @@ describe('diagnostic annotation workflow', () => {
     expect(() => lockDiagnosticAnnotations(corpus, comparison)).toThrow('adjudicator');
     expect(() => lockDiagnosticAnnotations(corpus, comparison, {
       adjudicator: 'maintainer-c',
+      corpus_sha256: comparison.corpus_sha256,
       resolutions: [],
     })).toThrow('missing adjudication for case-002');
     expect(() => lockDiagnosticAnnotations(corpus, comparison, {
       adjudicator: 'maintainer-a',
+      corpus_sha256: comparison.corpus_sha256,
       resolutions: [{ case_id: 'case-002', resolved_code: 'disk_space_exhausted' }],
     })).toThrow('different from both reviewers');
+  });
+
+  it('rejects adjudication for another corpus and duplicate resolutions', () => {
+    const comparison = compareAnnotationWorksheets(
+      completedWorksheet('maintainer-a', ['docker_copy_failed', 'disk_space_exhausted']),
+      completedWorksheet('maintainer-b', ['docker_copy_failed', 'docker_copy_failed'])
+    );
+    const resolution = { case_id: 'case-002', resolved_code: 'disk_space_exhausted' };
+
+    expect(() => lockDiagnosticAnnotations(corpus, comparison, {
+      adjudicator: 'maintainer-c',
+      corpus_sha256: 'different-corpus',
+      resolutions: [resolution],
+    })).toThrow('does not match the comparison corpus');
+    expect(() => lockDiagnosticAnnotations(corpus, comparison, {
+      adjudicator: 'maintainer-c',
+      corpus_sha256: comparison.corpus_sha256,
+      resolutions: [resolution, resolution],
+    })).toThrow('duplicate adjudication for case-002');
+  });
+
+  it('rejects a comparison whose allowed codes do not match the corpus', () => {
+    const comparison = compareAnnotationWorksheets(
+      completedWorksheet('maintainer-a', ['docker_copy_failed', 'disk_space_exhausted']),
+      completedWorksheet('maintainer-b', ['docker_copy_failed', 'disk_space_exhausted'])
+    );
+    comparison.allowed_codes = [
+      ...comparison.allowed_codes,
+      'registry_auth_failed',
+    ].sort();
+
+    expect(() => lockDiagnosticAnnotations(corpus, comparison)).toThrow(
+      'allowed codes do not match the source corpus'
+    );
   });
 
   it('locks agreed and adjudicated labels with auditable metadata', () => {
