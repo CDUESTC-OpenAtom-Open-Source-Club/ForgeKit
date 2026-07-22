@@ -1,7 +1,8 @@
 {
   "name": "@forgekit/mcp-server",
   "version": "0.1.0",
-  "description": "Agent-Native Build & Release Platform - MCP Server for AI-powered packaging",
+  "description": "Beginner-friendly MCP toolkit for learning and automating software packaging",
+  "type": "module",
   "main": "dist/mcp-server/index.js",
   "types": "dist/mcp-server/index.d.ts",
   "bin": {
@@ -37,18 +38,18 @@
     "ai",
     "claude"
   ],
-  "author": "KCOS OpenSource Club <opensource-club@kcos.club>",
+  "author": "CDUESTC OpenAtom Open Source Club",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/muzimu217/ForgeKit.git"
+    "url": "https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit.git"
   },
   "bugs": {
-    "url": "https://github.com/muzimu217/ForgeKit/issues"
+    "url": "https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/issues"
   },
-  "homepage": "https://github.com/muzimu217/ForgeKit#readme",
+  "homepage": "https://cduestc-openatom-open-source-club.github.io/ForgeKit/",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.5.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@types/js-yaml": "^4.0.9",
     "commander": "^11.1.0",
     "js-yaml": "^5.2.1",

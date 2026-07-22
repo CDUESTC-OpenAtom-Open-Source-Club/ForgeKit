@@ -29,7 +29,7 @@
 ## 当前源码验证方式
 
 ```bash
-git clone https://github.com/muzimu217/ForgeKit.git
+git clone https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit.git
 cd ForgeKit
 npm ci
 npm run verify

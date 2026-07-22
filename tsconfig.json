@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "commonjs",
+    "module": "NodeNext",
     "lib": ["ES2022"],
     "outDir": "./dist",
     "rootDir": "./src",
@@ -14,7 +14,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "incremental": true,
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "typeRoots": ["./node_modules/@types"],
     "types": ["node"]
   },
@@ -30,7 +30,7 @@
     "**/*.md"
   ],
   "ts-node": {
-    "esm": false,
+    "esm": true,
     "experimentalSpecifierResolution": "node"
   }
 }

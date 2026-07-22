@@ -11,10 +11,13 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createHash } from 'crypto';
+import { fileURLToPath } from 'url';
 import type { ReleaseManifest, ArtifactInfo } from './release-manifest.js';
 import { MANIFEST_VERSION, MANIFEST_FILENAME } from './release-manifest.js';
 import { getGitInfo } from './utils/git-info.js';
 import { runCommand } from './utils/command.js';
+
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
 export interface GenerateManifestOptions {
   sourceDir: string;
@@ -182,7 +185,7 @@ function detectProjectType(sourceDir: string): { type: string; version?: string 
  */
 function getForgeKitVersion(): string {
   try {
-    const packageJsonPath = path.join(__dirname, '../../package.json');
+    const packageJsonPath = path.join(currentDir, '../../package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
     return packageJson.version || '0.0.0';
   } catch (error) {
@@ -196,7 +199,7 @@ function getForgeKitVersion(): string {
 function getForgeKitCommit(): string | undefined {
   try {
     // 尝试从ForgeKit仓库获取提交信息
-    const forgeKitRoot = path.join(__dirname, '../../');
+    const forgeKitRoot = path.join(currentDir, '../../');
     const result = runCommand('git', ['rev-parse', 'HEAD'], { cwd: forgeKitRoot });
     return result.success ? result.stdout.trim() : undefined;
   } catch (error) {

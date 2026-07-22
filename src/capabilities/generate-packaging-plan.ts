@@ -8,14 +8,17 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
+import { fileURLToPath } from 'url';
 import { inspectProject } from './inspect-project.js';
 import { assertSourceDir, PathValidationError, readTextFile } from './utils/filesystem.js';
 import type { GeneratePackagingPlanOutput, DecisionBasis } from './types.js';
 
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+
 // Forge.md 模板路径（编译后位于 dist/packaging/）
 const TEMPLATE_CANDIDATES = [
-  path.resolve(__dirname, '../packaging/forge-template.md'),
-  path.resolve(__dirname, '../../src/packaging/forge-template.md'),
+  path.resolve(currentDir, '../packaging/forge-template.md'),
+  path.resolve(currentDir, '../../src/packaging/forge-template.md'),
   path.resolve(process.cwd(), 'src/packaging/forge-template.md'),
 ];
 
@@ -139,9 +142,9 @@ function loadDecisionRules(): DecisionRules | null {
   // decision-rules.yaml 位于 src/systems/servers/ubuntu/，编译后 dist/systems/... 被 exclude
   // 所以运行时从源码相对路径读取（开发与打包后均可用）
   const candidates = [
-    path.resolve(__dirname, '../../src/systems/servers/ubuntu/decision-rules.yaml'),
+    path.resolve(currentDir, '../../src/systems/servers/ubuntu/decision-rules.yaml'),
     path.resolve(process.cwd(), 'src/systems/servers/ubuntu/decision-rules.yaml'),
-    path.resolve(__dirname, '../systems/servers/ubuntu/decision-rules.yaml'),
+    path.resolve(currentDir, '../systems/servers/ubuntu/decision-rules.yaml'),
   ];
 
   for (const candidate of candidates) {

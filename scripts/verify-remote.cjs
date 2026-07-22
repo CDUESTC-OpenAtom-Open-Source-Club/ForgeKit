@@ -5,7 +5,7 @@
  * 流程：inspect_project → generate_packaging_plan → build_docker_image（真实 Docker 构建）
  *      → docker run → /health 健康检查 → 清理容器
  *
- * 用法：node scripts/verify-remote.js
+ * 用法：node scripts/verify-remote.cjs
  * 前置：npm install && npm run build 已完成；服务器已安装并启动 Docker；可出网拉镜像。
  */
 
@@ -13,9 +13,6 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const { spawnSync } = require('child_process');
-
-// 编译后的 executor 暴露 executeTool
-const { executeTool } = require('../dist/mcp-server/tools/executor.js');
 
 const FIXTURE = path.resolve(__dirname, '../tests/fixtures/sample-python-project');
 const IMAGE_NAME = 'demo-api';
@@ -27,6 +24,8 @@ function sh(cmd, args, opts = {}) {
 }
 
 async function main() {
+  // 编译产物为 ESM，动态导入可让该运维脚本保持 CommonJS 兼容。
+  const { executeTool } = await import('../dist/mcp-server/tools/executor.js');
   console.log('=== ForgeKit 真实 E2E 验证 ===');
 
   // 0. 前置自查
