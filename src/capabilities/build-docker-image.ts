@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { assertSourceDir, PathValidationError, pathExists } from './utils/filesystem.js';
 import { runCommand, runCommandWithLog, commandExists, snippet } from './utils/command.js';
-import type { BuildDockerImageOutput, BuildResult } from './types.js';
+import type { BuildDockerImageOutput, BuildResult, ErrorCode } from './types.js';
 import { diagnoseBuildError, type ErrorDiagnostic } from './utils/error-diagnostic.js';
 import { generateReleaseManifest, saveReleaseManifest } from './manifest-generator.js';
 
@@ -38,7 +38,7 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
     assertSourceDir(absSourceDir);
   } catch (e) {
     if (e instanceof PathValidationError) {
-      return failed(e.code as any, e.message, '请提供有效的项目根目录路径');
+      return failed(e.code, e.message, '请提供有效的项目根目录路径');
     }
     throw e;
   }
@@ -231,7 +231,7 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
 // ========== 辅助函数 ==========
 
 function failed(
-  code: string,
+  code: ErrorCode,
   summary: string,
   suggestedFix: string,
   detailLog?: string,
@@ -240,7 +240,7 @@ function failed(
 ): BuildDockerImageOutput {
   return {
     status: 'failed',
-    error: { code: code as any, summary, detail_log: detailLog, suggested_fix: suggestedFix },
+    error: { code, summary, detail_log: detailLog, suggested_fix: suggestedFix },
     result_json: resultJson,
     diagnosis,
   };

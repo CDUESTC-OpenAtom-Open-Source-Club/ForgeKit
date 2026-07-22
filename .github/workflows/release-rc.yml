@@ -1,0 +1,78 @@
+name: Publish RC
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: RC tag matching package.json (for example v0.2.2-rc.1)
+        required: true
+        type: string
+      linux_evidence:
+        description: URL or immutable reference for inspect-plan-build-run-health evidence
+        required: true
+        type: string
+      harmony_evidence:
+        description: URL or immutable reference for DevEco build and device install evidence
+        required: true
+        type: string
+      dry_run:
+        description: Run every gate without publishing
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  validate-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - name: Validate version and evidence inputs
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          LINUX_EVIDENCE: ${{ inputs.linux_evidence }}
+          HARMONY_EVIDENCE: ${{ inputs.harmony_evidence }}
+        run: |
+          node -e "const p=require('./package.json'); if (process.env.RELEASE_TAG !== 'v'+p.version || !/-rc\./.test(p.version)) process.exit(1)"
+          test -n "$LINUX_EVIDENCE"
+          test -n "$HARMONY_EVIDENCE"
+      - name: Run hard verification
+        run: npm run verify
+      - name: Run independent diagnostic gate
+        run: npm run gate:diagnostics
+      - name: Inspect npm package contents
+        run: npm pack --dry-run --json > npm-pack-report.json
+      - name: Create GitHub prerelease
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          LINUX_EVIDENCE: ${{ inputs.linux_evidence }}
+          HARMONY_EVIDENCE: ${{ inputs.harmony_evidence }}
+        run: |
+          git tag "$RELEASE_TAG"
+          git push origin "$RELEASE_TAG"
+          gh release create "$RELEASE_TAG" --prerelease --generate-notes \
+            --notes "Linux evidence: $LINUX_EVIDENCE
+          HarmonyOS evidence: $HARMONY_EVIDENCE"
+      - name: Publish npm next
+        if: ${{ !inputs.dry_run }}
+        run: npm publish --tag next --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rc-validation-evidence
+          path: npm-pack-report.json

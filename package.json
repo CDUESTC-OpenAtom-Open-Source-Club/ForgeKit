@@ -1,6 +1,6 @@
 {
   "name": "@forgekit/mcp-server",
-  "version": "0.1.0",
+  "version": "0.2.2-rc.1",
   "description": "Beginner-friendly MCP toolkit for learning and automating software packaging",
   "type": "module",
   "main": "dist/mcp-server/index.js",
@@ -14,10 +14,12 @@
     "dev": "tsc --watch",
     "test": "vitest run",
     "test:runtime": "npm run build:clean && node tests/runtime/compiled-mcp-smoke.mjs",
-    "test:package": "node tests/runtime/installed-package-smoke.mjs",
+    "test:package": "npm run build:clean && node tests/runtime/installed-package-smoke.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "evaluate:diagnostics": "npm run build:clean && node scripts/evaluate-diagnostics.mjs tests/fixtures/diagnostic-public-cases.json",
+    "evaluate:diagnostics:blind": "npm run build:clean && node scripts/evaluate-diagnostics.mjs tests/fixtures/diagnostic-blind-cases.json",
+    "gate:diagnostics": "npm run build:clean && node scripts/evaluate-diagnostics.mjs tests/fixtures/diagnostic-blind-cases.json --release-gate",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests --ext .ts",
     "lint:fix": "eslint src tests --ext .ts --fix",
@@ -54,7 +56,8 @@
     "@types/js-yaml": "^4.0.9",
     "commander": "^11.1.0",
     "js-yaml": "^5.2.1",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

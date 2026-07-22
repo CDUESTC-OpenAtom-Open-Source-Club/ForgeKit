@@ -56,6 +56,7 @@ try {
     'generate_packaging_plan',
     'inspect_project',
     'pack_deb',
+    'pack_harmonyos_app',
     'preflight_check',
   ]);
 
@@ -76,6 +77,48 @@ try {
   const diagnosisResult = JSON.parse(diagnosisResponse.content[0].text);
   assert.equal(diagnosisResult.status, 'success');
   assert.equal(diagnosisResult.diagnosis.code, 'pip_package_not_found');
+
+  const redactionResponse = await client.callTool({
+    name: 'diagnose_build_failure',
+    arguments: {
+      log_text: 'password=hunter2 token=secret-token user@example.com /Users/alice/private-project failed unexpectedly',
+    },
+  });
+  const redactionText = redactionResponse.content[0].text;
+  assert.doesNotMatch(redactionText, /hunter2|secret-token|user@example\.com|\/Users\/alice/);
+  assert.match(redactionText, /\[REDACTED\]/);
+  assert.match(redactionText, /\[EMAIL\]/);
+  assert.match(redactionText, /\/Users\/\[USER\]\//);
+
+  const wrongTypeResponse = await client.callTool({
+    name: 'diagnose_build_failure',
+    arguments: { log_text: 42 },
+  });
+  const wrongTypeResult = JSON.parse(wrongTypeResponse.content[0].text);
+  assert.equal(wrongTypeResult.status, 'failed');
+  assert.equal(wrongTypeResult.error.code, 'invalid_input');
+
+  const outsideLog = path.join(tempRoot, 'outside.log');
+  fs.writeFileSync(outsideLog, 'password=must-not-be-read');
+  const outsideLogResponse = await client.callTool({
+    name: 'diagnose_build_failure',
+    arguments: { source_dir: fixtureDir, log_path: outsideLog },
+  });
+  const outsideLogResult = JSON.parse(outsideLogResponse.content[0].text);
+  assert.equal(outsideLogResult.status, 'failed');
+  assert.equal(outsideLogResult.error.code, 'path_out_of_bounds');
+
+  const invalidPlanResponse = await client.callTool({
+    name: 'build_docker_image',
+    arguments: {
+      source_dir: fixtureDir,
+      plan_path: path.join(tempRoot, 'missing-Forge.md'),
+      image_name: 'must-not-build',
+    },
+  });
+  const invalidPlanResult = JSON.parse(invalidPlanResponse.content[0].text);
+  assert.equal(invalidPlanResult.status, 'failed');
+  assert.equal(invalidPlanResult.error.code, 'plan_not_found');
 
   console.log('Installed npm package smoke test passed');
 } finally {

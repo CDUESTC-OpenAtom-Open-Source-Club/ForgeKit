@@ -10,7 +10,7 @@ import * as path from 'path';
 import { assertSourceDir, PathValidationError, pathExists } from './utils/filesystem.js';
 import { runCommandWithLog, commandExists } from './utils/command.js';
 import { sha256File } from './utils/checksum.js';
-import type { PackDebOutput } from './types.js';
+import type { ErrorCode, PackDebOutput } from './types.js';
 
 export interface PackDebInput {
   source_dir: string;
@@ -28,7 +28,7 @@ export async function packDeb(input: PackDebInput): Promise<PackDebOutput> {
     assertSourceDir(source_dir);
   } catch (e) {
     if (e instanceof PathValidationError) {
-      return failed(e.code as any, e.message, '请提供有效的项目根目录路径');
+      return failed(e.code, e.message, '请提供有效的项目根目录路径');
     }
     throw e;
   }
@@ -141,14 +141,14 @@ export async function packDeb(input: PackDebInput): Promise<PackDebOutput> {
 // ========== 辅助函数 ==========
 
 function failed(
-  code: string,
+  code: ErrorCode,
   summary: string,
   suggestedFix: string,
   detailLog?: string
 ): PackDebOutput {
   return {
     status: 'failed',
-    error: { code: code as any, summary, detail_log: detailLog, suggested_fix: suggestedFix },
+    error: { code, summary, detail_log: detailLog, suggested_fix: suggestedFix },
   };
 }
 

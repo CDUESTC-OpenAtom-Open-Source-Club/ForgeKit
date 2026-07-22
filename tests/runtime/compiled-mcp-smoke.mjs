@@ -35,6 +35,7 @@ try {
     'generate_packaging_plan',
     'inspect_project',
     'pack_deb',
+    'pack_harmonyos_app',
     'preflight_check',
   ]);
 

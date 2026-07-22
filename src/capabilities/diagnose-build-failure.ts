@@ -6,7 +6,7 @@ import {
   diagnoseBuildError,
   type ErrorDiagnostic,
 } from './utils/error-diagnostic.js';
-import { assertWithinRoot } from './utils/filesystem.js';
+import { assertWithinRoot, PathValidationError } from './utils/filesystem.js';
 
 const MAX_LOG_BYTES = 1024 * 1024;
 
@@ -73,6 +73,13 @@ export function diagnoseBuildFailure(
       logText = fs.readFileSync(realLogPath, 'utf-8');
       inputSource = 'file';
     } catch (error) {
+      if (error instanceof PathValidationError) {
+        return inputFailure(
+          'path_out_of_bounds',
+          error.message,
+          '提供 source_dir 内的日志文件，不能通过绝对路径或符号链接越界读取'
+        );
+      }
       return inputFailure(
         'log_read_failed',
         `无法读取指定日志: ${(error as Error).message}`,
@@ -110,7 +117,7 @@ export function diagnoseBuildFailure(
 }
 
 function inputFailure(
-  code: 'invalid_input' | 'log_too_large' | 'log_read_failed',
+  code: 'invalid_input' | 'log_too_large' | 'log_read_failed' | 'path_out_of_bounds',
   summary: string,
   suggestedFix: string
 ): DiagnoseBuildFailureOutput {

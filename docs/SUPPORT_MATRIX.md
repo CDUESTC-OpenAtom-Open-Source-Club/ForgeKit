@@ -2,17 +2,18 @@
 
 这张表描述当前版本真正验证过的范围。没有写“已验证”的组合，不代表一定不可用，只代表我们不会把它当作稳定承诺。
 
-## 当前版本：v0.2 public alpha
+## 当前版本：v0.2.2-rc.1
 
 | 项目维度 | 已验证 | 试验性 | 当前不承诺 |
 |---|---|---|---|
 | 项目语言 | Python、TypeScript/Node.js、Go 代表项目 | 其他常见服务项目 | 任意语言自动生成正确构建文件 |
-| 交付目标 | OCI/Docker 镜像 | Ubuntu x86_64 `.deb` | rpm、AppImage、APK、IPA |
+| 交付目标 | OCI/Docker 镜像 | Ubuntu x86_64 `.deb`、HarmonyOS `.hap`/`.app`（试验性） | rpm、AppImage、APK、IPA |
 | 主机架构 | linux/amd64 | — | linux/arm64 正式支持 |
-| Agent 接入 | MCP stdio；源码入口；锁定版本的 npx 配置 | 不同客户端的参数细节 | Web 控制台或云端托管 |
+| Agent 接入 | MCP stdio；7 个工具；源码入口 | 不同客户端的参数细节 | Web 控制台或云端托管 |
 | 容器运行时 | Docker Engine | Podman 的 Docker CLI 兼容层 | 自动安装或修改 Docker |
 | 网络环境 | 可访问镜像 Registry 的环境 | 配置国内镜像后使用 | ForgeKit 自动替换用户镜像源 |
 | 追溯证据 | Git commit、构建环境、产物大小、SHA256 | — | 法规认证或企业审计结论 |
+| 系统适配器 | `servers/ubuntu`（verified） | `mobile/harmonyos`（experimental） | Android、iOS、PWA、Windows |
 
 ## 如何理解“已验证”
 

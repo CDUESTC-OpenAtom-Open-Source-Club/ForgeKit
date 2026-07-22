@@ -141,10 +141,10 @@ function detectProjectType(sourceDir: string): { type: string; version?: string 
   const packageJsonPath = path.join(sourceDir, 'package.json');
   if (fs.existsSync(packageJsonPath)) {
     try {
-      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+      const packageJson: unknown = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
       return {
         type: 'Node.js',
-        version: packageJson.engines?.node || 'unknown',
+        version: getNodeEngine(packageJson) ?? 'unknown',
       };
     } catch (error) {
       // 忽略解析错误
@@ -186,11 +186,26 @@ function detectProjectType(sourceDir: string): { type: string; version?: string 
 function getForgeKitVersion(): string {
   try {
     const packageJsonPath = path.join(currentDir, '../../package.json');
-    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-    return packageJson.version || '0.0.0';
+    const packageJson: unknown = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+    return getStringProperty(packageJson, 'version') ?? '0.0.0';
   } catch (error) {
     return '0.0.0';
   }
+}
+
+function getNodeEngine(value: unknown): string | undefined {
+  if (!isRecord(value) || !isRecord(value.engines)) {
+    return undefined;
+  }
+  return typeof value.engines.node === 'string' ? value.engines.node : undefined;
+}
+
+function getStringProperty(value: unknown, key: string): string | undefined {
+  return isRecord(value) && typeof value[key] === 'string' ? value[key] : undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }
 
 /**

@@ -24,7 +24,7 @@ const DecisionBasisSchema = z.object({
 });
 
 const ArtifactSchema = z.object({
-  type: z.enum(['docker-image', 'deb-package', 'rpm-package', 'apk', 'ipa', 'pwa', 'exe', 'app']).describe('产物类型'),
+  type: z.enum(['docker-image', 'deb-package', 'rpm-package', 'apk', 'ipa', 'hap', 'app', 'pwa', 'exe']).describe('产物类型'),
   path: z.string().describe('产物路径'),
   checksum: z.string().optional().describe('SHA256 校验和'),
   size_bytes: z.number().optional().describe('产物大小（字节）'),
@@ -40,6 +40,10 @@ const ForgeKitErrorSchema = z.object({
   code: z.enum([
     'plan_not_found',
     'plan_invalid',
+    'adapter_not_supported',
+    'adapter_rules_not_found',
+    'adapter_rules_unreadable',
+    'adapter_rules_invalid',
     'docker_daemon_unavailable',
     'dockerfile_not_found',
     'docker_build_failed',
@@ -59,6 +63,13 @@ const ForgeKitErrorSchema = z.object({
     'disk_space_exhausted',
     'deb_build_failed',
     'dpkg_unavailable',
+    'harmony_project_not_found',
+    'harmony_sdk_not_found',
+    'harmony_signing_invalid',
+    'harmony_compatible_version_mismatch',
+    'harmony_bundle_name_invalid',
+    'harmony_profile_missing',
+    'harmony_build_failed',
     'invalid_path',
     'path_not_found',
     'path_out_of_bounds',
@@ -163,6 +174,13 @@ export const GeneratePackagingPlanOutputSchema = ForgeKitResultSchema.extend({
   summary: z.string().optional().describe('打包计划摘要'),
 });
 
+// preflight_check
+export const PreflightCheckInputSchema = z.object({
+  source_dir: SourceDirSchema,
+  plan_path: z.string().optional().describe('可选：Forge.md 路径（如果已知）'),
+  checks: z.array(z.string()).optional().describe('可选：指定检查项（默认全部）'),
+});
+
 // build_docker_image（构建类，强制 plan_path）
 export const BuildDockerImageInputSchema = z.object({
   source_dir: SourceDirSchema,
@@ -199,6 +217,33 @@ export const PackDebOutputSchema = ForgeKitResultSchema.extend({
   checksum: z.string().optional().describe('SHA256 校验和'),
 });
 
+// pack_harmonyos_app（构建类，强制 plan_path）
+export const PackHarmonyOSInputSchema = z.object({
+  source_dir: SourceDirSchema,
+  plan_path: PlanPathSchema.describe('**必需**：Forge.md 路径（强制 Plan-before-build）'),
+  build_target: z.enum(['hap', 'app']).optional().default('app').describe('产物形态：hap(调试) / app(上架)'),
+  device_type: z
+    .enum(['phone', 'tablet', '2in1', 'wearable', 'tv', 'car'])
+    .optional()
+    .default('phone')
+    .describe('目标设备类型'),
+  api_version: z.string().optional().describe('目标 API 版本（如 12）；默认读取工程配置'),
+  signing_config_path: z.string().optional().describe('正式签名配置（build-profile.json5 或 signing-config.json）路径'),
+});
+
+export const PackHarmonyOSOutputSchema = ForgeKitResultSchema.extend({
+  artifact_path: z.string().optional().describe('产物路径（*.app 或 *.hap）'),
+  checksum: z.string().optional().describe('SHA256 校验和'),
+  compliance: z
+    .object({
+      store_ready: z.boolean().describe('是否达到可上架标准'),
+      checks: z.array(z.string()).describe('合规检查项与结论'),
+      next_actions: z.array(z.string()).describe('上架下一步提示'),
+    })
+    .optional()
+    .describe('合规报告（基于 harmonyos-packaging.yaml 基线）'),
+});
+
 // ========== 导出类型（从 Schema 推导）==========
 
 export type InspectProjectInput = z.infer<typeof InspectProjectInputSchema>;
@@ -210,8 +255,29 @@ export type DiagnoseBuildFailureOutput = z.infer<typeof DiagnoseBuildFailureOutp
 export type GeneratePackagingPlanInput = z.infer<typeof GeneratePackagingPlanInputSchema>;
 export type GeneratePackagingPlanOutput = z.infer<typeof GeneratePackagingPlanOutputSchema>;
 
+export type PreflightCheckInput = z.infer<typeof PreflightCheckInputSchema>;
+
 export type BuildDockerImageInput = z.infer<typeof BuildDockerImageInputSchema>;
 export type BuildDockerImageOutput = z.infer<typeof BuildDockerImageOutputSchema>;
 
 export type PackDebInput = z.infer<typeof PackDebInputSchema>;
 export type PackDebOutput = z.infer<typeof PackDebOutputSchema>;
+
+export type PackHarmonyOSInput = z.infer<typeof PackHarmonyOSInputSchema>;
+export type PackHarmonyOSOutput = z.infer<typeof PackHarmonyOSOutputSchema>;
+
+/**
+ * Single source of truth for MCP tool input contracts.
+ * The registry and executor both consume this map; do not duplicate schemas.
+ */
+export const ToolInputSchemas = {
+  inspect_project: InspectProjectInputSchema,
+  preflight_check: PreflightCheckInputSchema,
+  diagnose_build_failure: DiagnoseBuildFailureInputSchema,
+  generate_packaging_plan: GeneratePackagingPlanInputSchema,
+  build_docker_image: BuildDockerImageInputSchema,
+  pack_deb: PackDebInputSchema,
+  pack_harmonyos_app: PackHarmonyOSInputSchema,
+} as const;
+
+export type ToolName = keyof typeof ToolInputSchemas;

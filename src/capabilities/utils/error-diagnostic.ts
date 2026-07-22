@@ -155,6 +155,49 @@ const DIAGNOSTIC_RULES: DiagnosticRule[] = [
     ['以 Dockerfile 中相同用户执行最小读写或执行检查。'],
     'medium'
   ),
+  // ===== 鸿蒙（HarmonyOS）专属诊断 =====
+  rule(
+    /hvigorw: command not found|command not found: hvigorw|Failed to load the hvigor|Cannot find module ['"]@ohos\/hvigor/i,
+    'harmony_sdk_not_found', 'environment', '鸿蒙构建工具链不可用',
+    'hvigorw / hvigor 未安装或未加入 PATH，或工程缺少 @ohos/hvigor 依赖。',
+    ['安装 DevEco Studio 或 HarmonyOS Command Line Tools，并将其 bin 加入 PATH；确认工程已执行 `ohpm install`。'],
+    ['运行 `hvigorw --version` 确认构建工具可用后再构建。']
+  ),
+  rule(
+    /signingConfig ['"][^'"]+['"] (not found|is not defined)|certificate verify failed|signing config .* invalid|keystore .* not found/i,
+    'harmony_signing_invalid', 'dependency', '鸿蒙签名配置无效或缺失',
+    'build-profile.json5 中引用的 signingConfig 不存在，或证书/密钥库文件缺失、密码错误。',
+    ['核对 build-profile.json5 的 signingConfigs 名称与 products.signingConfig 是否一致；确认 .cer/.p12/.p7b 路径正确且密码有效。'],
+    ['用 AGC 正式签名重新配置后，运行 `hvigorw assembleApp` 验证。']
+  ),
+  rule(
+    /compatibleSdkVersion .* (not satisfied|mismatch)|SDK version .* mismatch|the device does not support|targetSdkVersion .* invalid/i,
+    'harmony_compatible_version_mismatch', 'runtime', '鸿蒙 API 版本不兼容',
+    '工程的 compatibleSdkVersion / targetSdkVersion 与目标设备或构建环境不匹配。',
+    ['将 build-profile.json5 / app.json5 的 compatibleSdkVersion 调整到目标设备支持的 API；确认 DevEco Command Line Tools 版本覆盖该 API。'],
+    ['在目标 API 的 SDK 环境下重新构建并安装验证。']
+  ),
+  rule(
+    /bundleName .* (invalid|is not valid|format error)|bundle name .* invalid/i,
+    'harmony_bundle_name_invalid', 'runtime', 'bundleName 格式不合法',
+    'app.json5 中的 bundleName 不符合反向域名规范（如 com.example.app）。',
+    ['将 bundleName 改为反向域名格式，且须与 AppGallery Connect 创建应用时填写的一致。'],
+    ['重新构建前确认 bundleName 与 AGC 应用记录完全一致。']
+  ),
+  rule(
+    /profile .*\.p7b .* (not found|verification failed|invalid)|profile verification failed|Provision .* not found/i,
+    'harmony_profile_missing', 'dependency', '鸿蒙发布 Profile 缺失或无效',
+    '发布构建缺少 .p7b Profile，或 Profile 与证书/bundleName/设备不匹配。',
+    ['在 AppGallery Connect 创建发布 Profile(.p7b) 并绑定当前证书与应用，放入工程后重新配置 signingConfigs。'],
+    ['配置正式 Profile 后运行 `hvigorw assembleApp` 验证。']
+  ),
+  rule(
+    /ohpm ERROR|ohpm .* failed|dependency resolve failed|Cannot find module ['"]@ohos\//i,
+    'module_not_found', 'dependency', 'ohpm 依赖解析失败',
+    '鸿蒙工程依赖未安装或版本冲突（ohpm 源/网络/版本约束问题）。',
+    ['运行 `ohpm install` 安装依赖；核对 oh-package.json5 的版本约束与可用仓库；必要时切换镜像源。'],
+    ['在干净目录重新执行 `ohpm install` 后构建。']
+  ),
 ];
 
 function rule(

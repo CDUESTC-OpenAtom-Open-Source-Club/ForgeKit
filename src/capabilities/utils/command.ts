@@ -58,14 +58,40 @@ export function runCommand(
       stderr: '',
       success: true,
     };
-  } catch (error: any) {
+  } catch (error) {
+    const failure = normalizeCommandError(error);
     return {
-      exitCode: error.status ?? 1,
-      stdout: error.stdout ?? '',
-      stderr: error.stderr ?? error.message ?? '',
+      exitCode: failure.status,
+      stdout: failure.stdout,
+      stderr: failure.stderr,
       success: false,
     };
   }
+}
+
+function normalizeCommandError(error: unknown): {
+  status: number;
+  stdout: string;
+  stderr: string;
+} {
+  const record = isRecord(error) ? error : {};
+  const message = error instanceof Error ? error.message : String(error);
+  return {
+    status: typeof record.status === 'number' ? record.status : 1,
+    stdout: outputToString(record.stdout),
+    stderr: outputToString(record.stderr) || message,
+  };
+}
+
+function outputToString(value: unknown): string {
+  if (typeof value === 'string') {
+    return value;
+  }
+  return Buffer.isBuffer(value) ? value.toString('utf8') : '';
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }
 
 /**

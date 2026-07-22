@@ -62,7 +62,7 @@ export interface ReleaseManifest {
 }
 
 export interface ArtifactInfo {
-  type: 'docker-image' | 'deb-package' | 'rpm-package' | 'archive' | 'executable';
+  type: 'docker-image' | 'deb-package' | 'rpm-package' | 'archive' | 'executable' | 'hap' | 'app';
   name: string;                        // 产物名称
   path: string;                        // 产物路径或引用
   size_bytes: number;                  // 大小（字节）

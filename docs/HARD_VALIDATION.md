@@ -22,15 +22,15 @@
 | ESLint | 通过，0 errors；遗留边界类型 warnings 不阻断 |
 | TypeScript 类型检查 | 通过 |
 | 干净构建 | 通过，重新生成 `dist` |
-| 自动化测试 | 143/143 通过 |
-| 测试文件 | 18/18 通过 |
+| 自动化测试 | 164/164 通过 |
+| 测试文件 | 23/23 通过 |
 | 编译后 MCP stdio 通信 | 通过 |
-| MCP 工具发现 | 6 个工具完整返回（含 `preflight_check` 与 `diagnose_build_failure`） |
+| MCP 工具发现 | 7 个工具完整返回（含 `preflight_check`、`diagnose_build_failure` 和 `pack_harmonyos_app`） |
 | 编译后 `inspect_project` | 成功识别 Python fixture 与 `app.py` |
 | npm 包内容预检 | `npm pack --dry-run --json` 通过 |
-| npm tarball 干净安装 | 通过，安装后的 bin 可发现 6 个工具、执行只读诊断并生成正式 `Forge.md` |
+| npm tarball 干净安装 | 通过，安装后的 bin 可发现 7 个工具、执行只读诊断并生成正式 `Forge.md` |
 | 公开诊断开发集 | 10 条带 GitHub 来源的日志摘录通过；仅用于回归，不作为盲测准确率 |
-| 诊断评估器 | 输出准确率、未知率、分类指标、混淆结果和失败清单 |
+| 诊断评估器 | 输出准确率、unknown rate、分类指标、混淆结果、失败清单、去重/脱敏/标注审计 |
 | 发布包模板 | `src/packaging/forge-template.md` 已包含在 npm 包中 |
 | 覆盖率运行 | 通过；能力层语句覆盖率约 89% |
 
