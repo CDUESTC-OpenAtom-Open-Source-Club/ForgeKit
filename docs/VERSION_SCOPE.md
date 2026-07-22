@@ -87,6 +87,15 @@
 - 至少 60% 试点用户认为定位时间缩短；
 - 至少 2 名用户愿意再次使用。
 
+### v0.2.2-rc.1 发布候选范围
+
+- 包版本统一为 `0.2.2-rc.1`，npm 仅允许发布到 `next`；
+- 第七个 MCP 工具 `pack_harmonyos_app` 已接入统一 Zod 契约，但保持 `experimental`；
+- `servers/ubuntu` 为 `verified`，支持 Docker/OCI 与 Ubuntu `.deb` 路径；
+- `mobile/harmonyos` 只有在真实 DevEco 构建和设备安装证据齐全后才能升级为 `verified`；
+- Android、iOS、PWA、Windows、rpm 不纳入本 RC 承诺；
+- 诊断发布门禁要求至少 50 条去重、脱敏、双维护者独立标注的留出样本，总准确率不低于 80%，并单独报告 unknown rate。
+
 ## 4. v0.3：常见项目广泛可用
 
 ### 用户承诺

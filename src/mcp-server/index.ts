@@ -19,10 +19,7 @@ import {
 // Tool definitions and executor
 import { registerTools } from './tools/registry.js';
 import { executeTool } from './tools/executor.js';
-
-// Server configuration
-const SERVER_NAME = 'forgekit-mcp-server';
-const SERVER_VERSION = '0.1.0';
+import { SERVER_NAME, SERVER_VERSION } from './server-metadata.js';
 
 /**
  * Create MCP Server instance
@@ -86,14 +83,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 /**
  * Start server with stdio transport
  */
-async function main() {
+async function main(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
   console.error(`${SERVER_NAME} v${SERVER_VERSION} started`);
   console.error('ForgeKit MCP Server ready for AI agent connections');
   console.error(
-    '已注册工具：inspect_project, preflight_check, diagnose_build_failure, generate_packaging_plan, build_docker_image, pack_deb'
+    '已注册工具：inspect_project, preflight_check, diagnose_build_failure, generate_packaging_plan, build_docker_image, pack_deb, pack_harmonyos_app'
   );
 }
 

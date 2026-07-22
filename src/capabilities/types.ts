@@ -16,7 +16,16 @@ export interface ForgeKitResult {
 }
 
 export interface Artifact {
-  type: 'docker-image' | 'deb-package' | 'rpm-package' | 'apk' | 'ipa' | 'pwa' | 'exe' | 'app';
+  type:
+    | 'docker-image'
+    | 'deb-package'
+    | 'rpm-package'
+    | 'apk'
+    | 'ipa'
+    | 'hap'
+    | 'app'
+    | 'pwa'
+    | 'exe';
   path: string;
   checksum?: string;
   size_bytes?: number;
@@ -52,6 +61,10 @@ export type ErrorCode =
   // 计划相关
   | 'plan_not_found'
   | 'plan_invalid'
+  | 'adapter_not_supported'
+  | 'adapter_rules_not_found'
+  | 'adapter_rules_unreadable'
+  | 'adapter_rules_invalid'
   // Docker 相关
   | 'docker_daemon_unavailable'
   | 'dockerfile_not_found'
@@ -77,6 +90,14 @@ export type ErrorCode =
   // deb 相关
   | 'deb_build_failed'
   | 'dpkg_unavailable'
+  // 鸿蒙相关
+  | 'harmony_project_not_found'
+  | 'harmony_sdk_not_found'
+  | 'harmony_signing_invalid'
+  | 'harmony_compatible_version_mismatch'
+  | 'harmony_bundle_name_invalid'
+  | 'harmony_profile_missing'
+  | 'harmony_build_failed'
   // 路径相关
   | 'invalid_path'
   | 'path_not_found'
@@ -138,6 +159,18 @@ export interface PackDebOutput extends ForgeKitResult {
   artifact_path?: string;
   checksum?: string;
   build_log?: string;
+}
+
+export interface PackHarmonyOSOutput extends ForgeKitResult {
+  artifact_path?: string;
+  checksum?: string;
+  compliance?: {
+    store_ready: boolean;
+    checks: string[];
+    next_actions: string[];
+  };
+  build_log?: string;
+  diagnosis?: import('./utils/error-diagnostic.js').ErrorDiagnostic;
 }
 
 // ========== Plan-before-build 强制约束 ==========

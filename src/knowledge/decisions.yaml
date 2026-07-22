@@ -1,5 +1,5 @@
 # ForgeKit 知识库 - 选型决策树
-# Agent 调用时会读取此文件，结合 versions.yaml 做出选型决策
+# 当前为策展参考数据；尚无生产运行时加载器读取此文件
 
 # deb vs rpm vs docker 选型
 format_selection:

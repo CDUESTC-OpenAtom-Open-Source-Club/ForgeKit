@@ -22,7 +22,7 @@ afterAll(() => {
 
 describe('MCP 协议层冒烟测试', () => {
   describe('工具发现测试', () => {
-    it('能列出所有 6 个工具', () => {
+    it('能列出所有 7 个工具', () => {
       const tools = registerTools();
       const toolNames = tools.map((t) => t.name);
 
@@ -32,7 +32,8 @@ describe('MCP 协议层冒烟测试', () => {
       expect(toolNames).toContain('pack_deb');
       expect(toolNames).toContain('preflight_check'); // v0.2新增
       expect(toolNames).toContain('diagnose_build_failure');
-      expect(tools.length).toBe(6);
+      expect(toolNames).toContain('pack_harmonyos_app');
+      expect(tools.length).toBe(7);
     });
 
     it('所有工具都有正确的 Schema', () => {
@@ -54,6 +55,16 @@ describe('MCP 协议层冒烟测试', () => {
         expect(tool.inputSchema.properties?.plan_path).toBeDefined();
         expect(tool.inputSchema.required).toContain('plan_path');
       });
+    });
+
+    it('注册表 Schema 与执行器共享默认值契约', async () => {
+      const tool = registerTools().find((candidate) => candidate.name === 'build_docker_image');
+      const platform = tool?.inputSchema.properties?.platform as { default?: string } | undefined;
+
+      expect(platform?.default).toBe('linux/amd64');
+
+      const malformed = await executeTool('inspect_project', { source_dir: 42 });
+      expect(malformed.error?.code).toBe('invalid_input');
     });
   });
 

@@ -24,6 +24,8 @@ const transport = new StdioClientTransport({
   args: [serverEntry],
   stderr: 'pipe',
 });
+const stderrChunks = [];
+transport.stderr?.on('data', (chunk) => stderrChunks.push(chunk.toString()));
 
 try {
   await client.connect(transport);
@@ -35,6 +37,7 @@ try {
     'generate_packaging_plan',
     'inspect_project',
     'pack_deb',
+    'pack_harmonyos_app',
     'preflight_check',
   ]);
 
@@ -57,6 +60,16 @@ try {
   const diagnosisResult = JSON.parse(diagnosisResponse.content[0].text);
   assert.equal(diagnosisResult.status, 'success');
   assert.equal(diagnosisResult.diagnosis.code, 'docker_copy_failed');
+
+  await new Promise((resolve) => setImmediate(resolve));
+  const packageMetadata = JSON.parse(
+    await (await import('node:fs/promises')).readFile(path.join(projectRoot, 'package.json'), 'utf8')
+  );
+  assert.ok(
+    stderrChunks.join('').includes(
+      `forgekit-mcp-server v${packageMetadata.version} started`
+    )
+  );
 
   console.log('Compiled MCP runtime smoke test passed');
 } finally {

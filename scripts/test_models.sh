@@ -1,7 +1,12 @@
 #!/bin/bash
 
-API_KEY="sk-kU41hKMg4XhtAkdINIYxlmzNdBlPoVEgwxHZsJbvH3UDfIKMohmerW9IHThatW6E"
+API_KEY="${FORGEKIT_MODEL_API_KEY:-}"
 BASE_URL="https://opencode.ai/zen/go/v1"
+
+if [[ -z "$API_KEY" ]]; then
+  echo "FORGEKIT_MODEL_API_KEY is required" >&2
+  exit 1
+fi
 
 models=(
   "minimax-m3"

@@ -47,7 +47,7 @@ describe('diagnoseBuildFailure', () => {
 
     const result = diagnoseBuildFailure({ source_dir: sourceDir, log_path: logPath });
     expect(result.status).toBe('failed');
-    expect(result.error?.code).toBe('log_read_failed');
+    expect(result.error?.code).toBe('path_out_of_bounds');
   });
 
   it('读取 source_dir 内的日志文件', () => {
@@ -71,7 +71,7 @@ describe('diagnoseBuildFailure', () => {
 
     const result = diagnoseBuildFailure({ source_dir: sourceDir, log_path: linkedLog });
     expect(result.status).toBe('failed');
-    expect(result.error?.code).toBe('log_read_failed');
+    expect(result.error?.code).toBe('path_out_of_bounds');
   });
 
   it('拒绝超过 1 MiB 的日志文本', () => {

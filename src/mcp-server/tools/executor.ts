@@ -8,7 +8,8 @@
  */
 
 import * as fs from 'fs';
-import { isBuildTool } from './registry.js';
+import { isBuildTool, isToolName } from './registry.js';
+import { ToolInputSchemas } from './schemas.js';
 import type { ForgeKitResult } from '../../capabilities/types.js';
 
 // 真实能力实现（M2-M5 全部接入）
@@ -16,6 +17,7 @@ import { inspectProject } from '../../capabilities/inspect-project.js';
 import { generatePackagingPlan } from '../../capabilities/generate-packaging-plan.js';
 import { buildDockerImage } from '../../capabilities/build-docker-image.js';
 import { packDeb } from '../../capabilities/pack-deb.js';
+import { packHarmonyOS } from '../../capabilities/pack-harmonyos.js';
 import { preflightCheck } from '../../capabilities/preflight-check.js';
 import { diagnoseBuildFailure } from '../../capabilities/diagnose-build-failure.js';
 
@@ -26,9 +28,28 @@ export async function executeTool(
   name: string,
   args: Record<string, unknown>
 ): Promise<ForgeKitResult> {
+  if (!isToolName(name)) {
+    return {
+      status: 'failed',
+      error: { code: 'unknown_error', summary: `未知工具: ${name}` },
+    };
+  }
+
+  // Preserve the public Plan-before-build error contract. Other malformed
+  // fields are handled by the shared Zod contract below.
+  if (isBuildTool(name) && !args.plan_path) {
+    return planNotFound();
+  }
+
+  const parsed = ToolInputSchemas[name].safeParse(args);
+  if (!parsed.success) {
+    return invalidInput(parsed.error.issues.map((issue) => `${issue.path.join('.') || 'input'}: ${issue.message}`));
+  }
+  const input = parsed.data as Record<string, unknown>;
+
   // ========== Step 1: 构建类工具强制校验 plan_path ==========
   if (isBuildTool(name)) {
-    const planPath = args.plan_path as string | undefined;
+    const planPath = input.plan_path as string | undefined;
 
     if (!planPath) {
       return planNotFound();
@@ -41,54 +62,70 @@ export async function executeTool(
   // ========== Step 2: 路由到具体工具 ==========
   switch (name) {
     case 'inspect_project':
-      return inspectProject(args.source_dir as string);
+      return inspectProject(input.source_dir as string);
 
     case 'preflight_check':
       return preflightCheck({
-        source_dir: args.source_dir as string,
-        plan_path: args.plan_path as string | undefined,
-        checks: args.checks as string[] | undefined,
+        source_dir: input.source_dir as string,
+        plan_path: input.plan_path as string | undefined,
+        checks: input.checks as string[] | undefined,
       });
 
     case 'diagnose_build_failure':
       return diagnoseBuildFailure({
-        log_text: args.log_text as string | undefined,
-        log_path: args.log_path as string | undefined,
-        source_dir: args.source_dir as string | undefined,
+        log_text: input.log_text as string | undefined,
+        log_path: input.log_path as string | undefined,
+        source_dir: input.source_dir as string | undefined,
       });
 
     case 'generate_packaging_plan':
       return generatePackagingPlan(
-        args.source_dir as string,
-        (args.goals as string[]) || [],
-        args.target_environment as string | undefined
+        input.source_dir as string,
+        input.goals as string[],
+        input.target_environment as string | undefined
       );
 
     case 'build_docker_image':
       return buildDockerImage({
-        source_dir: args.source_dir as string,
-        plan_path: args.plan_path as string,
-        image_name: args.image_name as string,
-        tags: (args.tags as string[]) || ['latest'],
-        platform: (args.platform as string) || 'linux/amd64',
-        dockerfile_path: (args.dockerfile_path as string) || 'Dockerfile',
+        source_dir: input.source_dir as string,
+        plan_path: input.plan_path as string,
+        image_name: input.image_name as string,
+        tags: input.tags as string[],
+        platform: input.platform as string,
+        dockerfile_path: input.dockerfile_path as string,
       });
 
     case 'pack_deb':
       return packDeb({
-        source_dir: args.source_dir as string,
-        plan_path: args.plan_path as string,
-        version: args.version as string,
-        distro: (args.distro as string) || 'ubuntu-22.04',
-        arch: (args.arch as string) || 'x86_64',
+        source_dir: input.source_dir as string,
+        plan_path: input.plan_path as string,
+        version: input.version as string,
+        distro: input.distro as string,
+        arch: input.arch as string,
       });
 
-    default:
-      return {
-        status: 'failed',
-        error: { code: 'unknown_error', summary: `未知工具: ${name}` },
-      };
+    case 'pack_harmonyos_app':
+      return packHarmonyOS({
+        source_dir: input.source_dir as string,
+        plan_path: input.plan_path as string,
+        build_target: input.build_target as 'hap' | 'app' | undefined,
+        device_type: input.device_type as 'phone' | 'tablet' | '2in1' | 'wearable' | 'tv' | 'car' | undefined,
+        api_version: input.api_version as string | undefined,
+        signing_config_path: input.signing_config_path as string | undefined,
+      });
+
   }
+}
+
+function invalidInput(issues: string[]): ForgeKitResult {
+  return {
+    status: 'failed',
+    error: {
+      code: 'invalid_input',
+      summary: `工具输入无效: ${issues.join('; ')}`,
+      suggested_fix: '根据工具定义补齐必填字段并修正字段类型',
+    },
+  };
 }
 
 function planNotFound(planPath?: string): ForgeKitResult {

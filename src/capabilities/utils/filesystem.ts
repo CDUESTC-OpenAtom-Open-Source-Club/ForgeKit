@@ -6,6 +6,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import type { ErrorCode } from '../types.js';
 
 /**
  * 校验路径存在
@@ -42,7 +43,10 @@ export function assertWithinRoot(target: string, rootDir: string): void {
   // target 必须以 root + sep 开头
   const rootWithSep = resolvedRoot + path.sep;
   if (!resolvedTarget.startsWith(rootWithSep)) {
-    throw new Error(`路径越界：${target} 不在根目录 ${rootDir} 内（解析为 ${resolvedTarget}）`);
+    throw new PathValidationError(
+      'path_out_of_bounds',
+      `路径越界：${target} 不在根目录 ${rootDir} 内（解析为 ${resolvedTarget}）`
+    );
   }
 }
 
@@ -62,7 +66,10 @@ export function assertSourceDir(sourceDir: string): void {
 /**
  * 校验文件存在
  */
-export function assertFileExists(filePath: string, errorCode = 'path_not_found'): void {
+export function assertFileExists(
+  filePath: string,
+  errorCode: ErrorCode = 'path_not_found'
+): void {
   if (!pathExists(filePath)) {
     throw new PathValidationError(errorCode, `文件不存在: ${filePath}`);
   }
@@ -72,8 +79,8 @@ export function assertFileExists(filePath: string, errorCode = 'path_not_found')
  * 自定义路径校验错误
  */
 export class PathValidationError extends Error {
-  code: string;
-  constructor(code: string, message: string) {
+  code: ErrorCode;
+  constructor(code: ErrorCode, message: string) {
     super(message);
     this.code = code;
     this.name = 'PathValidationError';

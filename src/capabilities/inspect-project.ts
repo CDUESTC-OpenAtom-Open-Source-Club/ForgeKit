@@ -50,7 +50,7 @@ function inspectProjectImpl(sourceDir: string): InspectProjectOutput {
       return {
         status: 'failed',
         error: {
-          code: e.code as any,
+          code: e.code,
           summary: e.message,
           suggested_fix: '请提供有效的项目根目录路径',
         },
@@ -188,11 +188,11 @@ function detectEntrypoints(sourceDir: string, language?: string): string[] {
     const pkg = readTextFile(path.join(sourceDir, 'package.json'));
     if (pkg) {
       try {
-        const parsed = JSON.parse(pkg);
-        if (parsed.main) {
+        const parsed: unknown = JSON.parse(pkg);
+        if (isPackageManifest(parsed) && parsed.main) {
           entries.push(parsed.main);
         }
-        if (parsed.scripts?.start) {
+        if (isPackageManifest(parsed) && parsed.scripts?.start) {
           entries.push('npm start');
         }
       } catch {
@@ -214,6 +214,23 @@ function detectEntrypoints(sourceDir: string, language?: string): string[] {
   }
 
   return entries;
+}
+
+function isPackageManifest(value: unknown): value is {
+  main?: string;
+  scripts?: { start?: string };
+} {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const manifest = value as Record<string, unknown>;
+  const scripts = manifest.scripts;
+  return (
+    (manifest.main === undefined || typeof manifest.main === 'string') &&
+    (scripts === undefined ||
+      (typeof scripts === 'object' && scripts !== null &&
+        (!('start' in scripts) || typeof scripts.start === 'string')))
+  );
 }
 
 // ========== 推荐生成 ==========

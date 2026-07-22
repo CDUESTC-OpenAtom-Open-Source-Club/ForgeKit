@@ -97,6 +97,18 @@ describe('M3: generate_packaging_plan', () => {
     expect(result.decision_basis?.target_version).toContain('20.04');
   });
 
+  it('未支持的目标环境不会静默回退到 Ubuntu', async () => {
+    const dir = makeProject('unsupported-target');
+    fs.writeFileSync(path.join(dir, 'app.py'), '');
+
+    const result = await generatePackagingPlan(dir, ['Docker'], 'centos-9');
+
+    expect(result.status).toBe('failed');
+    expect(result.error?.code).toBe('invalid_input');
+    expect(result.error?.summary).toContain('centos-9');
+    expect(fs.existsSync(path.join(dir, 'Forge.md'))).toBe(false);
+  });
+
   it('Risks 段包含风险提示', async () => {
     const dir = makeProject('python-risks');
     fs.writeFileSync(path.join(dir, 'app.py'), '');

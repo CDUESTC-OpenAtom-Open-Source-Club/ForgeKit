@@ -79,6 +79,36 @@ describe('Executor - plan_path 强制校验', () => {
 });
 
 describe('Executor - 路由到真实能力', () => {
+  it('普通工具缺少必填字段返回 invalid_input', async () => {
+    const result = await executeTool('inspect_project', {});
+
+    expect(result.status).toBe('failed');
+    expect(result.error?.code).toBe('invalid_input');
+    expect(result.error?.summary).toContain('source_dir');
+  });
+
+  it('字段类型错误返回 invalid_input', async () => {
+    const result = await executeTool('generate_packaging_plan', {
+      source_dir: tmpDir,
+      goals: 'Docker',
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.error?.code).toBe('invalid_input');
+    expect(result.error?.summary).toContain('goals');
+  });
+
+  it('诊断输入违反互斥约束返回 invalid_input', async () => {
+    const result = await executeTool('diagnose_build_failure', {
+      log_text: 'failure',
+      log_path: 'build.log',
+      source_dir: tmpDir,
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.error?.code).toBe('invalid_input');
+  });
+
   it('diagnose_build_failure 路由到只读诊断实现', async () => {
     const result = await executeTool('diagnose_build_failure', {
       log_text: 'npm ERR! ERESOLVE unable to resolve dependency tree',
