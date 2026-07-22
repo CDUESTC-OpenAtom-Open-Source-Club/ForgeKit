@@ -49,7 +49,9 @@ describe('MCP 协议层冒烟测试', () => {
 
     it('构建类工具有 plan_path 必需字段', () => {
       const tools = registerTools();
-      const buildTools = tools.filter((t) => ['build_docker_image', 'pack_deb'].includes(t.name));
+      const buildTools = tools.filter((t) =>
+        ['build_docker_image', 'pack_deb', 'pack_harmonyos_app'].includes(t.name)
+      );
 
       buildTools.forEach((tool) => {
         expect(tool.inputSchema.properties?.plan_path).toBeDefined();

@@ -48,7 +48,7 @@ export const SYSTEM_ADAPTER_DESCRIPTORS: Record<
     status: 'experimental',
     toolNames: ['pack_harmonyos_app'],
     artifactTypes: ['hap', 'app'],
-    requiredToolchain: ['Node.js >=18', 'DevEco Studio or CLI Tools', 'hvigorw', 'hdc'],
+    requiredToolchain: ['Node.js >=18', 'DevEco Studio or CLI Tools', 'ohpm', 'hvigorw', 'hdc'],
     verificationCommands: ['hvigorw assembleHap', 'hdc install <artifact.hap>'],
   },
 };

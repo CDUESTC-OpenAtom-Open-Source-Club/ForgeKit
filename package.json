@@ -20,6 +20,9 @@
     "evaluate:diagnostics": "npm run build:clean && node scripts/evaluate-diagnostics.mjs tests/fixtures/diagnostic-public-cases.json",
     "evaluate:diagnostics:blind": "npm run build:clean && node scripts/evaluate-diagnostics.mjs tests/fixtures/diagnostic-blind-cases.json",
     "gate:diagnostics": "npm run build:clean && node scripts/evaluate-diagnostics.mjs tests/fixtures/diagnostic-blind-cases.json --release-gate",
+    "annotations:prepare": "node scripts/diagnostic-annotations.mjs prepare --corpus tests/fixtures/diagnostic-blind-cases.json",
+    "annotations:compare": "node scripts/diagnostic-annotations.mjs compare",
+    "annotations:lock": "node scripts/diagnostic-annotations.mjs lock --corpus tests/fixtures/diagnostic-blind-cases.json",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests --ext .ts",
     "lint:fix": "eslint src tests --ext .ts --fix",
@@ -56,6 +59,7 @@
     "@types/js-yaml": "^4.0.9",
     "commander": "^11.1.0",
     "js-yaml": "^5.2.1",
+    "json5": "^2.2.3",
     "zod": "^3.22.4",
     "zod-to-json-schema": "^3.25.2"
   },

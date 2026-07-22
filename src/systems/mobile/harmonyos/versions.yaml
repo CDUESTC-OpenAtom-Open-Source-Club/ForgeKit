@@ -44,6 +44,22 @@ supported_api_versions:
     toolchain: "DevEco Studio 5.1 / Command Line Tools"
     notes: "当前较新版本，具备更多系统能力"
 
+  - api_version: "17"
+    harmonyos_version: "5.0.5"
+    stage_model: true
+    status: "Current compatible baseline"
+    recommended: true
+    toolchain: "DevEco Studio 6.x / Command Line Tools"
+    notes: "已通过 HarmonyOS 云手机安装验证"
+
+  - api_version: "24"
+    harmonyos_version: "6.1.1"
+    stage_model: true
+    status: "Current toolchain target"
+    recommended: true
+    toolchain: "DevEco Studio 6.1.1 / Command Line Tools 6.1.1"
+    notes: "新工程默认目标；安装到旧设备时需降低 compatibleSdkVersion"
+
 # 目标设备类型（影响产物形态与上架分类）
 device_types:
   - type: "phone"
@@ -82,11 +98,11 @@ artifact_formats:
   - format: "HAP"
     description: "Harmony Ability Package，单模块部署包（调试/单模块分发）"
     command: "hvigorw assembleHap"
-    output: "build/outputs/*/*-debug.hap / *-release.hap"
+    output: "<module>/build/<product>/outputs/**/*.hap"
   - format: "APP"
     description: "Application Package，多模块聚合的可安装包（上架必须）"
     command: "hvigorw assembleApp"
-    output: "build/outputs/*/*-release.app"
+    output: "build/**/outputs/**/*.app"
     for_store: true
 
 # 签名与工具链

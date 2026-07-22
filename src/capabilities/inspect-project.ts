@@ -16,8 +16,10 @@ import {
   listFiles,
   readTextFile,
   pathExists,
+  assertWithinRoot,
 } from './utils/filesystem.js';
 import { globalCache } from './utils/cache.js';
+import { parseJson5 } from './utils/json5.js';
 import type { InspectProjectOutput, ExistingPackaging } from './types.js';
 
 export async function inspectProject(sourceDir: string): Promise<InspectProjectOutput> {
@@ -85,7 +87,7 @@ function inspectProjectImpl(sourceDir: string): InspectProjectOutput {
   if (entrypoints.length === 0) {
     warnings.push('未找到明确入口，构建时可能需要手动指定');
   }
-  if (!existingPackaging.dockerfile && language) {
+  if (!existingPackaging.dockerfile && language && language !== 'ArkTS') {
     warnings.push('项目缺少 Dockerfile，生成计划时可选择自动生成');
   }
 
@@ -128,6 +130,10 @@ function detectLanguage(
   sourceDir: string,
   packaging: ExistingPackaging
 ): { language?: string; runtime?: string } {
+  if (isHarmonyOSProject(sourceDir)) {
+    return { language: 'ArkTS', runtime: detectHarmonyRuntime(sourceDir) };
+  }
+
   // Python
   if (
     packaging.setup_py ||
@@ -172,6 +178,33 @@ function detectPythonRuntime(sourceDir: string): string {
   return 'Python 3.x';
 }
 
+function isHarmonyOSProject(sourceDir: string): boolean {
+  return pathExists(path.join(sourceDir, 'AppScope', 'app.json5'))
+    && pathExists(path.join(sourceDir, 'build-profile.json5'));
+}
+
+function detectHarmonyRuntime(sourceDir: string): string {
+  const profile = asRecord(parseJson5(readTextFile(path.join(sourceDir, 'build-profile.json5'))));
+  const app = asRecord(profile?.app);
+  const products = app?.products;
+  if (Array.isArray(products)) {
+    for (const product of products) {
+      const compatible = asRecord(product)?.compatibleSdkVersion;
+      const api = extractHarmonyApi(compatible);
+      if (api) {return `HarmonyOS API ${api}`;}
+    }
+  }
+  return 'HarmonyOS';
+}
+
+function extractHarmonyApi(value: unknown): string | undefined {
+  if (typeof value === 'number' && Number.isInteger(value)) {return String(value);}
+  if (typeof value !== 'string') {return undefined;}
+  const parenthesized = value.match(/\((\d{1,2})\)\s*$/);
+  if (parenthesized) {return parenthesized[1];}
+  return /^\d{1,2}$/.test(value.trim()) ? value.trim() : undefined;
+}
+
 // ========== 入口检测 ==========
 
 function detectEntrypoints(sourceDir: string, language?: string): string[] {
@@ -211,9 +244,57 @@ function detectEntrypoints(sourceDir: string, language?: string): string[] {
     if (pathExists(path.join(sourceDir, 'main.go'))) {
       entries.push('main.go');
     }
+  } else if (language === 'ArkTS') {
+    entries.push(...detectHarmonyEntrypoints(sourceDir));
   }
 
   return entries;
+}
+
+function detectHarmonyEntrypoints(sourceDir: string): string[] {
+  const profile = asRecord(parseJson5(readTextFile(path.join(sourceDir, 'build-profile.json5'))));
+  const modules = profile?.modules;
+  if (!Array.isArray(modules)) {return [];}
+  const entries: string[] = [];
+  for (const moduleValue of modules) {
+    const module = asRecord(moduleValue);
+    const srcPath = typeof module?.srcPath === 'string' ? module.srcPath : undefined;
+    if (!srcPath) {continue;}
+    const moduleJsonPath = path.resolve(sourceDir, srcPath, 'src', 'main', 'module.json5');
+    try {
+      assertWithinRoot(moduleJsonPath, sourceDir);
+    } catch (error) {
+      if (error instanceof PathValidationError) {continue;}
+      throw error;
+    }
+    const moduleJson = asRecord(parseJson5(readTextFile(moduleJsonPath)));
+    const moduleConfig = asRecord(moduleJson?.module);
+    const mainElement = typeof moduleConfig?.mainElement === 'string'
+      ? moduleConfig.mainElement
+      : undefined;
+    const abilities = moduleConfig?.abilities;
+    if (!mainElement || !Array.isArray(abilities)) {continue;}
+    const mainAbility = abilities
+      .map(asRecord)
+      .find((ability) => ability?.name === mainElement);
+    const srcEntry = typeof mainAbility?.srcEntry === 'string' ? mainAbility.srcEntry : undefined;
+    if (!srcEntry) {continue;}
+    const entryPath = path.resolve(path.dirname(moduleJsonPath), srcEntry);
+    try {
+      assertWithinRoot(entryPath, sourceDir);
+    } catch (error) {
+      if (error instanceof PathValidationError) {continue;}
+      throw error;
+    }
+    if (pathExists(entryPath)) {entries.push(path.relative(sourceDir, entryPath));}
+  }
+  return entries;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined;
 }
 
 function isPackageManifest(value: unknown): value is {
@@ -252,6 +333,9 @@ function generateRecommendations(
     recs.push('推荐打包目标：Docker 镜像（基于 node:18-alpine）');
   } else if (language === 'Go') {
     recs.push('推荐打包目标：Docker 镜像（多阶段构建，最终 scratch/distroless）');
+  } else if (language === 'ArkTS') {
+    recs.push('推荐打包目标：HarmonyOS HAP（调试）或 APP（发布）');
+    recs.push('使用 hvigorw 构建，并在发布 APP 前完成 AGC 正式签名预检');
   } else {
     recs.push('未识别出已知语言，需用户手动指定打包目标');
   }

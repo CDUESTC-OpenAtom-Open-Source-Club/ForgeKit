@@ -87,4 +87,6 @@ npm run evaluate:diagnostics
 4. 同时报告准确率、未知率和各类别样本数；
 5. 评估完成前不根据盲测答案修改规则，修改后使用新的留出集复测。
 
-RC 的 50 条留出集位于 `tests/fixtures/diagnostic-blind-cases.json`，包含公开来源、语言、运行时、目标平台和期望错误码。运行 `npm run evaluate:diagnostics:blind` 会输出完整报告；运行 `npm run gate:diagnostics` 还会强制检查 80% 准确率、unknown rate、每类至少 3 条、去重、脱敏和双维护者标注。当前语料的标注状态仍为 `pending`，因此门禁会明确失败，不能把预标注结果当作发布声明。
+RC 的 50 条留出集位于 `tests/fixtures/diagnostic-blind-cases.json`，包含公开来源、语言、运行时、目标平台和预置期望错误码。运行 `npm run evaluate:diagnostics:blind` 会输出完整报告；运行 `npm run gate:diagnostics` 还会强制检查 80% 准确率、unknown rate、每类至少 3 条、去重、脱敏和双维护者标注。当前语料的标注状态仍为 `pending`，因此门禁会明确失败，不能把预标注结果当作发布声明。
+
+双维护者工作不能通过直接修改源语料完成。使用[诊断独立标注流程](./DIAGNOSTIC_ANNOTATION_WORKFLOW.md)分别生成不含逐条 `expected_code` 的标注表，再比较、裁决并锁定。由于仓库中的预置标签是公开的，维护者必须承诺在填写标注表时不查看源语料答案；工具可以隔离工作文件并校验哈希，但不能替代人员独立性。

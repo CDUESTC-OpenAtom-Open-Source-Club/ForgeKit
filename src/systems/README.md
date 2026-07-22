@@ -12,16 +12,17 @@ that target.
 | Docker image build | Implemented | Exposed as `build_docker_image` |
 | Ubuntu deb build | Implemented | Exposed as `pack_deb` |
 | `mobile/harmonyos/decision-rules.yaml` | Runtime-connected | Read by `generate_packaging_plan` |
-| HarmonyOS app/hap build | Experimental | Exposed as `pack_harmonyos_app`; real DevEco/device RC evidence pending |
+| HarmonyOS app/hap build | Experimental | Exposed as `pack_harmonyos_app`; real API 17 DevEco/HAP cloud-device evidence recorded; formal AGC signing remains unverified |
 | `ubuntu/` templates and guides | Reference assets | Not selected through a general adapter loader |
 | Debian, CentOS, EulerOS, Fedora | Reference/planned | No registered platform-specific build tool |
 | Android, PWA, Windows | Planning rules only | No registered build tool and no runtime rule loader |
 
 Today, the verified product paths are server-oriented Docker / Ubuntu deb
-packaging. HarmonyOS (NEXT) app/hap packaging remains experimental until a real
-DevEco build and device installation are recorded. Mobile (Android/iOS), web,
-desktop, rpm, and the other Linux distributions are not supported product
-capabilities yet.
+packaging plus one real HarmonyOS API 17 HAP/cloud-device validation. HarmonyOS
+(NEXT) app/hap packaging remains experimental because formal AGC signing and
+AppGallery acceptance are not verified. Mobile (Android/iOS), web, desktop,
+rpm, and the other Linux distributions are not supported product capabilities
+yet.
 
 The runtime registration point is `adapter-loader.ts`. Its
 `SUPPORTED_SYSTEM_ADAPTERS` list currently contains `servers/ubuntu` and

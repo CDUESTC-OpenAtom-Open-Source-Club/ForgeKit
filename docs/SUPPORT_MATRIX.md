@@ -7,7 +7,7 @@
 | 项目维度 | 已验证 | 试验性 | 当前不承诺 |
 |---|---|---|---|
 | 项目语言 | Python、TypeScript/Node.js、Go 代表项目 | 其他常见服务项目 | 任意语言自动生成正确构建文件 |
-| 交付目标 | OCI/Docker 镜像 | Ubuntu x86_64 `.deb`、HarmonyOS `.hap`/`.app`（试验性） | rpm、AppImage、APK、IPA |
+| 交付目标 | OCI/Docker 镜像 | Ubuntu x86_64 `.deb`、HarmonyOS `.hap`（华为云手机单样本通过）、`.app`（未完成正式签名验证） | rpm、AppImage、APK、IPA |
 | 主机架构 | linux/amd64 | — | linux/arm64 正式支持 |
 | Agent 接入 | MCP stdio；7 个工具；源码入口 | 不同客户端的参数细节 | Web 控制台或云端托管 |
 | 容器运行时 | Docker Engine | Podman 的 Docker CLI 兼容层 | 自动安装或修改 Docker |

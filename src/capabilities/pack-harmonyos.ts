@@ -14,12 +14,14 @@ import * as yaml from 'js-yaml';
 import { fileURLToPath } from 'url';
 import {
   assertSourceDir,
+  assertWithinRoot,
   PathValidationError,
   pathExists,
   readTextFile,
 } from './utils/filesystem.js';
 import { runCommandWithLog, commandExists } from './utils/command.js';
 import { sha256File } from './utils/checksum.js';
+import { parseJson5 } from './utils/json5.js';
 import { diagnoseBuildError, type ErrorDiagnostic } from './utils/error-diagnostic.js';
 import { generateReleaseManifest, saveReleaseManifest } from './manifest-generator.js';
 import type { ErrorCode, PackHarmonyOSOutput } from './types.js';
@@ -70,6 +72,26 @@ export async function packHarmonyOS(input: PackHarmonyOSInput): Promise<PackHarm
       '先调用 generate_packaging_plan 生成 Forge.md'
     );
   }
+  try {
+    assertWithinRoot(plan_path, source_dir);
+    const planStat = fs.lstatSync(plan_path);
+    if (!planStat.isFile() || planStat.isSymbolicLink()) {
+      return failed('plan_invalid', `Forge.md 不是普通文件: ${plan_path}`, '重新生成项目内的 Forge.md');
+    }
+  } catch (error) {
+    if (error instanceof PathValidationError) {
+      return failed(error.code, error.message, 'plan_path 必须指向 source_dir 内的普通文件');
+    }
+    throw error;
+  }
+
+  if (signing_config_path && !pathExists(signing_config_path)) {
+    return failed(
+      'harmony_signing_invalid',
+      `显式签名配置不存在: ${signing_config_path}`,
+      '修正 signing_config_path，或删除该参数以使用工程 build-profile.json5'
+    );
+  }
 
   // 3. 识别鸿蒙工程
   const projectInfo = detectHarmonyOSProject(source_dir);
@@ -100,18 +122,22 @@ export async function packHarmonyOS(input: PackHarmonyOSInput): Promise<PackHarm
     projectInfo,
   });
 
-  // 若发布（app）且签名/Profile 不合规，先反馈，不浪费构建
-  if (build_target === 'app' && !compliance.store_ready) {
+  // 任意目标的 bundle/API 错误，以及 APP 的签名错误，都在构建前返回。
+  if (!compliance.store_ready) {
     return {
       status: 'failed',
       error: {
         code: compliance.blocking_code ?? 'harmony_signing_invalid',
-        summary: '发布构建未通过合规预检，无法产出可上架 APP',
+        summary: build_target === 'app'
+          ? '发布构建未通过合规预检，无法产出可上架 APP'
+          : '调试构建未通过项目预检，无法产出可安装 HAP',
         suggested_fix: compliance.next_actions[0] ?? '补全正式签名与 Profile 后重试',
       },
       decision_basis: {
         target_platform: `harmonyos/${device_type}`,
-        build_method: 'hvigorw assembleApp（发布，需正式签名）',
+        build_method: build_target === 'app'
+          ? 'hvigorw assembleApp（发布，需正式签名）'
+          : 'hvigorw assembleHap（调试）',
         compatibility_notes: compliance.checks,
         risks_acknowledged: [
           '调试证书不可上架',
@@ -133,11 +159,14 @@ export async function packHarmonyOS(input: PackHarmonyOSInput): Promise<PackHarm
     );
   }
   const task = build_target === 'app' ? 'assembleApp' : 'assembleHap';
+  const buildStartedAt = Date.now();
   const buildResult = runCommandWithLog(hvigorw, [task], {
     cwd: source_dir,
     timeout: 600000,
+    logDir: path.join(source_dir, '.forgekit', 'logs'),
     logFileName: `pack-harmonyos-${task}-${Date.now()}.log`,
   });
+  const buildDurationMs = Math.max(1, Date.now() - buildStartedAt);
 
   // 7. 失败处理（结构化诊断）
   if (!buildResult.success) {
@@ -160,7 +189,7 @@ export async function packHarmonyOS(input: PackHarmonyOSInput): Promise<PackHarm
   if (!artifactPath) {
     return failed(
       'harmony_build_failed',
-      `构建成功但未在 build/outputs 找到 *.${build_target} 产物`,
+      `构建成功但未在工程或模块的 build 目录找到 *.${build_target} 产物`,
       '确认产物输出路径，或检查 build-profile.json5 的 outputs 配置'
     );
   }
@@ -183,7 +212,7 @@ export async function packHarmonyOS(input: PackHarmonyOSInput): Promise<PackHarm
         checksum: { sha256: checksum },
       },
     ],
-    buildDurationMs: 0,
+    buildDurationMs,
   });
   saveReleaseManifest(manifest, source_dir);
 
@@ -216,7 +245,7 @@ export async function packHarmonyOS(input: PackHarmonyOSInput): Promise<PackHarm
     },
     decision_basis: {
       target_platform: `harmonyos/${device_type}`,
-      target_version: `API ${projectInfo.compatibleSdkVersion ?? api_version ?? 'unknown'}`,
+      target_version: `API ${projectInfo.compatibleSdkVersion ?? parseHarmonyApiVersion(api_version) ?? 'unknown'}`,
       build_method: `hvigorw ${task}`,
       compatibility_notes: compliance.checks,
       risks_acknowledged: ['调试证书不可上架', '证书丢失风险'],
@@ -241,27 +270,52 @@ interface HarmonyOSProjectInfo {
 function detectHarmonyOSProject(sourceDir: string): HarmonyOSProjectInfo | null {
   const appJsonPath = path.join(sourceDir, 'AppScope', 'app.json5');
   const buildProfilePath = path.join(sourceDir, 'build-profile.json5');
-  if (!pathExists(appJsonPath)) {
+  if (!pathExists(appJsonPath) || !pathExists(buildProfilePath)) {
     return null;
   }
-  const info: HarmonyOSProjectInfo = { appJsonPath, buildProfilePath: pathExists(buildProfilePath) ? buildProfilePath : undefined };
-  const appJson = readJson5(readTextFile(appJsonPath));
+  const info: HarmonyOSProjectInfo = { appJsonPath, buildProfilePath };
+  const appJson = parseJson5(readTextFile(appJsonPath));
   const app = getRecord(appJson, 'app');
   if (app) {
     info.bundleName = getString(app, 'bundleName');
     const compatibleSdkVersion = getValue(getRecord(app, 'apiVersion'), 'compatibleSdkVersion');
-    info.compatibleSdkVersion = compatibleSdkVersion === undefined
-      ? undefined
-      : String(compatibleSdkVersion);
+    info.compatibleSdkVersion = parseHarmonyApiVersion(compatibleSdkVersion);
+  }
+  if (!info.compatibleSdkVersion && info.buildProfilePath) {
+    const profile = parseJson5(readTextFile(info.buildProfilePath));
+    const products = getValue(getRecord(profile, 'app'), 'products');
+    if (Array.isArray(products)) {
+      for (const product of products) {
+        const compatibleSdkVersion = getValue(asRecord(product), 'compatibleSdkVersion');
+        const api = parseHarmonyApiVersion(compatibleSdkVersion);
+        if (api) {
+          info.compatibleSdkVersion = api;
+          break;
+        }
+      }
+    }
   }
   return info;
 }
 
+function parseHarmonyApiVersion(value: unknown): string | undefined {
+  if (typeof value === 'number' && Number.isInteger(value)) {return String(value);}
+  if (typeof value !== 'string') {return undefined;}
+  const parenthesized = value.match(/\((\d{1,2})\)\s*$/);
+  if (parenthesized) {return parenthesized[1];}
+  return /^\d{1,2}$/.test(value.trim()) ? value.trim() : undefined;
+}
+
 function checkToolchain(sourceDir: string): { ok: boolean; reason: string } {
-  // node 18 LTS
-  const nodeCheck = commandExists('node');
-  if (!nodeCheck) {
+  if (!commandExists('node')) {
     return { ok: false, reason: 'node 命令不可用（需 >=18 LTS）' };
+  }
+  const nodeMajor = Number.parseInt(process.versions.node.split('.')[0], 10);
+  if (!Number.isInteger(nodeMajor) || nodeMajor < 18) {
+    return { ok: false, reason: `Node.js ${process.versions.node} 不受支持（需 >=18）` };
+  }
+  if (!commandExists('ohpm')) {
+    return { ok: false, reason: 'ohpm 不可用：请安装 HarmonyOS Command Line Tools 并将 bin 加入 PATH' };
   }
   // hvigorw（项目内脚本或 PATH）
   const hvigorw = resolveHvigorw(sourceDir);
@@ -303,15 +357,28 @@ function runComplianceChecks(ctx: {
     nextActions.push('将 app.json5 的 bundleName 改为反向域名（如 com.example.app），并与 AGC 应用一致');
   }
 
-  // API 版本
-  const api = ctx.api_version ?? ctx.projectInfo.compatibleSdkVersion;
+  // API 版本：api_version 是期望值，不会改写工程；与工程配置不一致时拒绝。
+  const requestedApi = parseHarmonyApiVersion(ctx.api_version);
+  const configuredApi = ctx.projectInfo.compatibleSdkVersion;
+  const api = configuredApi ?? requestedApi;
   const apiNum = api ? parseInt(api, 10) : NaN;
-  const apiOk = !Number.isNaN(apiNum) && apiNum >= 9 && apiNum <= 13;
-  checks.push(`compatibleSdkVersion[${api ?? '缺失'}]：${apiOk ? '在支持范围(9-13)' : '超出支持范围或不合法'}`);
+  const apiOk = !Number.isNaN(apiNum) && apiNum >= 9 && apiNum <= 24;
+  checks.push(`compatibleSdkVersion[${api ?? '缺失'}]：${apiOk ? '在支持范围(9-24)' : '超出支持范围或不合法'}`);
   if (!apiOk) {
     storeReady = false;
-    blockingCode = 'harmony_compatible_version_mismatch';
-    nextActions.push('在 build-profile.json5 / app.json5 设置 compatibleSdkVersion 为 9-13 之间（推荐 12）');
+    blockingCode ??= 'harmony_compatible_version_mismatch';
+    nextActions.push('在 build-profile.json5 / app.json5 设置 compatibleSdkVersion 为 9-24 之间（当前基线推荐 17）');
+  }
+  if (ctx.api_version && !requestedApi) {
+    storeReady = false;
+    blockingCode ??= 'harmony_compatible_version_mismatch';
+    checks.push(`请求 API[${ctx.api_version}]：格式不合法`);
+    nextActions.push('api_version 使用纯数字或 DevEco 版本格式，例如 17 或 5.0.5(17)');
+  } else if (requestedApi && configuredApi && requestedApi !== configuredApi) {
+    storeReady = false;
+    blockingCode ??= 'harmony_compatible_version_mismatch';
+    checks.push(`请求 API[${requestedApi}] 与工程 compatibleSdkVersion[${configuredApi}] 不一致`);
+    nextActions.push('先修改 build-profile.json5 的 compatibleSdkVersion，再使用相同 api_version 重试');
   }
 
   // 发布态：正式签名 + Profile
@@ -319,8 +386,8 @@ function runComplianceChecks(ctx: {
     const signing = loadSigningConfig(ctx.source_dir, ctx.signing_config_path);
     if (!signing.found) {
       storeReady = false;
-      blockingCode = 'harmony_signing_invalid';
-      checks.push('release 签名：未找到 signingConfigs（发布必须配置正式签名）');
+      blockingCode ??= 'harmony_signing_invalid';
+      checks.push('release 签名：未找到被产品引用或名为 release 的 signingConfig');
       nextActions.push('在 AGC 生成 CSR → 签发正式 .cer → 创建发布 .p7b → 配置 build-profile.json5 signingConfigs');
     } else {
       checks.push(`release 签名：已配置 signingConfig "${signing.name}"`);
@@ -328,9 +395,9 @@ function runComplianceChecks(ctx: {
       const missing = signing.missingMaterials ?? [];
       if (missing.length > 0) {
         storeReady = false;
-        blockingCode = missing.includes('profile') ? 'harmony_profile_missing' : 'harmony_signing_invalid';
+        blockingCode ??= missing.includes('profile') ? 'harmony_profile_missing' : 'harmony_signing_invalid';
         checks.push(`release 签名材料缺失：${missing.join(', ')}`);
-        nextActions.push('补齐缺失的签名材料（.cer/.p12/.p7b），并确保路径正确');
+        nextActions.push('补齐签名材料与凭据字段（.cer/.p12/.p7b、storePassword、keyAlias、keyPassword）');
       } else {
         checks.push('release 签名材料：.cer / .p12 / .p7b 齐全');
       }
@@ -354,55 +421,91 @@ function loadSigningConfig(
   sourceDir: string,
   signingConfigPath?: string
 ): { found: boolean; name?: string; missingMaterials?: string[] } {
-  const candidates = [
-    signingConfigPath,
-    path.join(sourceDir, 'build-profile.json5'),
-    path.join(sourceDir, 'signing-config.json'),
-  ].filter(Boolean) as string[];
+  const candidates = signingConfigPath
+    ? [signingConfigPath]
+    : [path.join(sourceDir, 'build-profile.json5'), path.join(sourceDir, 'signing-config.json')];
 
   for (const p of candidates) {
     if (!pathExists(p)) {continue;}
     const raw = readTextFile(p);
     if (!raw) {continue;}
-    const json = readJson5(raw);
-    // 优先 build-profile.json5 的 app.signingConfigs[]；其次独立 signing-config.json（顶层 material）
-    const appConfigs = getValue(getRecord(json, 'app'), 'signingConfigs');
+    const json = parseJson5(raw);
+    const app = getRecord(json, 'app');
+    const appConfigs = getValue(app, 'signingConfigs');
     let cfg: Record<string, unknown> | undefined;
     if (Array.isArray(appConfigs) && appConfigs.length > 0) {
-      cfg = asRecord(appConfigs[0]);
+      const products = getValue(app, 'products');
+      const referencedName = Array.isArray(products)
+        ? products.map(asRecord).map((product) => product?.signingConfig)
+          .find((name): name is string => typeof name === 'string')
+        : undefined;
+      cfg = appConfigs.map(asRecord).find((candidate) =>
+        candidate?.name === referencedName || (!referencedName && candidate?.name === 'release')
+      );
     } else if (getRecord(json, 'material')) {
       cfg = asRecord(json);
     }
     if (!cfg) {continue;}
     const mat = getRecord(cfg, 'material') ?? {};
     const missing: string[] = [];
-    if (!pathExists(path.join(sourceDir, getString(mat, 'certpath') ?? 'release.cer'))) {missing.push('cer');}
-    if (!pathExists(path.join(sourceDir, getString(mat, 'storeFile') ?? 'release.p12'))) {missing.push('p12');}
-    if (!pathExists(path.join(sourceDir, getString(mat, 'profile') ?? 'release.p7b'))) {missing.push('profile');}
+    const configDir = path.dirname(path.resolve(p));
+    if (!materialExists(configDir, getString(mat, 'certpath'))) {missing.push('cer');}
+    if (!materialExists(configDir, getString(mat, 'storeFile'))) {missing.push('p12');}
+    if (!materialExists(configDir, getString(mat, 'profile'))) {missing.push('profile');}
+    if (!getString(mat, 'storePassword')) {missing.push('storePassword');}
+    if (!getString(mat, 'keyAlias')) {missing.push('keyAlias');}
+    if (!getString(mat, 'keyPassword')) {missing.push('keyPassword');}
     return { found: true, name: getString(cfg, 'name'), missingMaterials: missing };
   }
   return { found: false };
 }
 
+function materialExists(configDir: string, materialPath?: string): boolean {
+  return Boolean(materialPath && pathExists(path.resolve(configDir, materialPath)));
+}
+
 function findArtifact(sourceDir: string, buildTarget: 'hap' | 'app'): string | null {
-  const outputsDir = path.join(sourceDir, 'build', 'outputs');
-  if (!pathExists(outputsDir)) {return null;}
   const ext = buildTarget === 'app' ? '.app' : '.hap';
-  let found: string | null = null;
+  const found: Array<{ path: string; modifiedAt: number }> = [];
+  const buildDirs = [path.join(sourceDir, 'build')];
+  const buildProfile = parseJson5(readTextFile(path.join(sourceDir, 'build-profile.json5')));
+  const modules = getValue(getRecord(buildProfile, 'app'), 'modules')
+    ?? getValue(asRecord(buildProfile), 'modules');
+  if (Array.isArray(modules)) {
+    for (const module of modules) {
+      const srcPath = getString(asRecord(module) ?? {}, 'srcPath');
+      if (srcPath) {
+        const moduleBuildDir = path.resolve(sourceDir, srcPath, 'build');
+        try {
+          assertWithinRoot(moduleBuildDir, sourceDir);
+          buildDirs.push(moduleBuildDir);
+        } catch (error) {
+          if (!(error instanceof PathValidationError)) {throw error;}
+        }
+      }
+    }
+  }
   const walk = (dir: string): void => {
     for (const entry of fs.readdirSync(dir)) {
       const full = path.join(dir, entry);
-      const stat = fs.statSync(full);
+      const stat = fs.lstatSync(full);
+      if (stat.isSymbolicLink()) {continue;}
       if (stat.isDirectory()) {walk(full);}
-      else if (entry.endsWith(ext) && !entry.includes('debug')) {found = full;}
+      else if (entry.endsWith(ext)) {found.push({ path: full, modifiedAt: stat.mtimeMs });}
     }
   };
-  try {
-    walk(outputsDir);
-  } catch {
-    /* ignore */
+  for (const buildDir of buildDirs) {
+    if (!pathExists(buildDir)) {continue;}
+    try {
+      const buildDirStat = fs.lstatSync(buildDir);
+      if (!buildDirStat.isDirectory() || buildDirStat.isSymbolicLink()) {continue;}
+      walk(buildDir);
+    } catch {
+      /* ignore unreadable output directories */
+    }
   }
-  return found;
+  found.sort((left, right) => right.modifiedAt - left.modifiedAt || left.path.localeCompare(right.path));
+  return found[0]?.path ?? null;
 }
 
 function loadHarmonyOSKnowledge(): unknown {
@@ -422,21 +525,6 @@ function loadHarmonyOSKnowledge(): unknown {
     }
   }
   return null;
-}
-
-/** 极简 JSON5 解析（容忍尾逗号与注释，仅用于工程配置文件） */
-function readJson5(text: string | null): unknown {
-  if (!text) {return null;}
-  try {
-    // 去掉 // 行注释与 /* */ 块注释，去掉尾逗号
-    const cleaned = text
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/(^|\n)\s*\/\/.*(?=\n)/g, '')
-      .replace(/,(\s*[}\]])/g, '$1');
-    return JSON.parse(cleaned);
-  } catch {
-    return null;
-  }
 }
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {

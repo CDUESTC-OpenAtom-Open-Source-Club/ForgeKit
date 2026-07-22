@@ -43,6 +43,10 @@ describe('HarmonyOS adapter', () => {
       path.join(dir, 'AppScope', 'app.json5'),
       JSON.stringify({ app: { bundleName: 'com.example.demo', apiVersion: { compatibleSdkVersion: 12 } } })
     );
+    fs.writeFileSync(
+      path.join(dir, 'build-profile.json5'),
+      '{ app: { products: [{ compatibleSdkVersion: "6.1.1(24)" }] }, modules: [] }'
+    );
     fs.writeFileSync(path.join(dir, 'oh-package.json5'), '{}');
 
     const result = await generatePackagingPlan(dir, ['app']);
@@ -53,6 +57,7 @@ describe('HarmonyOS adapter', () => {
     expect(forge).toContain('Type: mobile');
     expect(forge).toContain('pack_harmonyos_app');
     expect(forge).toContain('AppGallery');
-    expect(result.decision_basis?.target_platform).toBe('harmonyos/12');
+    expect(result.summary).toContain('ArkTS');
+    expect(result.decision_basis?.target_platform).toBe('harmonyos/24');
   });
 });

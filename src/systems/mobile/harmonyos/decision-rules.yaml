@@ -7,9 +7,9 @@
   版本选择:
     规则1:
       条件: "新应用（无历史包袱）"
-      建议: "目标 API 12 或 13（HarmonyOS NEXT 稳定版）"
+      建议: "默认兼容 API 17；按已安装 SDK 可将 targetSdkVersion 提升到 API 24"
       理由: "脱离 AOSP，系统能力强、审核友好、长期受支持"
-      风险: "低版本设备无法覆盖，但 NEXT 设备占比快速上升"
+      风险: "compatibleSdkVersion 高于设备版本会导致安装失败"
       next_actions: ["确认目标设备最低 API", "在 build-profile.json5 设置 compatibleSdkVersion"]
     规则2:
       条件: "需兼容 HarmonyOS 4.x 老设备"
@@ -18,8 +18,8 @@
       风险: "无法使用 NEXT 新特性，未来需升级"
     规则3:
       条件: "目标设备未知"
-      建议: "选择 API 12（NEXT 稳定版）"
-      理由: "覆盖面与能力平衡"
+      建议: "选择 API 17 兼容基线，并用当前 SDK 编译"
+      理由: "兼容 HarmonyOS 5.0.5 云设备，同时保留新工具链能力"
 
   架构选择:
     规则1:
@@ -69,7 +69,7 @@
     3: "执行合规预检：bundleName 格式、API 版本、release 签名与 Profile"
     4: "配置 build-profile.json5 的 signingConfigs（release 用 AGC 正式签名）"
     5: "执行 hvigorw assembleApp（发布）或 assembleHap（调试）"
-    6: "产物输出到 build/outputs/*/*.app 或 *.hap"
+    6: "产物输出到根工程或模块 build 目录下（例如 entry/build/default/outputs/*.hap）"
     7: "计算 SHA256 校验和，生成 Release Manifest"
     8: "输出合规报告（是否可达到上架标准）"
 
@@ -98,3 +98,13 @@
     stage_model: "true"
     toolchain: "DevEco 5.1 / Command Line Tools"
     remark: "较新版本，能力更全"
+  API_17:
+    harmonyos: "5.0.5"
+    stage_model: "true"
+    toolchain: "DevEco 6.x / Command Line Tools"
+    remark: "当前云手机兼容基线"
+  API_24:
+    harmonyos: "6.1.1"
+    stage_model: "true"
+    toolchain: "DevEco 6.1.1 / Command Line Tools 6.1.1"
+    remark: "当前工具链目标版本"
