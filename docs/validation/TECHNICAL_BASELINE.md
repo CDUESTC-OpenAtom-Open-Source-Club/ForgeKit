@@ -9,7 +9,7 @@
 | MCP 可发现七个工具 | 通过 | compiled MCP runtime smoke |
 | npm tarball 安装后可调用 MCP | 通过 | installed-package smoke |
 | Node.js 18/20 | 通过 | GitHub Actions matrix |
-| 单元、协议与 E2E | 164/164 通过 | `npm run verify` |
+| 单元、协议与 E2E | 165/165 通过 | `npm run verify` |
 | 真实 Docker 构建 | 通过 | GitHub Actions Docker smoke |
 | 容器启动与健康检查 | 通过 | CI `curl /health` |
 

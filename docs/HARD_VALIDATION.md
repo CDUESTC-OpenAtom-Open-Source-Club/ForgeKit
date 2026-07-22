@@ -22,8 +22,8 @@
 | ESLint | 通过，0 errors；遗留边界类型 warnings 不阻断 |
 | TypeScript 类型检查 | 通过 |
 | 干净构建 | 通过，重新生成 `dist` |
-| 自动化测试 | 164/164 通过 |
-| 测试文件 | 23/23 通过 |
+| 自动化测试 | 165/165 通过 |
+| 测试文件 | 24/24 通过 |
 | 编译后 MCP stdio 通信 | 通过 |
 | MCP 工具发现 | 7 个工具完整返回（含 `preflight_check`、`diagnose_build_failure` 和 `pack_harmonyos_app`） |
 | 编译后 `inspect_project` | 成功识别 Python fixture 与 `app.py` |

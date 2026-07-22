@@ -19,10 +19,7 @@ import {
 // Tool definitions and executor
 import { registerTools } from './tools/registry.js';
 import { executeTool } from './tools/executor.js';
-
-// Server configuration
-const SERVER_NAME = 'forgekit-mcp-server';
-const SERVER_VERSION = '0.1.0';
+import { SERVER_NAME, SERVER_VERSION } from './server-metadata.js';
 
 /**
  * Create MCP Server instance

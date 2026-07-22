@@ -47,6 +47,8 @@ try {
     { capabilities: {} }
   );
   const transport = new StdioClientTransport({ command: binPath, stderr: 'pipe' });
+  const stderrChunks = [];
+  transport.stderr?.on('data', (chunk) => stderrChunks.push(chunk.toString()));
   await client.connect(transport);
 
   const { tools } = await client.listTools();
@@ -119,6 +121,16 @@ try {
   const invalidPlanResult = JSON.parse(invalidPlanResponse.content[0].text);
   assert.equal(invalidPlanResult.status, 'failed');
   assert.equal(invalidPlanResult.error.code, 'plan_not_found');
+
+  await new Promise((resolve) => setImmediate(resolve));
+  const packageVersion = JSON.parse(
+    fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8')
+  ).version;
+  assert.ok(
+    stderrChunks.join('').includes(
+      `forgekit-mcp-server v${packageVersion} started`
+    )
+  );
 
   console.log('Installed npm package smoke test passed');
 } finally {
