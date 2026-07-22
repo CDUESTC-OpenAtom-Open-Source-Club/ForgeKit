@@ -34,6 +34,7 @@ try {
     'generate_packaging_plan',
     'inspect_project',
     'pack_deb',
+    'preflight_check',
   ]);
 
   const response = await client.callTool({

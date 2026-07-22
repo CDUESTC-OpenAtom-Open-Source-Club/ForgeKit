@@ -92,7 +92,9 @@ async function main() {
 
   console.error(`${SERVER_NAME} v${SERVER_VERSION} started`);
   console.error('ForgeKit MCP Server ready for AI agent connections');
-  console.error('已注册工具：inspect_project, generate_packaging_plan, build_docker_image, pack_deb');
+  console.error(
+    '已注册工具：inspect_project, preflight_check, generate_packaging_plan, build_docker_image, pack_deb'
+  );
 }
 
 main().catch((error) => {

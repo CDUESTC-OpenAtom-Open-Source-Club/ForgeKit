@@ -13,6 +13,7 @@
 3. 删除旧 `dist` 后强制干净编译，规避增量缓存造成的假成功。
 4. Vitest 单元、协议、冒烟和 E2E 契约测试。
 5. 启动编译后的 MCP Server 真进程，通过 stdio 完成初始化、工具发现和 `inspect_project` 调用。
+6. 打出真实 npm tarball，在全新临时目录安装，通过安装后的 `forgekit-mcp` 调用正式模板生成 `Forge.md`。
 
 ## 2. 本次实测结果
 
@@ -24,9 +25,10 @@
 | 自动化测试 | 98/98 通过 |
 | 测试文件 | 14/14 通过 |
 | 编译后 MCP stdio 通信 | 通过 |
-| MCP 工具发现 | 4 个工具完整返回 |
+| MCP 工具发现 | 5 个工具完整返回（含 `preflight_check`） |
 | 编译后 `inspect_project` | 成功识别 Python fixture 与 `app.py` |
 | npm 包内容预检 | `npm pack --dry-run --json` 通过 |
+| npm tarball 干净安装 | 通过，安装后的 bin 可发现 5 个工具并生成正式 `Forge.md` |
 | 发布包模板 | `src/packaging/forge-template.md` 已包含在 npm 包中 |
 | 覆盖率运行 | 通过；能力层语句覆盖率约 89% |
 

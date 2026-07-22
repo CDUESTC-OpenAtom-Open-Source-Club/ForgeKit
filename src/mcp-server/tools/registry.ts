@@ -2,7 +2,8 @@
  * Tool Registry - Register all available MCP tools
  *
  * 符合 V0.1_IMPLEMENTATION M1 要求：
- * - 注册 4 个工具：inspect_project, generate_packaging_plan, build_docker_image, pack_deb
+ * - 注册 5 个工具：inspect_project, preflight_check, generate_packaging_plan,
+ *   build_docker_image, pack_deb
  * - 构建类工具标注是否要求 plan_path
  */
 

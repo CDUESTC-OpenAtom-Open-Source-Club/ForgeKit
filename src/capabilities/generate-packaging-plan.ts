@@ -13,7 +13,11 @@ import { assertSourceDir, PathValidationError, readTextFile } from './utils/file
 import type { GeneratePackagingPlanOutput, DecisionBasis } from './types.js';
 
 // Forge.md 模板路径（编译后位于 dist/packaging/）
-const TEMPLATE_REL = path.resolve(__dirname, '../packaging/forge-template.md');
+const TEMPLATE_CANDIDATES = [
+  path.resolve(__dirname, '../packaging/forge-template.md'),
+  path.resolve(__dirname, '../../src/packaging/forge-template.md'),
+  path.resolve(process.cwd(), 'src/packaging/forge-template.md'),
+];
 
 export async function generatePackagingPlan(
   sourceDir: string,
@@ -244,7 +248,13 @@ function renderForgeMd(ctx: {
 }): string {
   const { inspectResult: insp, goals, decisions, risks } = ctx;
 
-  let template = readTextFile(TEMPLATE_REL);
+  let template: string | null = null;
+  for (const candidate of TEMPLATE_CANDIDATES) {
+    template = readTextFile(candidate);
+    if (template) {
+      break;
+    }
+  }
   if (!template) {
     // 兜底：内联最小模板
     template = FALLBACK_TEMPLATE;

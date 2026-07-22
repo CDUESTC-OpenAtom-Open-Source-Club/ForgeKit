@@ -36,7 +36,7 @@ describe('preflightCheck', () => {
   });
 
   it('应检查Docker可用性', async () => {
-    const fixturesDir = path.resolve(__dirname, '../../fixtures');
+    const fixturesDir = path.resolve(currentDir, '../../fixtures');
     const result = await preflightCheck({
       source_dir: fixturesDir,
       checks: ['docker_availability'],
@@ -49,7 +49,7 @@ describe('preflightCheck', () => {
   });
 
   it('应对存在的计划文件返回成功', async () => {
-    const fixturesDir = path.resolve(__dirname, '../../fixtures');
+    const fixturesDir = path.resolve(currentDir, '../../fixtures');
     const planPath = path.join(fixturesDir, 'test-plan.md');
 
     const result = await preflightCheck({
@@ -64,7 +64,7 @@ describe('preflightCheck', () => {
   });
 
   it('应支持多个检查项', async () => {
-    const fixturesDir = path.resolve(__dirname, '../../fixtures');
+    const fixturesDir = path.resolve(currentDir, '../../fixtures');
     const result = await preflightCheck({
       source_dir: fixturesDir,
       checks: ['source_directory', 'disk_space'],

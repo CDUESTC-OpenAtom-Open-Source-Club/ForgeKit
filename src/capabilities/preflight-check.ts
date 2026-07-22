@@ -76,8 +76,12 @@ export async function preflightCheck(input: PreflightCheckInput): Promise<Prefli
   }
 
   // 检查4：计划文件（如果提供）
-  if (checksToRun.includes('plan_file') && plan_path) {
-    results.push(checkPlanFile(plan_path));
+  if (checksToRun.includes('plan_file')) {
+    results.push(plan_path ? checkPlanFile(plan_path) : {
+      name: 'plan_file',
+      status: 'skip',
+      message: '未提供计划文件路径',
+    });
   }
 
   // 检查5：镜像仓库连通性
@@ -284,33 +288,19 @@ async function checkRegistryConnectivity(): Promise<CheckResult> {
   try {
     // 使用curl测试连通性（跨平台）
     const result = runCommand('curl', [
-      '-sf',
+      '-s',
       '--max-time', String(TIMEOUT_MS / 1000),
       '-o', '/dev/null',
       '-w', '%{http_code}',
       REGISTRY_URL,
     ]);
 
-    if (result.success && result.stdout.trim().match(/^2\d{2}$/)) {
+    const statusCode = Number(result.stdout.trim());
+    if (result.success && statusCode >= 200 && statusCode < 500) {
       return {
         name: 'registry_connectivity',
         status: 'pass',
-        message: `镜像仓库可达（${REGISTRY_URL}）`,
-      };
-    }
-
-    // 如果curl失败，尝试使用docker pull测试
-    const dockerTest = runCommand('docker', [
-      'pull',
-      '--quiet',
-      'hello-world',
-    ], { timeout: TIMEOUT_MS });
-
-    if (dockerTest.success) {
-      return {
-        name: 'registry_connectivity',
-        status: 'pass',
-        message: '镜像仓库可达（通过docker pull测试）',
+        message: `镜像仓库可达（${REGISTRY_URL}，HTTP ${statusCode}）`,
       };
     }
 
@@ -318,7 +308,7 @@ async function checkRegistryConnectivity(): Promise<CheckResult> {
       name: 'registry_connectivity',
       status: 'fail',
       message: '镜像仓库不可达',
-      details: '无法连接到Docker Hub或镜像拉取失败',
+      details: result.stderr || `Docker Hub 返回 HTTP ${result.stdout.trim() || 'unknown'}`,
       suggested_fix: '检查网络连接，或配置国内镜像源（如docker.m.daocloud.io）',
     };
   } catch (error) {
