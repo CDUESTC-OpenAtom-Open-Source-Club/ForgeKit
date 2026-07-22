@@ -55,7 +55,7 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
   // 3. Dockerfile 检测/自动生成
   const absDockerfile = path.isAbsolute(dockerfile_path)
     ? dockerfile_path
-    : path.join(source_dir, dockerfile_path);
+    : path.join(absSourceDir, dockerfile_path);
 
   let dockerfileGenerated = false;
   if (!pathExists(absDockerfile)) {
@@ -103,7 +103,7 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
   ];
 
   const buildResult = runCommandWithLog('docker', buildArgs, {
-    cwd: source_dir,
+    cwd: absSourceDir,
     timeout: 300000,
     logFileName: `build-docker-image-${image_name}-${Date.now()}.log`,
   });
