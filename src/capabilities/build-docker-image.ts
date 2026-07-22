@@ -31,10 +31,11 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
     platform = 'linux/amd64',
     dockerfile_path = 'Dockerfile',
   } = input;
+  const absSourceDir = path.resolve(source_dir);
 
   // 1. 校验 source_dir
   try {
-    assertSourceDir(source_dir);
+    assertSourceDir(absSourceDir);
   } catch (e) {
     if (e instanceof PathValidationError) {
       return failed(e.code as any, e.message, '请提供有效的项目根目录路径');
@@ -98,7 +99,7 @@ export async function buildDockerImage(input: BuildDockerInput): Promise<BuildDo
     '-f',
     absDockerfile,
     ...fullImageRefs.flatMap((ref) => ['-t', ref]),
-    source_dir,
+    absSourceDir,
   ];
 
   const buildResult = runCommandWithLog('docker', buildArgs, {
