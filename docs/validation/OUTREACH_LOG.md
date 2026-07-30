@@ -91,3 +91,13 @@
 - 状态：已发送，待响应。
 
 当前合计发送 8 个上下文相关邀请；仍为 0 个有效对话、0 个真实试用。未联系已有明确修复闭环的 Infisical #7134，也未联系明显机器人批量生成的失败 Issue。
+
+### O009 · ghidra-mcp / bethington
+
+- 场景：`eclipse-temurin:21-jdk` 已占用 GID 1000，而 Dockerfile 再执行 `groupadd --gid 1000 ghidra`；
+- ForgeKit 初始结果：`unknown_error`，因此先补充公开回归规则，没有把初始结果当作有效诊断；
+- 先行帮助：建议在相同基础镜像摘要中用 `getent group/passwd` 确认占用者，再显式复用合适组或参数化并选择未占用 UID/GID；明确反对删除基础镜像账号或放宽目录权限；
+- 链接：https://github.com/bethington/ghidra-mcp/issues/416#issuecomment-5132957416
+- 状态：已发送，待维护者确认基础镜像身份和安全修复选择；不计有效对话或试用。
+
+当前合计 9 个上下文相关触达；外部响应、真实试用、七日复用和付费仍均为 0。
