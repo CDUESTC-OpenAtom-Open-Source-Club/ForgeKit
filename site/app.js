@@ -22,14 +22,42 @@ document.querySelectorAll('.copy-button').forEach((button) => {
 
     const original = button.textContent;
     try {
-      await navigator.clipboard.writeText(target.textContent || '');
+      await copyText(target.textContent || '');
       button.textContent = '已复制';
+      button.dataset.copyState = 'success';
     } catch {
       button.textContent = '请手动复制';
+      button.dataset.copyState = 'failed';
     }
-    window.setTimeout(() => { button.textContent = original; }, 1800);
+    window.setTimeout(() => {
+      button.textContent = original;
+      delete button.dataset.copyState;
+    }, 5000);
   });
 });
+
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch {
+      // Some embedded or permission-restricted browsers block Clipboard API.
+      // Fall through to the user-gesture-bound legacy copy path.
+    }
+  }
+
+  const field = document.createElement('textarea');
+  field.value = text;
+  field.setAttribute('readonly', '');
+  field.style.position = 'fixed';
+  field.style.opacity = '0';
+  document.body.appendChild(field);
+  field.select();
+  const copied = document.execCommand('copy');
+  field.remove();
+  if (!copied) throw new Error('copy unavailable');
+}
 
 // Privacy-preserving attribution: propagate only a public source ID already
 // present in the URL. No cookies, storage, fingerprints, IPs, or hidden events.

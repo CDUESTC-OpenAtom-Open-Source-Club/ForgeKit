@@ -64,7 +64,7 @@
 
       <section id="try" class="article-section section-shell">
         <div class="section-heading compact"><span>当前接入方式</span><h2>一条命令分析已有日志。</h2><p>需要 Node.js 18+。日志只在本机处理，不上传、不修改项目；首次运行需下载依赖，可能需要 1–2 分钟。请先移除密钥和隐私信息。</p></div>
-        <div class="code-panel"><div class="code-toolbar"><span>本地只读诊断</span><button class="copy-button" data-copy-target="source-install" type="button">复制</button></div><pre id="source-install"><code>npx --yes \
+        <div class="code-panel"><div class="code-toolbar"><span>本地只读诊断</span><button class="copy-button" data-copy-target="source-install" type="button" aria-live="polite">复制</button></div><pre id="source-install"><code>npx --yes \
   --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#88c945a \
   forgekit diagnose ./docker-build.log</code></pre><p class="code-note">输出结构化 JSON。退出 0 = 已识别；1 = 暂未知；2 = 输入错误。</p></div>
         <div class="article-cta"><a class="button primary" href="./interview.html?source_id=docker_build_failed">参加 15–20 分钟计时试用</a><a class="button secondary" href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/blob/main/docs/GETTING_STARTED.md">查看完整接入文档</a></div>
