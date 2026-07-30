@@ -6,7 +6,8 @@
   "main": "dist/mcp-server/index.js",
   "types": "dist/mcp-server/index.d.ts",
   "bin": {
-    "forgekit-mcp": "dist/mcp-server/index.js"
+    "forgekit-mcp": "dist/mcp-server/index.js",
+    "forgekit": "dist/cli/index.js"
   },
   "scripts": {
     "build": "tsc",

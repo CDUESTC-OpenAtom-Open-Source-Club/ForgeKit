@@ -50,6 +50,23 @@ npm run verify
 
 ## 最短使用流程
 
+### 不使用 MCP：直接完成一次交付
+
+只想知道“这个项目能不能构建并运行”时，使用结果导向的 CLI。它默认运行完整 Registry Preflight，不会为了通过而跳过失败项：
+
+```bash
+npx --yes github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#18364eb \
+  deliver /path/to/project \
+  --image my-service \
+  --tag pilot \
+  --port 8080 \
+  --health-path /health
+```
+
+命令依次执行 inspect → plan → 完整 preflight → build → 临时容器启动 → HTTP 健康检查 → 自动清理，并输出机器可读 JSON。任一阶段失败都会返回非零退出码和 `failed_stage`。
+
+### 使用 MCP/Agent
+
 在 Agent 中依次表达：
 
 1. “检查这个项目是否具备构建条件。”

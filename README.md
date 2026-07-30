@@ -66,6 +66,15 @@ ForgeKit 当前专注一个更具体的问题：帮助初学者和 AI Agent 发�
 
 安装与最短接入路径见 [安装与接入指南](./docs/GETTING_STARTED.md)。
 
+不使用 MCP 时也可以直接验证一个服务项目：
+
+```bash
+npx --yes github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#18364eb \
+  deliver . --image my-service --port 8080 --health-path /health
+```
+
+该命令默认执行完整 Preflight；任何检查、构建、启动或健康验证失败都会以非零状态退出。
+
 ### Agent 接入配置
 
 在你的 MCP 客户端（Claude Code / Cline / Cursor / Codex / Windsurf）配置中：

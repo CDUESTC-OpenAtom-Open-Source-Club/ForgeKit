@@ -64,7 +64,7 @@
             ForgeKit 不替代 Docker。它帮助 Agent 在构建前发现问题，在失败后解释原因，并验证最终镜像真的能够运行。
           </p>
           <div class="hero-actions">
-            <a class="button primary" href="#start">从 10 分钟上手开始</a>
+            <a class="button primary" href="#start">一条命令验证项目</a>
             <a class="button secondary" href="./docker-build-failed.html">先看一个真实错误</a>
           </div>
           <ul class="hero-facts" aria-label="项目特点">
@@ -118,16 +118,13 @@
             <div class="step"><b>3</b><div><h3>用自然语言开始</h3><p>告诉 Agent：“检查这个项目是否具备构建条件。”</p></div></div>
           </div>
           <div class="code-panel">
-            <div class="code-toolbar"><span>MCP 配置</span><button class="copy-button" data-copy-target="mcp-code" type="button">复制</button></div>
-            <pre id="mcp-code"><code>{
-  "mcpServers": {
-    "forgekit": {
-      "command": "npx",
-      "args": ["--yes", "github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#e6dc074"]
-    }
-  }
-}</code></pre>
-            <p class="code-note">首次启动会从 GitHub 下载并执行 clean build。正式 npm 包仍在发布门禁中；锁定 commit 防止 main 更新改变行为。</p>
+            <div class="code-toolbar"><span>完整交付验证</span><button class="copy-button" data-copy-target="mcp-code" type="button">复制</button></div>
+            <pre id="mcp-code"><code>npx --yes github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#18364eb \
+  deliver /path/to/project \
+  --image my-service \
+  --port 8080 \
+  --health-path /health</code></pre>
+            <p class="code-note">默认运行完整 Preflight、构建、临时容器启动和 HTTP 健康检查。任一阶段失败都会返回非零退出码；正式 npm 包仍在发布门禁中。</p>
           </div>
         </div>
       </section>

@@ -41,6 +41,12 @@ try {
   const binName = process.platform === 'win32' ? 'forgekit-mcp.cmd' : 'forgekit-mcp';
   const binPath = path.join(installDir, 'node_modules', '.bin', binName);
   assert.ok(fs.existsSync(binPath), 'installed forgekit-mcp binary is missing');
+  const cliBinName = process.platform === 'win32' ? 'forgekit.cmd' : 'forgekit';
+  const cliBinPath = path.join(installDir, 'node_modules', '.bin', cliBinName);
+  assert.ok(fs.existsSync(cliBinPath), 'installed forgekit CLI binary is missing');
+  const cliHelp = execFileSync(cliBinPath, ['deliver', '--help'], { encoding: 'utf8' });
+  assert.match(cliHelp, /full preflight/i);
+  assert.match(cliHelp, /--health-path/);
 
   client = new Client(
     { name: 'forgekit-installed-package-smoke', version: '0.1.0' },
