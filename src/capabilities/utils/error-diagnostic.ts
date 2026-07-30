@@ -71,6 +71,14 @@ const DIAGNOSTIC_RULES: DiagnosticRule[] = [
     'high', ['dockerfile_best_practices']
   ),
   rule(
+    /when using copy with more than one source file[^\n]*destination must be a directory[^\n]*end with a \/|copy failed[^\n]*multiple source files[^\n]*destination[^\n]*directory/i,
+    'build_config_invalid', 'dockerfile', 'Docker COPY 多源目标必须使用明确目录路径',
+    'COPY 的通配符或多个源展开为多个文件；Docker classic builder 要求目标使用以 `/` 结尾的目录路径。部分 Podman 版本可能接受 `.`，但这不具备跨运行时可移植性。',
+    ['将目标改为明确且以 `/` 结尾的目录，例如把 `COPY backend/*.py .` 改为 `COPY backend/*.py ./`。'],
+    ['使用完全相同的 build context 和 Dockerfile 重试，确认 COPY 步骤通过；随后启动镜像验证应用。'],
+    'high', ['dockerfile_best_practices']
+  ),
+  rule(
     /dockerfile parse error|failed to parse dockerfile|unknown instruction|syntax error[^\n]*dockerfile/i,
     'build_config_invalid', 'dockerfile', 'Dockerfile 语法无效',
     'Dockerfile 包含无法解析的指令、续行或参数。',

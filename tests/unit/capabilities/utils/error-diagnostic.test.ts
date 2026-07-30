@@ -18,6 +18,15 @@ describe('ErrorDiagnostician', () => {
     expect(result?.suggested_fix).toContain('CMD/ENTRYPOINT');
   });
   describe('Docker 错误诊断', () => {
+    it('diagnoses Docker COPY wildcard destinations that are not directory-shaped', () => {
+      const result = diagnoseBuildError(
+        'COPY backend/*.py .',
+        'When using COPY with more than one source file, the destination must be a directory and end with a /'
+      );
+      expect(result?.code).toBe('build_config_invalid');
+      expect(result?.confidence).toBe('high');
+      expect(result?.suggested_fix).toContain('COPY backend/*.py ./');
+    });
     it('应诊断 Docker 守护进程未运行', () => {
       const error = 'Cannot connect to the Docker daemon at unix:///var/run/docker.sock';
       const result = diagnoseBuildError(error);

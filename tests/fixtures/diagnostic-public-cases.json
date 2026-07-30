@@ -1,5 +1,12 @@
 [
   {
+    "name": "Docker COPY wildcard requires directory destination",
+    "source_url": "https://github.com/lance-format/lance-data-viewer/issues/62",
+    "retrieved_on": "2026-07-30",
+    "log": "Step 11/32 : COPY backend/*.py .\nWhen using COPY with more than one source file, the destination must be a directory and end with a /",
+    "expected_code": "build_config_invalid"
+  },
+  {
     "name": "BuildKit ADD source missing",
     "source_url": "https://github.com/openremote/openremote/issues/3025",
     "retrieved_on": "2026-07-22",
