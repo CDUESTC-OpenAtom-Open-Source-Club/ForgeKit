@@ -51,15 +51,17 @@ ForgeKit 当前专注一个更具体的问题：帮助初学者和 AI Agent 发�
 | 课程与社团 | 教学“代码到镜像”的完整过程 | 可复现样例和公开失败案例 |
 
 
-当前 MCP Server 入口：
+当前用户接入入口（公共 npm 发布前，锁定已验证 commit）：
 
-```bash
-git clone https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit.git
-cd ForgeKit
-npm install
-npm run build:clean
-npm run verify    # lint、类型检查、自动化测试、MCP 与安装包验收
-node dist/mcp-server/index.js
+```json
+{
+  "mcpServers": {
+    "forgekit": {
+      "command": "npx",
+      "args": ["--yes", "github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#e6dc074"]
+    }
+  }
+}
 ```
 
 安装与最短接入路径见 [安装与接入指南](./docs/GETTING_STARTED.md)。
@@ -72,8 +74,8 @@ node dist/mcp-server/index.js
 {
   "mcpServers": {
     "forgekit": {
-      "command": "node",
-      "args": ["/absolute/path/to/ForgeKit/dist/mcp-server/index.js"]
+      "command": "npx",
+      "args": ["--yes", "github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#e6dc074"]
     }
   }
 }

@@ -109,7 +109,7 @@
         <div class="section-heading compact">
           <span>10 分钟上手</span>
           <h2 id="start-title">复制配置，然后让 Agent 带你完成第一轮检查。</h2>
-          <p>当前为 Alpha 技术预览。公共 npm 发布前可以使用源码方式；发布后推荐锁定准确版本。</p>
+          <p>当前为 Alpha 技术预览。公共 npm 尚未发布；GitHub 直装已验证并锁定 commit。</p>
         </div>
         <div class="start-layout">
           <div class="steps">
@@ -122,12 +122,12 @@
             <pre id="mcp-code"><code>{
   "mcpServers": {
     "forgekit": {
-      "command": "node",
-      "args": ["/absolute/path/to/ForgeKit/dist/mcp-server/index.js"]
+      "command": "npx",
+      "args": ["--yes", "github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#e6dc074"]
     }
   }
 }</code></pre>
-            <p class="code-note">当前 npm 包尚未公开发布。请先克隆仓库并运行 npm ci 与 npm run build，再填写编译后入口的绝对路径。</p>
+            <p class="code-note">首次启动会从 GitHub 下载并执行 clean build。正式 npm 包仍在发布门禁中；锁定 commit 防止 main 更新改变行为。</p>
           </div>
         </div>
       </section>

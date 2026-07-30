@@ -1,6 +1,6 @@
 # ForgeKit 安装与接入
 
-> 当前状态：npm 发布前验收。仓库构建和 npm tarball 安装已验证；公共 npm 的 npx 命令需在正式发布后复验。
+> 当前状态：公共 npm 尚未发布。GitHub 直装已在全新目录验证；正式 npm 发布仍受双维护者盲标和发布凭证门禁约束。
 
 ## 环境要求
 
@@ -9,7 +9,7 @@
 - Docker Engine；Podman 的 Docker CLI 兼容层目前属于试验性支持；
 - 需要构建镜像时，目标 Registry 必须可访问。
 
-## 发布后推荐配置
+## 当前最短配置（已验证）
 
 在 MCP 客户端中使用固定版本，避免自动升级改变工具行为：
 
@@ -18,15 +18,15 @@
   "mcpServers": {
     "forgekit": {
       "command": "npx",
-      "args": ["-y", "@forgekit/mcp-server@0.2.0"]
+      "args": ["--yes", "github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#e6dc074"]
     }
   }
 }
 ```
 
-版本 `0.2.0` 仅表示计划中的首个可用性版本；正式发布前按实际版本号替换。
+该 commit 已包含真实服务器运行验证和增长监测。GitHub 直装会在首次启动时下载并构建，速度慢于正式 npm 包；锁定 commit 避免 `main` 更新改变行为。
 
-## 当前源码验证方式
+## 维护者源码验证方式
 
 ```bash
 git clone https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit.git
@@ -68,9 +68,10 @@ inspect_project
 
 ## 验证成功标准
 
-- MCP 客户端能发现 6 个工具；
+- MCP 客户端能发现 7 个工具；
 - `preflight_check` 返回明确的通过、失败或跳过项；
 - 项目目录生成 `Forge.md`；
+- 显式请求运行验证时，构建成功后还要启动临时容器并通过健康端点；
 - 构建成功后生成镜像、日志和 `release-manifest.json`；
 - Manifest 中包含真实 Git commit、工具版本和 SHA256。
 
