@@ -30,3 +30,18 @@ document.querySelectorAll('.copy-button').forEach((button) => {
     window.setTimeout(() => { button.textContent = original; }, 1800);
   });
 });
+
+// Privacy-preserving attribution: propagate only a public source ID already
+// present in the URL. No cookies, storage, fingerprints, IPs, or hidden events.
+const query = new URLSearchParams(window.location.search);
+const sourceId = query.get('source_id');
+if (sourceId && /^[a-z0-9_-]{1,64}$/i.test(sourceId)) {
+  document.querySelectorAll('[data-attributed-issue]').forEach((link) => {
+    if (!(link instanceof HTMLAnchorElement)) return;
+    const url = new URL(link.href);
+    url.searchParams.set('title', `${link.dataset.issuePrefix || '试点反馈'}：[source:${sourceId}] `);
+    link.href = url.toString();
+  });
+  const display = document.querySelector('[data-source-display]');
+  if (display) display.textContent = `本次来源标识：${sourceId}（可在提交前删除）`;
+}

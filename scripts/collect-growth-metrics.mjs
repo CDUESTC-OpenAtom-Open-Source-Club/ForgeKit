@@ -53,6 +53,11 @@ const previous = fs.existsSync(previousPath)
 
 const realIssues = issues.filter((issue) => !issue.pull_request);
 const countLabel = (label) => realIssues.filter((issue) => hasLabel(issue, label)).length;
+const sourceCounts = {};
+for (const issue of realIssues) {
+  const source = issue.title?.match(/\[source:([a-z0-9_-]{1,64})\]/i)?.[1];
+  if (source) sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+}
 const latest = {
   schema_version: 1,
   collected_at: new Date().toISOString(),
@@ -81,6 +86,10 @@ const latest = {
   research: {
     research_issues: countLabel('research'),
     interview_completed: countLabel('interview-completed'),
+  },
+  attribution: {
+    consented_issue_source_counts: sourceCounts,
+    method: 'visible [source:<id>] marker in a user-submitted public Issue title; no cookies or fingerprinting',
   },
   caveats: [
     'GitHub clone counts may include CI, bots, and repeated automated fetches; they are not users.',
