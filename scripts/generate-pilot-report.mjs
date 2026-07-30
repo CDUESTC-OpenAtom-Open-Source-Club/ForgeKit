@@ -61,6 +61,7 @@ const report = {
 const outputBase = path.resolve(args.output || 'forgekit-pilot-report');
 const jsonPath = `${outputBase}.json`;
 const markdownPath = `${outputBase}.md`;
+fs.mkdirSync(path.dirname(outputBase), { recursive: true });
 fs.writeFileSync(jsonPath, `${JSON.stringify(report, null, 2)}\n`);
 fs.writeFileSync(markdownPath, renderMarkdown(report));
 console.log(JSON.stringify({ json: jsonPath, markdown: markdownPath }, null, 2));

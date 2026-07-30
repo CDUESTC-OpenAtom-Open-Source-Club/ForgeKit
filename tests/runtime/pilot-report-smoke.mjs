@@ -6,7 +6,7 @@ import path from 'node:path';
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'forgekit-pilot-report-'));
 const manifestPath = path.join(dir, 'release-manifest.json');
-const output = path.join(dir, 'report');
+const output = path.join(dir, 'nested', 'evidence', 'report');
 fs.writeFileSync(manifestPath, JSON.stringify({
   source: { git: { commit_sha: 'abcdef0123456789', is_dirty: false, remote_url: 'private' }, project_type: 'Node.js' },
   build: { platform: 'linux', architecture: 'amd64', hostname: 'secret-host', forgekit_version: '0.2.2-rc.1' },
