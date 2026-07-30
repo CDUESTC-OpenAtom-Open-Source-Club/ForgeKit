@@ -65,8 +65,21 @@ jobs:
       - run: npm run build
       - name: Run one-command inspect → plan → preflight → build → runtime proof
         run: |
-          node dist/cli/index.js deliver ./tests/fixtures/sample-python-project \
-            --image forgekit-demo --tag smoke --port 8080 --health-path /health \
-            > cli-delivery-result.json
+          if ! node dist/cli/index.js deliver ./tests/fixtures/sample-python-project \
+              --image forgekit-demo --tag smoke --port 8080 --health-path /health \
+              > cli-delivery-result.json; then
+            cat cli-delivery-result.json
+            exit 1
+          fi
           node -e "const r=require('./cli-delivery-result.json'); if(r.status!=='success'||!r.evidence?.container_started||!r.evidence?.healthcheck_passed) process.exit(1)"
           test -f tests/fixtures/sample-python-project/release-manifest.json
+      - name: Upload Docker smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-smoke-evidence
+          if-no-files-found: warn
+          path: |
+            cli-delivery-result.json
+            tests/fixtures/sample-python-project/release-manifest.json
+            tests/fixtures/sample-python-project/build-logs/
