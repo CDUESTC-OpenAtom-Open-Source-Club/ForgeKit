@@ -68,3 +68,10 @@ utm_content=<content_or_candidate_id>
 - Verified GitHub installation against the public Lance COPY failure log on the isolated Alibaba server test directory.
 - CI run `30555057068` passed Node 18/20, package smoke and real Docker verification.
 - This is an activation-path improvement, not a user activation event; pilot, reuse and revenue counts remain unchanged.
+# 2026-07-30 — new MCP container failure closed an unknown gap
+
+- Found a current public `ghidra-mcp` Docker failure where `groupadd --gid 1000` collided with a group already present in the base image.
+- The released ForgeKit CLI returned `unknown_error`, so no promotional claim was made from the initial result.
+- Added the public log to the regression corpus and a conservative fixed UID/GID collision rule with read-only verification first.
+- Browser QA also found that the high-intent diagnosis page's copy action did not produce observable clipboard success in the embedded browser; added a permission-compatible fallback and persistent accessible result state for retesting.
+- Neither change counts as an external pilot, retention event, or revenue.

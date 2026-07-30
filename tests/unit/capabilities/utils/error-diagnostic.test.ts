@@ -27,6 +27,16 @@ describe('ErrorDiagnostician', () => {
       expect(result?.confidence).toBe('high');
       expect(result?.suggested_fix).toContain('COPY backend/*.py ./');
     });
+    it('diagnoses fixed GID conflicts with the base image', () => {
+      const result = diagnoseBuildError(
+        "groupadd: GID '1000' already exists",
+        'process groupadd --gid 1000 ghidra did not complete successfully: exit code: 4'
+      );
+      expect(result?.code).toBe('build_config_invalid');
+      expect(result?.confidence).toBe('high');
+      expect(result?.suggested_fix).toContain('getent group');
+      expect(result?.suggested_fix).not.toContain('groupdel');
+    });
     it('应诊断 Docker 守护进程未运行', () => {
       const error = 'Cannot connect to the Docker daemon at unix:///var/run/docker.sock';
       const result = diagnoseBuildError(error);

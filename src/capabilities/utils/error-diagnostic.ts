@@ -86,6 +86,14 @@ const DIAGNOSTIC_RULES: DiagnosticRule[] = [
     ['修正后重新运行相同的 `docker build` 命令，确认解析阶段通过。']
   ),
   rule(
+    /groupadd:\s*(?:gid ['"]?\d+['"]? already exists|group ['"][^'"]+['"] already exists)|useradd:\s*(?:uid ['"]?\d+['"]? is not unique|user ['"][^'"]+['"] already exists)/i,
+    'build_config_invalid', 'dockerfile', '容器用户或组的固定 ID 与基础镜像冲突',
+    'Dockerfile 创建用户或组时写死了基础镜像中已经存在的 UID/GID 或名称；更换基础镜像版本后，预占用的身份可能发生变化。',
+    ['先在相同基础镜像中用 `getent passwd <UID>` 和 `getent group <GID>` 确认占用者；随后显式复用合适的现有组，或把 UID/GID 设计为可配置且选择未占用值。不要删除基础镜像账号或放宽文件权限来绕过冲突。'],
+    ['使用相同基础镜像摘要和构建参数重试；启动最终镜像，并确认进程以预期的非 root UID/GID 运行且所需目录可读写。'],
+    'high', ['dockerfile_best_practices']
+  ),
+  rule(
     /npm err![\s\S]{0,500}\beresolve\b|eresolve unable to resolve dependency tree/i,
     'npm_dependency_conflict', 'dependency', 'npm 依赖约束冲突',
     '项目中的直接依赖与 peer dependency 约束无法同时满足。',

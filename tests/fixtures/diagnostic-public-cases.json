@@ -1,5 +1,12 @@
 [
   {
+    "name": "Docker fixed GID conflicts with base image group",
+    "source_url": "https://github.com/bethington/ghidra-mcp/issues/416",
+    "retrieved_on": "2026-07-30",
+    "log": "RUN groupadd --gid 1000 ghidra && useradd --uid 1000 --gid 1000 ghidra\ngroupadd: GID '1000' already exists\nERROR: failed to build: failed to solve: process did not complete successfully: exit code: 4",
+    "expected_code": "build_config_invalid"
+  },
+  {
     "name": "Docker COPY wildcard requires directory destination",
     "source_url": "https://github.com/lance-format/lance-data-viewer/issues/62",
     "retrieved_on": "2026-07-30",
