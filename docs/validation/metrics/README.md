@@ -1,6 +1,6 @@
 # ForgeKit growth evidence
 
-Last collected: 2026-07-30T12:48:12.120Z
+Last material change: 2026-07-30T12:48:12.120Z
 
 | Funnel stage | Evidence | Current |
 |---|---|---:|

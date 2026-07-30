@@ -26,16 +26,30 @@ async function github(endpoint) {
   return response.json();
 }
 
+async function githubOptional(endpoint) {
+  try {
+    return await github(endpoint);
+  } catch (error) {
+    console.warn(`Optional metric unavailable: ${error instanceof Error ? error.message : error}`);
+    return undefined;
+  }
+}
+
 function hasLabel(issue, label) {
   return issue.labels.some((entry) => (typeof entry === 'string' ? entry : entry.name) === label);
 }
 
 const [repo, views, clones, issues] = await Promise.all([
   github(''),
-  github('/traffic/views'),
-  github('/traffic/clones'),
+  githubOptional('/traffic/views'),
+  githubOptional('/traffic/clones'),
   github('/issues?state=all&per_page=100'),
 ]);
+
+const previousPath = path.join(outputDir, 'latest.json');
+const previous = fs.existsSync(previousPath)
+  ? JSON.parse(fs.readFileSync(previousPath, 'utf8'))
+  : undefined;
 
 const realIssues = issues.filter((issue) => !issue.pull_request);
 const countLabel = (label) => realIssues.filter((issue) => hasLabel(issue, label)).length;
@@ -44,10 +58,10 @@ const latest = {
   collected_at: new Date().toISOString(),
   repository,
   acquisition: {
-    repository_views_14d: views.count,
-    repository_unique_visitors_14d: views.uniques,
-    clones_14d: clones.count,
-    unique_cloners_14d: clones.uniques,
+    repository_views_14d: views?.count ?? previous?.acquisition?.repository_views_14d ?? null,
+    repository_unique_visitors_14d: views?.uniques ?? previous?.acquisition?.repository_unique_visitors_14d ?? null,
+    clones_14d: clones?.count ?? previous?.acquisition?.clones_14d ?? null,
+    unique_cloners_14d: clones?.uniques ?? previous?.acquisition?.unique_cloners_14d ?? null,
     stars_total: repo.stargazers_count,
     forks_total: repo.forks_count,
   },
@@ -72,14 +86,11 @@ const latest = {
     'GitHub clone counts may include CI, bots, and repeated automated fetches; they are not users.',
     'Repository traffic does not include GitHub Pages search impressions or client-side page events.',
     'Activation, retention, and revenue require explicit evidence labels on public, consented issues.',
+    ...(views && clones ? [] : ['Traffic metrics are unavailable to the GitHub Actions token; the last privileged snapshot is retained.']),
   ],
 };
 
 fs.mkdirSync(outputDir, { recursive: true });
-const previousPath = path.join(outputDir, 'latest.json');
-const previous = fs.existsSync(previousPath)
-  ? JSON.parse(fs.readFileSync(previousPath, 'utf8'))
-  : undefined;
 const materialSnapshot = { ...latest };
 delete materialSnapshot.collected_at;
 const comparablePrevious = previous ? { ...previous } : undefined;
@@ -88,15 +99,18 @@ if (!previous || JSON.stringify(comparablePrevious) !== JSON.stringify(materialS
   fs.writeFileSync(previousPath, `${JSON.stringify(latest, null, 2)}\n`);
   fs.appendFileSync(path.join(outputDir, 'history.jsonl'), `${JSON.stringify(latest)}\n`);
 }
+const persisted = fs.existsSync(previousPath)
+  ? JSON.parse(fs.readFileSync(previousPath, 'utf8'))
+  : latest;
 const summary = `# ForgeKit growth evidence\n\n` +
-  `Last collected: ${latest.collected_at}\n\n` +
+  `Last material change: ${persisted.collected_at}\n\n` +
   `| Funnel stage | Evidence | Current |\n|---|---|---:|\n` +
-  `| Acquisition | Repository unique visitors (14d) | ${latest.acquisition.repository_unique_visitors_14d} |\n` +
-  `| Acquisition | Unique cloners (14d, includes automation) | ${latest.acquisition.unique_cloners_14d} |\n` +
-  `| Activation | Pilot started | ${latest.activation.pilot_started} |\n` +
-  `| Value | Runtime verified | ${latest.activation.runtime_verified} |\n` +
-  `| Retention | Reused within 7 days | ${latest.retention.reused_7d} |\n` +
-  `| Revenue | Paid pilots | ${latest.revenue.paid_pilots} |\n\n` +
+  `| Acquisition | Repository unique visitors (14d) | ${persisted.acquisition.repository_unique_visitors_14d ?? 'unavailable'} |\n` +
+  `| Acquisition | Unique cloners (14d, includes automation) | ${persisted.acquisition.unique_cloners_14d ?? 'unavailable'} |\n` +
+  `| Activation | Pilot started | ${persisted.activation.pilot_started} |\n` +
+  `| Value | Runtime verified | ${persisted.activation.runtime_verified} |\n` +
+  `| Retention | Reused within 7 days | ${persisted.retention.reused_7d} |\n` +
+  `| Revenue | Paid pilots | ${persisted.revenue.paid_pilots} |\n\n` +
   `Do not interpret clones as users. See \`latest.json\` for caveats and the full snapshot.\n`;
 fs.writeFileSync(path.join(outputDir, 'README.md'), summary);
 console.log(JSON.stringify(latest, null, 2));
