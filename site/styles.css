@@ -115,6 +115,15 @@ pre { max-width: 100%; overflow-x: auto; padding: 1.25rem; margin: 0; font-size:
 .community { display: grid; gap: 2rem; padding: clamp(2rem, 6vw, 4rem); margin-block: 4rem 6rem; color: white; background: var(--text); border-radius: 1.5rem; }
 .community p { color: #c7d4e1; }
 .community .button.secondary { color: white; background: transparent; border-color: #52677d; }
+.article-hero { padding-block: clamp(4rem, 10vw, 7rem); }
+.article-hero h1 { max-width: 15ch; }
+.article-section { padding-block: clamp(3.5rem, 8vw, 5.5rem); }
+.diagnostic-steps { display: grid; gap: 1rem; padding: 0; margin: 0; list-style: none; }
+.diagnostic-steps li { display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); gap: 1rem; padding: 1.25rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.diagnostic-steps b { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; color: var(--blue); background: var(--surface-soft); border-radius: 50%; }
+.diagnostic-steps h3 { margin-bottom: 0.35rem; }
+.diagnostic-steps p { margin-bottom: 0; color: var(--muted); }
+.article-cta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
 .site-footer { display: flex; flex-direction: column; gap: 1.5rem; width: var(--shell); padding-block: 2rem; margin-inline: auto; color: var(--muted); border-top: 1px solid var(--line); }
 .site-footer div { display: flex; flex-wrap: wrap; gap: 0.85rem 1.25rem; }
 .site-footer strong { color: var(--text); }
@@ -127,6 +136,7 @@ pre { max-width: 100%; overflow-x: auto; padding: 1.25rem; margin: 0; font-size:
   .hero-facts { grid-template-columns: repeat(3, 1fr); }
   .problem-list article { display: grid; grid-template-columns: 6rem minmax(15rem, 0.65fr) 1fr; gap: 2rem; align-items: start; }
   .problem-list h3, .problem-list p { margin-top: 0; }
+  .diagnostic-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .start-layout { grid-template-columns: minmax(17rem, 0.8fr) minmax(22rem, 1.2fr); gap: 3rem; }
   pre { font-size: 0.88rem; }
   .tool-flow li { grid-template-columns: 3rem minmax(0, 1fr); align-items: center; }

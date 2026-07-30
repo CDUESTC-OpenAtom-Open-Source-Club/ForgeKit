@@ -93,6 +93,9 @@ export async function executeTool(
         tags: input.tags as string[],
         platform: input.platform as string,
         dockerfile_path: input.dockerfile_path as string,
+        verify_runtime: input.verify_runtime as boolean,
+        container_port: input.container_port as number | undefined,
+        healthcheck_path: input.healthcheck_path as string | undefined,
       });
 
     case 'pack_deb':

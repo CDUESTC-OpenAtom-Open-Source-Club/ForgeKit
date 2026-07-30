@@ -29,7 +29,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "clean": "rm -rf dist",
     "verify": "npm run lint && npm run typecheck && npm run build:clean && npm test && node tests/runtime/compiled-mcp-smoke.mjs && npm run test:package",
-    "prepare": "npm run build"
+    "prepare": "npm run build:clean"
   },
   "keywords": [
     "mcp",

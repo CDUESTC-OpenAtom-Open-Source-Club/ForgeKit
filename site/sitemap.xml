@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/</loc>
+    <lastmod>2026-07-30</lastmod>
+  </url>
+  <url>
+    <loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/interview.html</loc>
+    <lastmod>2026-07-30</lastmod>
+  </url>
+  <url>
+    <loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-build-failed.html</loc>
+    <lastmod>2026-07-30</lastmod>
+  </url>
+  <url>
+    <loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-copy-failed.html</loc>
+    <lastmod>2026-07-30</lastmod>
+  </url>
+  <url><loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/mcp-docker-build.html</loc><lastmod>2026-07-30</lastmod></url>
+  <url><loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-preflight-check.html</loc><lastmod>2026-07-30</lastmod></url>
+  <url><loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/harmonyos-release-readiness.html</loc><lastmod>2026-07-30</lastmod></url>
+</urlset>

@@ -61,6 +61,12 @@ export interface ReleaseManifest {
   };
 }
 
+export interface ManifestVerification {
+  success: boolean;
+  checks_passed: string[];
+  checks_failed?: string[];
+}
+
 export interface ArtifactInfo {
   type: 'docker-image' | 'deb-package' | 'rpm-package' | 'archive' | 'executable' | 'hap' | 'app';
   name: string;                        // 产物名称

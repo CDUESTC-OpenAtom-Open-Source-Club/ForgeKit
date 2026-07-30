@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Docker 构建失败怎么排查？从错误证据、原因分类到验证步骤，了解 ForgeKit 的只读 Docker/BuildKit 日志诊断。" />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#f7fbff" />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:title" content="Docker 构建失败怎么排查｜ForgeKit" />
+    <meta property="og:description" content="不要只读一整屏日志：先保留证据、分类原因，再运行验证步骤。" />
+    <link rel="canonical" href="https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-build-failed.html" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <title>Docker 构建失败怎么排查｜错误分类与验证步骤</title>
+    <link rel="stylesheet" href="./styles.css?v=20260730" />
+    <script defer src="./app.js?v=20260730"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <header class="site-header">
+      <a class="brand" href="./"><span class="brand-mark" aria-hidden="true">F</span><span>ForgeKit</span></a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav"><span>菜单</span></button>
+      <nav id="site-nav" class="site-nav" aria-label="主要导航">
+        <a href="#triage">排查顺序</a><a href="#example">诊断示例</a><a href="#try">开始试用</a><a href="./interview.html">参与研究</a><a class="nav-action" href="./">返回首页</a>
+      </nav>
+    </header>
+    <main id="main">
+      <section class="article-hero section-shell">
+        <p class="plain-note">Docker build diagnostics</p>
+        <h1>Docker 构建失败，先找到证据，再决定改什么。</h1>
+        <p class="hero-lead">`docker build` 或 BuildKit 报错时，最后一行不一定是根因。ForgeKit 的只读诊断会保留脱敏证据，分类可能原因，并给出可以验证的下一步；不能确定时会返回 unknown，而不是编造修复。</p>
+        <div class="hero-actions"><a class="button primary" href="#try">分析脱敏日志</a><a class="button secondary" href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/issues/new?template=pilot-feedback.yml&utm_source=github_pages&utm_medium=article&utm_campaign=v0_2_3_real_pilot&utm_content=docker_build_failed">提交真实案例</a></div>
+      </section>
+
+      <section id="triage" class="article-section section-shell">
+        <div class="section-heading compact"><span>推荐顺序</span><h2>不要一上来就重装 Docker 或放宽权限。</h2></div>
+        <ol class="diagnostic-steps">
+          <li><b>01</b><div><h3>保留最小错误上下文</h3><p>保留失败步骤前后的必要日志；先移除 Token、密钥、邮箱、用户名和私人路径。</p></div></li>
+          <li><b>02</b><div><h3>区分问题类别</h3><p>环境、构建上下文、Dockerfile、依赖、Registry/网络、权限、磁盘或架构，需要不同的验证方式。</p></div></li>
+          <li><b>03</b><div><h3>验证假设</h3><p>执行只读或低风险检查，确认建议是否适用。不要把 `sudo`、关闭校验或放宽权限当成默认答案。</p></div></li>
+          <li><b>04</b><div><h3>再运行最小重试</h3><p>只改变一个变量，记录是否解决；保留仍然失败的案例，因为 unknown 也是有价值的结果。</p></div></li>
+        </ol>
+      </section>
+
+      <section id="example" class="quickstart section-shell">
+        <div class="section-heading compact"><span>结构化结果</span><h2>同一份日志，输出证据、原因和验证动作。</h2><p>下面展示结果结构，不表示所有错误都能被自动修复。</p></div>
+        <div class="start-layout">
+          <div class="steps">
+            <div class="step"><b>1</b><div><h3>category</h3><p>把错误归入可验证的类别，而不是只复述日志。</p></div></div>
+            <div class="step"><b>2</b><div><h3>evidence + confidence</h3><p>保留判断依据，并明确置信度边界。</p></div></div>
+            <div class="step"><b>3</b><div><h3>suggested_actions + verification</h3><p>说明适用条件，并给出确认是否修复的步骤。</p></div></div>
+          </div>
+          <div class="code-panel"><div class="code-toolbar"><span>示例输出</span></div><pre><code>{
+  "category": "path_or_copy",
+  "summary": "构建上下文中找不到 COPY 源文件",
+  "confidence": "high",
+  "evidence": ["COPY failed: file not found"],
+  "suggested_actions": ["检查 build context 与 .dockerignore"],
+  "verification": ["从实际 context 根目录确认文件可见"]
+}</code></pre></div>
+        </div>
+      </section>
+
+      <section id="try" class="article-section section-shell">
+        <div class="section-heading compact"><span>当前接入方式</span><h2>npm 包尚未公开，先从源码运行只读诊断。</h2><p>需要 Node.js 18+。请勿提交私有源码、密钥或未经脱敏的生产日志。</p></div>
+        <div class="code-panel"><div class="code-toolbar"><span>本地准备</span><button class="copy-button" data-copy-target="source-install" type="button">复制</button></div><pre id="source-install"><code>git clone https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit.git
+cd ForgeKit
+npm ci
+npm run build
+node dist/mcp-server/index.js</code></pre></div>
+        <div class="article-cta"><a class="button primary" href="./interview.html?utm_source=github_pages&utm_medium=article&utm_campaign=v0_2_3_real_pilot&utm_content=docker_build_failed">参加 15–20 分钟计时试用</a><a class="button secondary" href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/blob/main/docs/GETTING_STARTED.md">查看完整接入文档</a></div>
+      </section>
+    </main>
+    <footer class="site-footer"><div><strong>ForgeKit</strong><span>真实失败优先于功能想象。</span></div><div><a href="./">首页</a><a href="./interview.html">用户研究</a><a href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit">GitHub</a></div></footer>
+  </body>
+</html>

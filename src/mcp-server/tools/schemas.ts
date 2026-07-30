@@ -54,6 +54,7 @@ const ForgeKitErrorSchema = z.object({
     'pip_package_not_found',
     'system_package_not_found',
     'module_not_found',
+    'container_entrypoint_not_found',
     'permission_denied',
     'write_permission_denied',
     'port_conflict',
@@ -189,6 +190,9 @@ export const BuildDockerImageInputSchema = z.object({
   tags: z.array(z.string()).optional().default(['latest']).describe('镜像标签'),
   platform: z.enum(['linux/amd64', 'linux/arm64']).optional().default('linux/amd64').describe('目标平台（v0.1 只支持 linux/amd64）'),
   dockerfile_path: z.string().optional().default('Dockerfile').describe('Dockerfile 路径'),
+  verify_runtime: z.boolean().optional().default(false).describe('是否在构建后启动临时容器验证运行状态'),
+  container_port: z.number().int().min(1).max(65535).optional().describe('应用在容器内监听的端口'),
+  healthcheck_path: z.string().regex(/^\//).optional().describe('可选 HTTP 健康检查路径，例如 /health；必须同时提供 container_port'),
 });
 
 export const BuildDockerImageOutputSchema = ForgeKitResultSchema.extend({
@@ -201,6 +205,18 @@ export const BuildDockerImageOutputSchema = ForgeKitResultSchema.extend({
     state_delta: z.record(z.unknown()).optional().describe('状态变化'),
   }).optional().describe('构建结果详情'),
   diagnosis: ErrorDiagnosticSchema.optional().describe('构建失败的结构化诊断'),
+  container_runtime: z.object({
+    kind: z.enum(['docker', 'podman', 'unknown']),
+    version: z.string(),
+    compatibility: z.enum(['stable', 'experimental', 'unknown']),
+  }).optional().describe('实际容器运行时；Podman 兼容层会明确标记为 experimental'),
+  runtime_verification: z.object({
+    requested: z.boolean(),
+    success: z.boolean(),
+    container_started: z.boolean(),
+    healthcheck_passed: z.boolean().optional(),
+    healthcheck_url: z.string().optional(),
+  }).optional().describe('显式请求时的临时容器运行与健康检查结果'),
 });
 
 // pack_deb（构建类，强制 plan_path）

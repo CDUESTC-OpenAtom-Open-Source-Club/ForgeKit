@@ -114,21 +114,45 @@ export function runCommandWithLog(
   fs.mkdirSync(logDir, { recursive: true });
   const logPath = path.resolve(logDir, logFileName);
 
-  const result = runCommand(command, args, { cwd: options.cwd, timeout: options.timeout });
-
-  // 写入完整日志
-  const logContent = [
+  // 先创建日志，再把子进程 stdout/stderr 直接连接到文件。这样镜像拉取等长任务
+  // 执行期间就能看到进度，而不是等 execFileSync 返回后才一次性落盘。
+  const logHeader = [
     `# Command: ${command} ${args.join(' ')}`,
-    `# Exit code: ${result.exitCode}`,
-    `# Timestamp: ${new Date().toISOString()}`,
+    `# Started: ${new Date().toISOString()}`,
     '',
-    '## STDOUT',
-    result.stdout,
+    '## Combined output (live)',
     '',
-    '## STDERR',
-    result.stderr,
   ].join('\n');
-  fs.writeFileSync(logPath, logContent, 'utf-8');
+  fs.writeFileSync(logPath, logHeader, 'utf-8');
+
+  const logFd = fs.openSync(logPath, 'a');
+  let result: CommandResult;
+  try {
+    execFileSync(command, args, {
+      cwd: options.cwd,
+      timeout: options.timeout ?? 120000,
+      stdio: ['ignore', logFd, logFd],
+    });
+    result = { exitCode: 0, stdout: '', stderr: '', success: true };
+  } catch (error) {
+    const failure = normalizeCommandError(error);
+    result = {
+      exitCode: failure.status,
+      stdout: '',
+      stderr: failure.stderr,
+      success: false,
+    };
+  } finally {
+    fs.closeSync(logFd);
+  }
+
+  const liveOutput = fs.readFileSync(logPath, 'utf-8').slice(logHeader.length);
+  fs.appendFileSync(
+    logPath,
+    `\n# Finished: ${new Date().toISOString()}\n# Exit code: ${result.exitCode}\n`,
+    'utf-8'
+  );
+  result.stdout = liveOutput;
 
   return { ...result, logPath };
 }
