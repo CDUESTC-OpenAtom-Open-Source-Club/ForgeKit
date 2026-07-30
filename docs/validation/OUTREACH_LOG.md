@@ -71,3 +71,23 @@
 - 状态：已发送，待响应。
 
 本批未把“发送评论”计为有效对话、试用或用户；只有对方响应并实际使用后才进入后续漏斗。
+
+## 2026-07-30：第三批（当天新鲜失败）
+
+通过 GitHub 公开搜索筛选当月仍开放、有完整复现日志且不是机器人批量 Issue 的失败。先给出具体判断，再提供可选计时试用。
+
+### O007 · lance-data-viewer / lance-format
+
+- 场景：`COPY backend/*.py .` 展开为多源，但目标路径未以 `/` 结尾；
+- 先行帮助：指出 Docker 多源 COPY 的确定性语法原因和最小变更 `./`；
+- 链接：https://github.com/lance-format/lance-data-viewer/issues/62#issuecomment-5131469545
+- 状态：已发送，待响应。
+
+### O008 · pycbc / gwastro
+
+- 场景：当天 Docker CI 在 pip 隔离构建 `amqplib` 时失败，环境中标准库 `traceback` 无法导入；
+- 先行帮助：收窄到 pip build environment、Python/base digest 和容器外对照验证，不建议修改无关 Docker daemon 配置；
+- 链接：https://github.com/gwastro/pycbc/issues/5390#issuecomment-5131469898
+- 状态：已发送，待响应。
+
+当前合计发送 8 个上下文相关邀请；仍为 0 个有效对话、0 个真实试用。未联系已有明确修复闭环的 Infisical #7134，也未联系明显机器人批量生成的失败 Issue。
