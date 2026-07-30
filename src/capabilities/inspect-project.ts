@@ -21,6 +21,7 @@ import {
 import { globalCache } from './utils/cache.js';
 import { parseJson5 } from './utils/json5.js';
 import type { InspectProjectOutput, ExistingPackaging } from './types.js';
+import { detectRuntimeHints } from './utils/runtime-hints.js';
 
 export async function inspectProject(sourceDir: string): Promise<InspectProjectOutput> {
   // 1. 尝试从缓存获取
@@ -72,6 +73,7 @@ function inspectProjectImpl(sourceDir: string): InspectProjectOutput {
 
   // 5. 生成推荐
   const recommendations = generateRecommendations(language, existingPackaging, entrypoints);
+  const runtimeHints = detectRuntimeHints(sourceDir);
 
   // 6. 决策依据
   const decisionBasis = {
@@ -98,6 +100,7 @@ function inspectProjectImpl(sourceDir: string): InspectProjectOutput {
     entrypoints,
     existing_packaging: existingPackaging,
     recommendations,
+    runtime_hints: runtimeHints,
     warnings,
     decision_basis: decisionBasis,
   };

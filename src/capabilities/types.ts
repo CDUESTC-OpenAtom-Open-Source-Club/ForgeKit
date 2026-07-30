@@ -121,6 +121,13 @@ export interface InspectProjectOutput extends ForgeKitResult {
   entrypoints?: string[];
   existing_packaging?: ExistingPackaging;
   recommendations?: string[];
+  runtime_hints?: {
+    container_port?: number;
+    healthcheck_path?: string;
+    confidence: 'high' | 'medium' | 'low';
+    evidence: string[];
+    conflicts?: string[];
+  };
 }
 
 export interface ExistingPackaging {

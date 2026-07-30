@@ -34,4 +34,15 @@ describe('deliverProject', () => {
     expect(result.status).toBe('success');
     expect(result.evidence).toEqual(expect.objectContaining({ container_started: true, healthcheck_passed: true }));
   });
+
+  it('uses non-conflicting inspect runtime hints when flags are omitted', async () => {
+    const build = vi.fn().mockResolvedValue({ status: 'success', runtime_verification: { container_started: true } });
+    await deliverProject({ sourceDir: '/project' }, {
+      inspect: vi.fn().mockResolvedValue({ ...successfulInspect, runtime_hints: { container_port: 3000, healthcheck_path: '/healthz', confidence: 'high', evidence: ['Dockerfile'] } }),
+      plan: vi.fn().mockResolvedValue(successfulPlan),
+      preflight: vi.fn().mockResolvedValue({ status: 'success', all_passed: true, checks: [], passed_count: 5, failed_count: 0 }),
+      build,
+    });
+    expect(build).toHaveBeenCalledWith(expect.objectContaining({ container_port: 3000, healthcheck_path: '/healthz' }));
+  });
 });

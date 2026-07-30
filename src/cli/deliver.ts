@@ -72,6 +72,9 @@ export async function deliverProject(
   }
 
   const imageName = input.imageName || deriveImageName(sourceDir);
+  const inferred = inspect.runtime_hints?.confidence !== 'low' ? inspect.runtime_hints : undefined;
+  const containerPort = input.containerPort ?? inferred?.container_port;
+  const healthcheckPath = input.healthcheckPath ?? inferred?.healthcheck_path;
   const delivery = await dependencies.build({
     source_dir: sourceDir,
     plan_path: plan.plan_path,
@@ -79,8 +82,8 @@ export async function deliverProject(
     tags: [input.tag || 'forgekit'],
     platform: input.platform || 'linux/amd64',
     verify_runtime: true,
-    container_port: input.containerPort,
-    healthcheck_path: input.healthcheckPath,
+    container_port: containerPort,
+    healthcheck_path: healthcheckPath,
   });
   if (delivery.status !== 'success') {
     return { status: 'failed', failed_stage: 'build_or_runtime', inspect, plan, preflight, delivery };

@@ -120,6 +120,13 @@ export const InspectProjectOutputSchema = ForgeKitResultSchema.extend({
     xcode_project: z.boolean().optional(),
   }).optional().describe('已有打包配置'),
   recommendations: z.array(z.string()).optional().describe('推荐打包目标'),
+  runtime_hints: z.object({
+    container_port: z.number().int().min(1).max(65535).optional(),
+    healthcheck_path: z.string().startsWith('/').optional(),
+    confidence: z.enum(['high', 'medium', 'low']),
+    evidence: z.array(z.string()),
+    conflicts: z.array(z.string()).optional(),
+  }).optional().describe('从 Dockerfile 和常见入口保守推导的运行验证参数'),
 });
 
 const ErrorDiagnosticSchema = z.object({
