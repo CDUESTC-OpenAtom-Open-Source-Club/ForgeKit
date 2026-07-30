@@ -3,8 +3,9 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(import.meta.dirname, '../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const cli = path.join(root, 'dist/cli/index.js');
 const knownLog = 'COPY backend/*.py .\nWhen using COPY with more than one source file, the destination must be a directory and end with a /';
 
