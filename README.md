@@ -75,6 +75,18 @@ npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#90784e4 \
 
 该命令默认执行完整 Preflight；任何检查、构建、启动或健康验证失败都会以非零状态退出。
 
+已有失败日志时，不需要配置 MCP，也不会上传日志或修改项目：
+
+```bash
+npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#90784e4 \
+  forgekit diagnose ./docker-build.log
+
+# CI 日志也可以通过标准输入传入
+docker build . 2>&1 | forgekit diagnose -
+```
+
+命令输出结构化 JSON：已识别诊断退出 `0`，日志有效但暂未识别退出 `1`，输入无效或不可读退出 `2`。
+
 ### Agent 接入配置
 
 在你的 MCP 客户端（Claude Code / Cline / Cursor / Codex / Windsurf）配置中：

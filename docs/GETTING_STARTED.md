@@ -65,6 +65,15 @@ npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#90784e4 \
 
 命令依次执行 inspect → plan → 完整 preflight → build → 临时容器启动 → HTTP 健康检查 → 自动清理，并输出机器可读 JSON。任一阶段失败都会返回非零退出码和 `failed_stage`。
 
+已经拿到 Docker/BuildKit 失败日志时，可以先做只读诊断：
+
+```bash
+npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#90784e4 \
+  forgekit diagnose ./docker-build.log
+```
+
+日志只在本机处理，不会上传，也不会修改项目文件。已识别诊断退出 `0`，未知诊断退出 `1`，输入错误退出 `2`。
+
 ### 使用 MCP/Agent
 
 在 Agent 中依次表达：

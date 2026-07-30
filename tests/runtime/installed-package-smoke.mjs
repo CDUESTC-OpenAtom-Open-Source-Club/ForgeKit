@@ -47,6 +47,15 @@ try {
   const cliHelp = execFileSync(cliBinPath, ['deliver', '--help'], { encoding: 'utf8' });
   assert.match(cliHelp, /full preflight/i);
   assert.match(cliHelp, /--health-path/);
+  const diagnoseHelp = execFileSync(cliBinPath, ['diagnose', '--help'], { encoding: 'utf8' });
+  assert.match(diagnoseHelp, /failure log/i);
+  const diagnosis = JSON.parse(execFileSync(cliBinPath, [
+    'diagnose',
+    '--text',
+    'COPY backend/*.py .\nWhen using COPY with more than one source file, the destination must be a directory and end with a /',
+  ], { encoding: 'utf8' }));
+  assert.equal(diagnosis.status, 'success');
+  assert.equal(diagnosis.diagnosis.code, 'build_config_invalid');
 
   client = new Client(
     { name: 'forgekit-installed-package-smoke', version: '0.1.0' },
