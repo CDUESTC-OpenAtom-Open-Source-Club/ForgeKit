@@ -7,6 +7,16 @@ import { diagnoseBuildError, ErrorDiagnostician } from '../../../../src/capabili
 import type { ForgeKitResult } from '../../../../src/capabilities/types.js';
 
 describe('ErrorDiagnostician', () => {
+  it('distinguishes a missing container entrypoint from a missing package dependency', () => {
+    const result = diagnoseBuildError(
+      "Error: Cannot find module '/app/index.js'",
+      "at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)"
+    );
+
+    expect(result?.code).toBe('container_entrypoint_not_found');
+    expect(result?.summary).toContain('容器启动入口');
+    expect(result?.suggested_fix).toContain('CMD/ENTRYPOINT');
+  });
   describe('Docker 错误诊断', () => {
     it('应诊断 Docker 守护进程未运行', () => {
       const error = 'Cannot connect to the Docker daemon at unix:///var/run/docker.sock';

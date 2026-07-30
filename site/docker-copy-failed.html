@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Docker COPY failed、file not found 或 failed to compute cache key 怎么排查？检查构建上下文、COPY 路径与 .dockerignore。" />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#f7fbff" />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:title" content="Docker COPY failed 怎么排查｜ForgeKit" />
+    <meta property="og:description" content="检查 build context、COPY 相对路径与 .dockerignore，而不是盲目清缓存。" />
+    <link rel="canonical" href="https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-copy-failed.html" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <title>Docker COPY failed 怎么排查｜file not found 与 cache key</title>
+    <link rel="stylesheet" href="./styles.css?v=20260730" />
+    <script defer src="./app.js?v=20260730"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <header class="site-header"><a class="brand" href="./"><span class="brand-mark" aria-hidden="true">F</span><span>ForgeKit</span></a><button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav"><span>菜单</span></button><nav id="site-nav" class="site-nav" aria-label="主要导航"><a href="#checks">三处检查</a><a href="#example">最小示例</a><a href="./docker-build-failed.html">全部诊断</a><a class="nav-action" href="./interview.html">参与试用</a></nav></header>
+    <main id="main">
+      <section class="article-hero section-shell"><p class="plain-note">COPY / build context</p><h1>`Docker COPY failed`，通常先检查三处。</h1><p class="hero-lead">`file not found`、`not found in build context` 和 `failed to compute cache key` 往往不是 Docker 随机坏了，而是构建上下文、相对路径或 `.dockerignore` 之间不一致。</p><div class="hero-actions"><a class="button primary" href="#checks">开始排查</a><a class="button secondary" href="./docker-build-failed.html">查看完整诊断流程</a></div></section>
+      <section id="checks" class="article-section section-shell"><div class="section-heading compact"><span>最短排查路径</span><h2>命令中的最后一个参数决定 Docker 能看到什么。</h2></div><div class="problem-list"><article><span>检查 1</span><h3>实际 build context</h3><p>`docker build -f docker/Dockerfile .` 的 context 是当前目录 `.`，不是 Dockerfile 所在目录。</p></article><article><span>检查 2</span><h3>COPY 相对路径</h3><p>`COPY` 的源路径相对于 build context，而不是相对于 Dockerfile。不要使用 context 之外的父目录文件。</p></article><article><span>检查 3</span><h3>.dockerignore</h3><p>文件虽然存在，也可能在传给 BuildKit 前被排除。检查目录规则、通配符和例外规则。</p></article></div></section>
+      <section id="example" class="quickstart section-shell"><div class="section-heading compact"><span>可复现示例</span><h2>先从命令和目录结构验证，不要先删除所有缓存。</h2></div><div class="start-layout"><div class="steps"><div class="step"><b>1</b><div><h3>确认当前目录</h3><p>记录执行命令时的位置和末尾 context 参数。</p></div></div><div class="step"><b>2</b><div><h3>从 context 根目录找文件</h3><p>确认 COPY 源文件可见且大小写一致。</p></div></div><div class="step"><b>3</b><div><h3>检查忽略规则</h3><p>临时验证具体规则，而不是永久移除 `.dockerignore`。</p></div></div></div><div class="code-panel"><div class="code-toolbar"><span>目录与命令</span></div><pre><code>project/
+├── docker/Dockerfile
+├── package.json
+└── .dockerignore
+
+# context 是 project/
+docker build -f docker/Dockerfile .
+
+# Dockerfile 中应从 context 根目录引用
+COPY package.json ./</code></pre></div></div></section>
+      <section class="article-section section-shell"><div class="section-heading compact"><span>仍然失败？</span><h2>提交最小、脱敏的错误上下文。</h2><p>ForgeKit 会诚实返回分类、证据、置信度和验证步骤；未知问题不会被包装成高置信度答案。</p></div><div class="article-cta"><a class="button primary" href="./interview.html?utm_source=github_pages&utm_medium=article&utm_campaign=v0_2_3_real_pilot&utm_content=docker_copy_failed">参加计时试用</a><a class="button secondary" href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/issues/new?template=pilot-feedback.yml&utm_source=github_pages&utm_medium=article&utm_campaign=v0_2_3_real_pilot&utm_content=docker_copy_failed">提交公开案例</a></div></section>
+    </main>
+    <footer class="site-footer"><div><strong>ForgeKit</strong><span>先验证路径，再修改项目。</span></div><div><a href="./">首页</a><a href="./docker-build-failed.html">诊断总览</a><a href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit">GitHub</a></div></footer>
+  </body>
+</html>

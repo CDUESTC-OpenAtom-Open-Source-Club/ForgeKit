@@ -8,10 +8,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
+const commandCalls: Array<{ cmd: string; args: string[] }> = [];
+
 // 顶层 mock：替换 command 工具，让 build-docker-image 走成功路径
 vi.mock('../../../src/capabilities/utils/command.js', () => ({
   commandExists: () => true,
   runCommand: (_cmd: string, args: string[]) => {
+    commandCalls.push({ cmd: _cmd, args });
     if (args[0] === 'version') {
       return { success: true, exitCode: 0, stdout: '24.0.0\n', stderr: '' };
     }
@@ -25,6 +28,21 @@ vi.mock('../../../src/capabilities/utils/command.js', () => ({
         };
       }
       return { success: true, exitCode: 0, stdout: '12345678\n', stderr: '' };
+    }
+    if (args[0] === 'run') {
+      return { success: true, exitCode: 0, stdout: 'container-id\n', stderr: '' };
+    }
+    if (args[0] === 'inspect' && args.includes('{{.State.Running}} {{.State.ExitCode}}')) {
+      return { success: true, exitCode: 0, stdout: 'true 0\n', stderr: '' };
+    }
+    if (args[0] === 'logs') {
+      return { success: true, exitCode: 0, stdout: 'ready\n', stderr: '' };
+    }
+    if (args[0] === 'port') {
+      return { success: true, exitCode: 0, stdout: '127.0.0.1:49152\n', stderr: '' };
+    }
+    if (_cmd === 'curl') {
+      return { success: true, exitCode: 0, stdout: '{"status":"ok"}', stderr: '' };
     }
     return { success: true, exitCode: 0, stdout: 'build ok\n', stderr: '' };
   },
@@ -94,5 +112,42 @@ describe('M4: build_docker_image 成功路径结构', () => {
       fs.readFileSync(path.join(dir, 'release-manifest.json'), 'utf8')
     ) as { artifacts: Array<{ checksum: { sha256: string } }> };
     expect(manifest.artifacts[0].checksum.sha256).toBe('abcdef0123456789');
+  });
+
+  it('显式请求时验证容器启动和 HTTP 健康端点并写入 Manifest', async () => {
+    const dir = path.join(tmpDir, 'runtime-verify');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'server.js'), '');
+    fs.writeFileSync(path.join(dir, 'Dockerfile'), 'FROM node:18-alpine\nCMD ["node","server.js"]\n');
+    const planPath = path.join(dir, 'Forge.md');
+    fs.writeFileSync(planPath, '# plan');
+
+    const result = await buildDockerImage({
+      source_dir: dir,
+      plan_path: planPath,
+      image_name: 'runtime-demo',
+      verify_runtime: true,
+      container_port: 8080,
+      healthcheck_path: '/health',
+    });
+
+    expect(result.status).toBe('success');
+    expect(result.runtime_verification).toEqual(expect.objectContaining({
+      requested: true,
+      success: true,
+      container_started: true,
+      healthcheck_passed: true,
+      healthcheck_url: 'http://127.0.0.1:49152/health',
+    }));
+    expect(commandCalls).toContainEqual(expect.objectContaining({
+      cmd: 'curl',
+      args: expect.arrayContaining(['--retry-connrefused', '--retry-max-time', '15']),
+    }));
+
+    const manifest = JSON.parse(fs.readFileSync(path.join(dir, 'release-manifest.json'), 'utf8')) as {
+      verification: { checks_passed: string[] };
+    };
+    expect(manifest.verification.checks_passed).toContain('container_started');
+    expect(manifest.verification.checks_passed).toContain('healthcheck_passed');
   });
 });

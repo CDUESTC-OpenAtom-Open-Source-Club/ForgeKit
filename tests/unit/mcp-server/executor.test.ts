@@ -19,6 +19,21 @@ afterAll(() => {
 });
 
 describe('Executor - plan_path 强制校验', () => {
+  it('运行健康检查路径必须是以斜杠开头的合法路径', async () => {
+    const planPath = path.join(tmpDir, 'runtime-input-Forge.md');
+    fs.writeFileSync(planPath, '# plan');
+    const result = await executeTool('build_docker_image', {
+      source_dir: tmpDir,
+      plan_path: planPath,
+      image_name: 'demo',
+      verify_runtime: true,
+      healthcheck_path: 'health',
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.error?.code).toBe('invalid_input');
+    expect(result.error?.summary).toContain('healthcheck_path');
+  });
   it('build_docker_image 缺失 plan_path 返回 plan_not_found', async () => {
     const result = await executeTool('build_docker_image', {
       source_dir: '/tmp/test',

@@ -1,6 +1,6 @@
 # ForgeKit 当前目标与范围
 
-> 状态日期：2026-07-22
+> 状态日期：2026-07-30
 > 当前阶段：Docker 构建诊断需求验证
 > 产品原则：先证明能够更快解释真实构建失败，再扩展交付平台。
 
@@ -67,7 +67,7 @@ source tree / Dockerfile
 
 ## 4. 当前必须完成的可用产品
 
-当前能力以六个 MCP 工具为基础：
+当前能力以七个 MCP 工具为基础：
 
 | 工具 | 当前职责 | 可用性要求 |
 |------|----------|------------|
@@ -75,8 +75,9 @@ source tree / Dockerfile
 | `preflight_check` | 构建前检查环境、计划、磁盘与 Registry | 每项明确返回通过、失败或跳过，不修改系统配置 |
 | `diagnose_build_failure` | 只读分析已有 Docker/BuildKit 失败日志 | 返回脱敏证据、可能原因、置信度、安全建议和验证步骤 |
 | `generate_packaging_plan` | 生成可审查的 `Forge.md` | 默认值合理，减少必须由用户填写的字段 |
-| `build_docker_image` | 构建服务器端 OCI/Docker 产物 | 强制计划前置，并验证镜像真实存在 |
+| `build_docker_image` | 构建服务器端 OCI/Docker 产物 | 强制计划前置，并可验证临时容器与 HTTP 健康端点 |
 | `pack_deb` | 生成 Ubuntu/systemd 场景的可选 deb | 只在明确适用时推荐，不作为普遍默认 |
+| `pack_harmonyos_app` | 实验性 HarmonyOS 产物打包 | 不承诺正式签名或 AppGallery 自动上架 |
 
 第六个只读工具 `diagnose_build_failure` 已进入代码实现，允许分析已有 Docker/BuildKit 日志。该工具与 `build_docker_image` 复用诊断内核，不执行建议命令，也不修改用户项目。
 
@@ -131,7 +132,7 @@ ForgeKit 的“广泛性”按以下顺序扩展：
 
 ## 8. 公共开源边界
 
-ForgeKit 作为社团公共开源项目维护，任务是获得真实使用、教学反馈和兼容性数据，不以收费为目标。
+ForgeKit 的 MIT 开源核心不以收费解锁功能。项目同时验证可持续服务收入：对真实项目提供有明确范围和证据的构建诊断、交付跑通、团队导入与培训；只有真实用户确认结果和预算后才形成报价，不把访问量或口头兴趣当收入。
 
 未来公共能力建立在开源核心之上：
 

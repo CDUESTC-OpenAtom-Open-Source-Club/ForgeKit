@@ -30,6 +30,7 @@ export interface GenerateManifestOptions {
   artifacts: ArtifactInfo[];
   buildDurationMs: number;
   dockerVersion?: string;
+  verification?: import('./release-manifest.js').ManifestVerification;
 }
 
 /**
@@ -46,6 +47,7 @@ export function generateReleaseManifest(options: GenerateManifestOptions): Relea
     artifacts,
     buildDurationMs,
     dockerVersion,
+    verification,
   } = options;
 
   // 收集Git信息
@@ -95,7 +97,7 @@ export function generateReleaseManifest(options: GenerateManifestOptions): Relea
 
     artifacts,
 
-    verification: {
+    verification: verification ?? {
       success: artifacts.length > 0,
       checks_passed: ['plan_valid', 'build_completed', 'checksum_generated'],
       checks_failed: artifacts.length === 0 ? ['no_artifacts'] : undefined,

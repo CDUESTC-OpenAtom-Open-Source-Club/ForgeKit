@@ -77,6 +77,7 @@ export type ErrorCode =
   | 'pip_package_not_found'
   | 'system_package_not_found'
   | 'module_not_found'
+  | 'container_entrypoint_not_found'
   // 权限相关
   | 'permission_denied'
   | 'write_permission_denied'
@@ -146,6 +147,18 @@ export interface BuildDockerImageOutput extends ForgeKitResult {
   build_log?: string;
   result_json?: BuildResult;
   diagnosis?: import('./utils/error-diagnostic.js').ErrorDiagnostic;
+  container_runtime?: {
+    kind: 'docker' | 'podman' | 'unknown';
+    version: string;
+    compatibility: 'stable' | 'experimental' | 'unknown';
+  };
+  runtime_verification?: {
+    requested: boolean;
+    success: boolean;
+    container_started: boolean;
+    healthcheck_passed?: boolean;
+    healthcheck_url?: string;
+  };
 }
 
 export interface BuildResult {

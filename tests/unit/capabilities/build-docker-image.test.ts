@@ -78,6 +78,42 @@ describe('M4: Dockerfile 自动生成', () => {
     expect(content).toContain('requirements.txt');
   });
 
+  it('Node 项目有 start script 时生成 npm start 而不是猜测 index.js', async () => {
+    const dir = path.join(tmpDir, 'autogen-node-start');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'server.js'), 'console.log("ready")');
+    fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({
+      name: 'autogen-node-start',
+      version: '1.0.0',
+      scripts: { start: 'node server.js' },
+    }));
+    const planPath = path.join(dir, 'Forge.md');
+    fs.writeFileSync(planPath, '# plan');
+
+    await buildDockerImage({ source_dir: dir, plan_path: planPath, image_name: 'test' });
+
+    const content = fs.readFileSync(path.join(dir, 'Dockerfile'), 'utf8');
+    expect(content).toContain('CMD ["npm", "start"]');
+    expect(content).not.toContain('CMD ["node", "index.js"]');
+  });
+
+  it('Node 项目无 start script 时使用存在的 server.js', async () => {
+    const dir = path.join(tmpDir, 'autogen-node-file');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'server.js'), 'console.log("ready")');
+    fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({
+      name: 'autogen-node-file',
+      version: '1.0.0',
+    }));
+    const planPath = path.join(dir, 'Forge.md');
+    fs.writeFileSync(planPath, '# plan');
+
+    await buildDockerImage({ source_dir: dir, plan_path: planPath, image_name: 'test' });
+
+    const content = fs.readFileSync(path.join(dir, 'Dockerfile'), 'utf8');
+    expect(content).toContain('CMD ["node", "server.js"]');
+  });
+
   it('无法识别语言且无 Dockerfile 时返回 dockerfile_not_found', async () => {
     const dir = path.join(tmpDir, 'unknown-lang');
     fs.mkdirSync(dir, { recursive: true });

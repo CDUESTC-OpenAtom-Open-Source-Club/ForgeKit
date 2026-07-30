@@ -35,6 +35,13 @@ interface DiagnosticRule {
 
 const DIAGNOSTIC_RULES: DiagnosticRule[] = [
   rule(
+    /cannot find module ['"]\/(?:app|workspace|usr\/src\/app)\/[^'"]+['"]|python: can't open file ['"]\/(?:app|workspace|usr\/src\/app)\/[^'"]+['"]|exec .*: no such file or directory/i,
+    'container_entrypoint_not_found', 'runtime', '容器启动入口不存在',
+    '镜像已经形成，但 Dockerfile 的 CMD/ENTRYPOINT 指向了镜像内不存在的文件或命令。',
+    ['核对 Dockerfile 的 CMD/ENTRYPOINT 与项目真实入口；Node 项目优先使用已声明且可运行的 npm start，Python 项目使用实际存在的入口文件。'],
+    ['启动最终镜像并检查容器保持运行；如提供健康端点，再验证其返回成功状态。']
+  ),
+  rule(
     /docker daemon not running|cannot connect to the docker daemon|is the docker daemon running/i,
     'docker_daemon_unavailable', 'environment', 'Docker 守护进程未运行或不可用',
     'Docker 客户端存在，但当前 Docker context 无法连接到守护进程。',

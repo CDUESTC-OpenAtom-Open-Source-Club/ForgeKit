@@ -16,6 +16,20 @@ body:
     validations:
       required: true
   - type: input
+    id: install_minutes
+    attributes:
+      label: 从开始到成功接入用了多少分钟
+      placeholder: 8
+    validations:
+      required: true
+  - type: input
+    id: baseline_minutes
+    attributes:
+      label: 按原有方式定位或交付通常需要多少分钟
+      placeholder: 45
+    validations:
+      required: true
+  - type: input
     id: environment
     attributes:
       label: 环境
@@ -46,6 +60,22 @@ body:
         3. 在 MCP 客户端调用 inspect_project ...
     validations:
       required: true
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: 已完成的可核验结果
+      options:
+        - label: 镜像已经成功启动
+        - label: HTTP 健康检查已经通过
+        - label: Release Manifest 已生成
+        - label: 这是首次试用后 7 天内的第二次真实使用
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: 公开与隐私确认
+      options:
+        - label: 我知道内容会公开，并确认未提交密钥、私有源码、生产日志或私人联系方式
+          required: true
   - type: textarea
     id: feedback
     attributes:

@@ -5,9 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="ForgeKit：面向初学者与 AI Agent 的 Docker 构建诊断与验证助手。" />
     <meta name="theme-color" content="#f7fbff" />
+    <meta name="robots" content="index,follow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:site_name" content="ForgeKit" />
+    <meta property="og:title" content="ForgeKit｜Docker 构建诊断与验证助手" />
+    <meta property="og:description" content="构建前发现问题，失败后解释原因，成功后验证镜像确实能运行。" />
+    <meta property="og:url" content="https://cduestc-openatom-open-source-club.github.io/ForgeKit/" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="canonical" href="https://cduestc-openatom-open-source-club.github.io/ForgeKit/" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <title>ForgeKit 文档站｜让每个人都能看懂项目交付</title>
     <link rel="stylesheet" href="./styles.css?v=f1b7bf8" />
     <script defer src="./app.js?v=f1b7bf8"></script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "ForgeKit",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Linux, macOS",
+        "description": "面向初学者与 AI Agent 的 Docker 构建诊断与验证助手。",
+        "url": "https://cduestc-openatom-open-source-club.github.io/ForgeKit/",
+        "codeRepository": "https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit",
+        "license": "https://opensource.org/license/mit"
+      }
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#main">跳到主要内容</a>
@@ -21,6 +44,9 @@
       </button>
       <nav id="site-nav" class="site-nav" aria-label="主要导航">
         <a href="#start">10 分钟上手</a>
+        <a href="./docker-build-failed.html">构建失败诊断</a>
+        <a href="./mcp-docker-build.html">MCP 接入</a>
+        <a href="./docker-preflight-check.html">Preflight</a>
         <a href="#workflow">工作流程</a>
         <a href="#learn">学习路径</a>
         <a href="#limits">支持范围</a>
@@ -39,11 +65,11 @@
           </p>
           <div class="hero-actions">
             <a class="button primary" href="#start">从 10 分钟上手开始</a>
-            <a class="button secondary" href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/issues">提出问题</a>
+            <a class="button secondary" href="./docker-build-failed.html">先看一个真实错误</a>
           </div>
           <ul class="hero-facts" aria-label="项目特点">
             <li><strong>先检查</strong><span>目录、Docker、磁盘和网络提前确认</span></li>
-            <li><strong>早检查</strong><span>提前发现 Docker、磁盘与网络问题</span></li>
+            <li><strong>解释失败</strong><span>从日志中提取证据、原因和验证步骤</span></li>
             <li><strong>可追溯</strong><span>记录源码提交、环境与产物校验值</span></li>
           </ul>
         </div>
@@ -96,30 +122,29 @@
             <pre id="mcp-code"><code>{
   "mcpServers": {
     "forgekit": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@forgekit/mcp-server@0.2.0-alpha.1"
-      ]
+      "command": "node",
+      "args": ["/absolute/path/to/ForgeKit/dist/mcp-server/index.js"]
     }
   }
 }</code></pre>
-            <p class="code-note">正式发布前，请按照仓库中的源码接入指南测试。版本号发布时会更新。</p>
+            <p class="code-note">当前 npm 包尚未公开发布。请先克隆仓库并运行 npm ci 与 npm run build，再填写编译后入口的绝对路径。</p>
           </div>
         </div>
       </section>
 
       <section id="workflow" class="workflow section-shell" aria-labelledby="workflow-title">
         <div class="section-heading">
-          <span>五个工具，一条流程</span>
+          <span>七个工具，一个可审查流程</span>
           <h2 id="workflow-title">每一步只做一件事，也明确告诉你下一步。</h2>
         </div>
         <ol class="tool-flow">
           <li><span>01</span><div><code>inspect_project</code><h3>先认识项目</h3><p>识别语言、入口和已有构建配置。</p></div></li>
           <li><span>02</span><div><code>generate_packaging_plan</code><h3>生成可审查计划</h3><p>把目标、决策与风险写进 Forge.md。</p></div></li>
           <li><span>03</span><div><code>preflight_check</code><h3>提前发现问题</h3><p>检查目录、计划、运行时、磁盘与 Registry。</p></div></li>
-          <li><span>04</span><div><code>build_docker_image</code><h3>构建 OCI/Docker 镜像</h3><p>只有计划存在时才允许执行。</p></div></li>
-          <li><span>05</span><div><code>pack_deb</code><h3>按需生成 deb</h3><p>仅适合明确的 Ubuntu/systemd 场景。</p></div></li>
+          <li><span>04</span><div><code>diagnose_build_failure</code><h3>解释已有构建失败</h3><p>只读分析脱敏日志，返回证据、原因、置信度和验证步骤。</p></div></li>
+          <li><span>05</span><div><code>build_docker_image</code><h3>构建并验证镜像</h3><p>只有计划存在时才执行，并记录结果证据。</p></div></li>
+          <li><span>06</span><div><code>pack_deb</code><h3>按需生成 deb</h3><p>仅适合明确的 Ubuntu/systemd 场景。</p></div></li>
+          <li><span>07</span><div><code>pack_harmonyos_app</code><h3>实验性 HarmonyOS 打包</h3><p>已有 HAP 云设备样本；正式签名与 AppGallery 提交仍未验证。</p></div></li>
         </ol>
       </section>
 
@@ -156,6 +181,7 @@
         <div class="community-actions">
           <a class="button primary" href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/issues/new?template=pilot-feedback.yml">提交试用反馈</a>
           <a class="button secondary" href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit">参与开源</a>
+          <a class="button secondary" href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/issues/new?template=paid-pilot.yml&utm_source=github_pages&utm_medium=cta&utm_campaign=paid_delivery_pilot&utm_content=homepage">付费交付试点意向</a>
         </div>
       </section>
     </main>

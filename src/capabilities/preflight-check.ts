@@ -19,6 +19,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { commandExists, runCommand } from './utils/command.js';
 import { pathExists } from './utils/filesystem.js';
+import { detectContainerRuntime } from './utils/container-runtime.js';
 import type { ForgeKitResult } from './types.js';
 
 export interface PreflightCheckInput {
@@ -189,11 +190,17 @@ function checkDockerAvailability(): CheckResult {
   }
 
   // 检查Docker版本
+  const runtime = detectContainerRuntime();
   const version = daemonCheck.stdout.trim();
   return {
     name: 'docker_availability',
     status: 'pass',
-    message: `Docker可用（版本 ${version}）`,
+    message: runtime.kind === 'podman'
+      ? `Podman Docker CLI 兼容层可用（版本 ${runtime.version}，实验性支持）`
+      : `Docker可用（版本 ${version}）`,
+    details: runtime.kind === 'podman'
+      ? '当前命令名为 docker，但后端是 Podman；行为可能与 Docker Engine 不同'
+      : undefined,
   };
 }
 

@@ -4,7 +4,7 @@
 >
 > 构建前发现问题，失败后解释原因，成功后验证镜像真的能运行。
 
-ForgeKit 由电子科技大学成都学院开放原子开源社团维护，面向学生、教师、初学者与开源开发者免费开放。项目不以商业化为目标，优先追求清晰、普遍、可学习和可复现。
+ForgeKit 由电子科技大学成都学院开放原子开源社团维护。核心工具保持 MIT 开源并面向学生、教师、初学者与开源开发者免费开放；可持续性将通过明确范围的交付诊断服务、团队导入和培训试点验证，不对未经验证的功能收费。
 
 <p>
   <a href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit?style=for-the-badge&logo=github&color=111827&labelColor=ffffff"></a>
@@ -57,7 +57,7 @@ ForgeKit 当前专注一个更具体的问题：帮助初学者和 AI Agent 发�
 git clone https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit.git
 cd ForgeKit
 npm install
-npm run build
+npm run build:clean
 npm run verify    # lint、类型检查、自动化测试、MCP 与安装包验收
 node dist/mcp-server/index.js
 ```
@@ -90,7 +90,7 @@ Agent 自动执行：
 | 1 | `inspect_project` | 识别为 Python 项目，入口 app.py，已有 Dockerfile |
 | 2 | `preflight_check` | 提前检查目录、计划、Docker、磁盘和 Registry |
 | 3 | `generate_packaging_plan` | 生成当前构建所需的 `Forge.md` 安全门 |
-| 4 | `build_docker_image` | 构建并验证 Docker 镜像，失败时返回诊断和日志 |
+| 4 | `build_docker_image` | 构建并显式验证容器与健康端点，失败时返回诊断和日志 |
 
 已有 Docker/BuildKit 失败日志时，可直接调用只读的 `diagnose_build_failure`，无需先由 ForgeKit 发起构建。它返回脱敏证据、可能原因、置信度、安全建议和验证步骤，不执行修复命令。
 
@@ -156,6 +156,8 @@ Windows、macOS、Android、iOS 和 PWA 只在真实需求、自动化验收环�
 |------|------|
 | [产品与公共价值策略](./docs/PRODUCT_STRATEGY.md) | 可用性、教学价值、社区边界和 90 天行动 |
 | [产品迭代计划](./docs/PRODUCT_ITERATION_PLAN.md) | v0.2.1-v0.2.3 的交付顺序、验收门槛和后续决策 |
+| [增长与用户研究计划](./docs/GROWTH_AND_USER_RESEARCH_PLAN.md) | 搜索意图、招募、试用漏斗和付费试点门禁 |
+| [增长证据快照](./docs/validation/metrics/README.md) | 自动采集的获客、激活、复用和收入证据 |
 | [初学者文档站](./site/index.html) | 从“为什么需要”到第一次可验证交付的教学入口 |
 | [安装与接入](./docs/GETTING_STARTED.md) | npm/npx、源码接入、最短 MCP 配置和成功标准 |
 | [Docker 构建诊断说明](./docs/DIAGNOSTICS.md) | 输入方式、结果字段、置信度、脱敏范围和离线边界 |

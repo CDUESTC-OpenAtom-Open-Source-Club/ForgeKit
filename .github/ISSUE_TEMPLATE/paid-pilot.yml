@@ -1,0 +1,47 @@
+name: 付费交付试点意向
+description: 用真实项目验证“构建、运行、留下证据”的交付服务是否值得付费
+title: "付费试点意向："
+labels: [paid-pilot-interest, research]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        这不是付款页面，也不会自动收费。它用于验证是否存在愿意为“把真实项目交付跑通并留下可复核证据”付费的需求。
+        请勿提交密钥、私有源码、生产日志、私人联系方式或商业机密。
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: 你愿意为什么结果付费
+      options:
+        - 把一个公开或脱敏服务构建成可运行镜像并验证健康端点
+        - 找出 Docker 构建失败原因并给出可复核修复
+        - 为团队建立可重复的交付检查流程
+        - 这些结果不足以让我付费
+    validations:
+      required: true
+  - type: dropdown
+    id: budget
+    attributes:
+      label: 单项目可接受的试点预算
+      options:
+        - 0 元，只考虑自助开源工具
+        - 99–299 元
+        - 300–999 元
+        - 1000 元以上
+        - 需要先看明确范围
+    validations:
+      required: true
+  - type: textarea
+    id: current_cost
+    attributes:
+      label: 最近一次类似任务的真实成本
+      description: 描述耗时、参与人数、失败影响和当前解决方式。
+    validations:
+      required: true
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: 公开与隐私确认
+      options:
+        - label: 我知道内容会公开，并确认未提交敏感或私人信息
+          required: true
