@@ -58,7 +58,7 @@ ForgeKit 当前专注一个更具体的问题：帮助初学者和 AI Agent 发�
   "mcpServers": {
     "forgekit": {
       "command": "npx",
-      "args": ["--yes", "--package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#90784e4", "forgekit-mcp"]
+      "args": ["--yes", "--package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#88c945a", "forgekit-mcp"]
     }
   }
 }
@@ -69,7 +69,7 @@ ForgeKit 当前专注一个更具体的问题：帮助初学者和 AI Agent 发�
 不使用 MCP 时也可以直接验证一个服务项目：
 
 ```bash
-npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#90784e4 \
+npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#88c945a \
   forgekit deliver . --image my-service --port 8080 --health-path /health
 ```
 
@@ -78,7 +78,7 @@ npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#90784e4 \
 已有失败日志时，不需要配置 MCP，也不会上传日志或修改项目：
 
 ```bash
-npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#90784e4 \
+npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#88c945a \
   forgekit diagnose ./docker-build.log
 
 # CI 日志也可以通过标准输入传入
@@ -96,7 +96,7 @@ docker build . 2>&1 | forgekit diagnose -
   "mcpServers": {
     "forgekit": {
       "command": "npx",
-      "args": ["--yes", "--package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#90784e4", "forgekit-mcp"]
+      "args": ["--yes", "--package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#88c945a", "forgekit-mcp"]
     }
   }
 }

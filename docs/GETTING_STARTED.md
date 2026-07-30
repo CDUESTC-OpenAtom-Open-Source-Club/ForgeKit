@@ -18,7 +18,7 @@
   "mcpServers": {
     "forgekit": {
       "command": "npx",
-      "args": ["--yes", "--package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#90784e4", "forgekit-mcp"]
+      "args": ["--yes", "--package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#88c945a", "forgekit-mcp"]
     }
   }
 }
@@ -55,7 +55,7 @@ npm run verify
 只想知道“这个项目能不能构建并运行”时，使用结果导向的 CLI。它默认运行完整 Registry Preflight，不会为了通过而跳过失败项：
 
 ```bash
-npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#90784e4 \
+npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#88c945a \
   forgekit deliver /path/to/project \
   --image my-service \
   --tag pilot \
@@ -68,7 +68,7 @@ npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#90784e4 \
 已经拿到 Docker/BuildKit 失败日志时，可以先做只读诊断：
 
 ```bash
-npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#90784e4 \
+npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#88c945a \
   forgekit diagnose ./docker-build.log
 ```
 

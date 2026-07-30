@@ -61,3 +61,10 @@ utm_content=<content_or_candidate_id>
 2. 哪一步导致最多未完成？
 3. 哪个诊断或建议真正缩短了时间？
 4. 哪些需求只有口头意向，尚无 E3/E4 证据？
+# 2026-07-30 — acquisition promise connected to a real CLI action
+
+- Funnel audit found that high-intent pages advertised build-log diagnosis while the public CLI only exposed `deliver`.
+- Added local-only `forgekit diagnose` for file, stdin and direct-text inputs with stable JSON and CI-friendly exit codes.
+- Verified GitHub installation against the public Lance COPY failure log on the isolated Alibaba server test directory.
+- CI run `30555057068` passed Node 18/20, package smoke and real Docker verification.
+- This is an activation-path improvement, not a user activation event; pilot, reuse and revenue counts remain unchanged.
