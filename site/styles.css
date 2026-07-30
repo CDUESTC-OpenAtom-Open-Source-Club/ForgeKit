@@ -34,7 +34,16 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .site-nav.is-open { display: flex; }
 .site-nav a { display: flex; align-items: center; min-height: 2.75rem; padding: 0 0.8rem; color: var(--muted); font-size: 0.94rem; font-weight: 600; border-radius: 0.6rem; }
 .site-nav a:hover, .site-nav a:focus-visible { color: var(--blue); background: var(--surface-soft); outline: none; }
+.site-nav a[aria-current="page"] { color: var(--blue); background: var(--surface-soft); }
 .site-nav .nav-action { color: white; background: var(--blue); }
+.site-nav .nav-action:hover, .site-nav .nav-action:focus-visible { color: white; background: var(--blue-deep); }
+
+.page-nav { width: 100%; overflow-x: auto; background: var(--surface); border-bottom: 1px solid var(--line); scrollbar-width: none; }
+.page-nav::-webkit-scrollbar { display: none; }
+.page-nav-inner { display: flex; align-items: center; gap: 0.25rem; width: max-content; min-width: 100%; min-height: 3.25rem; padding-inline: max(1rem, calc((100vw - 72rem) / 2)); }
+.page-nav-label { flex: none; margin-right: 0.35rem; color: var(--muted); font-size: 0.82rem; font-weight: 760; letter-spacing: 0.06em; text-transform: uppercase; }
+.page-nav a { display: inline-flex; flex: none; align-items: center; min-height: 2.75rem; padding-inline: 0.8rem; color: var(--muted); border-radius: 0.6rem; font-size: 0.9rem; font-weight: 650; }
+.page-nav a:hover, .page-nav a:focus-visible, .page-nav a[aria-current="location"] { color: var(--blue); background: var(--surface-soft); outline: none; }
 
 .hero { display: grid; gap: 3rem; align-items: center; min-height: calc(100vh - 4.5rem); padding-block: 4rem; }
 .plain-note, .section-heading > span { display: block; margin: 0 0 1rem; color: var(--blue); font-size: 0.86rem; font-weight: 760; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -128,7 +137,7 @@ pre { max-width: 100%; overflow-x: auto; padding: 1.25rem; margin: 0; font-size:
 .site-footer div { display: flex; flex-wrap: wrap; gap: 0.85rem 1.25rem; }
 .site-footer strong { color: var(--text); }
 
-@media (min-width: 48rem) {
+@media (min-width: 64rem) {
   .menu-button { display: none; }
   .site-nav { position: static; display: flex; flex-direction: row; align-items: center; padding: 0; background: transparent; border: 0; box-shadow: none; }
   .site-nav .nav-action { margin-left: 0.4rem; padding-inline: 1rem; }
