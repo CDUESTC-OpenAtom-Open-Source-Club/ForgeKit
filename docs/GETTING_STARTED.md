@@ -85,6 +85,21 @@ inspect_project
 
 完整字段、置信度和脱敏说明见 [Docker 构建诊断说明](./DIAGNOSTICS.md)。
 
+## 生成本地试点证据
+
+完成运行验证后，可以从 `release-manifest.json` 生成脱敏的本地报告。工具默认不上传；分享前仍需人工检查：
+
+```bash
+npm run pilot:report -- \
+  --manifest /path/to/release-manifest.json \
+  --install-minutes 8 \
+  --baseline-minutes 45 \
+  --forgekit-minutes 12 \
+  --output forgekit-pilot-report
+```
+
+报告只保留项目类型、环境摘要、耗时和验证结果，省略主机名、仓库 URL、路径与产物名称。只有用户主动确认后才提交到公开试点 Issue。
+
 ## 常见问题
 
 ### Docker Hub 不可访问
