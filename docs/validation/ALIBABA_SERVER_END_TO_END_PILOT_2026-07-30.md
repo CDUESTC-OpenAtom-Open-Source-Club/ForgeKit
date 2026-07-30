@@ -225,3 +225,29 @@ CMD ["npm", "start"]
 ```
 
 Podman 兼容层仍只能视为实验性支持；构建阶段持续进度可见性、运行时品牌识别、真实外部用户留存和付费证据仍是后续工作，不能据此宣称已经获得市场验证或收入。
+
+## 8. 一条命令交付 CLI 复验
+
+新增 `forgekit deliver` 后，在同一隔离项目执行结果导向的完整流程。首次执行保持默认完整 Preflight，在 Docker Hub 不可达时正确返回：
+
+```text
+exit=1
+failed_stage=preflight
+failed_check=registry_connectivity
+```
+
+因此 CLI 没有为了制造成功而跳过 Registry 门禁。随后 Preflight 增加精确规则：读取已有 Dockerfile 的所有 `FROM`；仅当每个基础镜像都能通过本机 `docker image inspect` 验证存在时，才允许离线继续，并明确记录“该结果不证明远端 Registry 可达”。
+
+使用项目已有的 `localhost/forgekit-validation-node:20260721` 后，单条命令得到：
+
+| 项目 | 结果 |
+|---|---|
+| 完整 Preflight | 5/5 通过 |
+| 容器后端 | Podman 4.9.4，experimental |
+| 镜像 | `forgekit-cli-pilot:success` |
+| 临时容器启动 | 通过 |
+| `/health` | 通过 |
+| 临时验证容器残留 | 0 |
+| 公网站点 | HTTP 200 |
+
+CLI 成功结果同时返回镜像引用、实时构建日志路径、Release Manifest 路径、`container_started=true` 和 `healthcheck_passed=true`。这证明“不理解 MCP 或七个内部工具”的用户也能直接运行同一证据闭环。

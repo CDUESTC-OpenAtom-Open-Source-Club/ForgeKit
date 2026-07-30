@@ -87,7 +87,7 @@ export async function preflightCheck(input: PreflightCheckInput): Promise<Prefli
 
   // 检查5：镜像仓库连通性
   if (checksToRun.includes('registry_connectivity')) {
-    results.push(await checkRegistryConnectivity());
+    results.push(await checkRegistryConnectivity(source_dir));
   }
 
   // 统计结果
@@ -288,9 +288,19 @@ function checkPlanFile(planPath: string): CheckResult {
  * 尝试连接Docker Hub或其他镜像仓库
  * 超时时间：10秒
  */
-async function checkRegistryConnectivity(): Promise<CheckResult> {
+async function checkRegistryConnectivity(sourceDir: string): Promise<CheckResult> {
   const REGISTRY_URL = 'https://registry-1.docker.io';
   const TIMEOUT_MS = 10000;
+
+  const localBases = checkLocalDockerfileBaseImages(sourceDir);
+  if (localBases?.allAvailable) {
+    return {
+      name: 'registry_connectivity',
+      status: 'pass',
+      message: 'Dockerfile 的基础镜像已全部存在于本机，无需访问远端 Registry',
+      details: `本机镜像：${localBases.images.join(', ')}；该结果不证明远端 Registry 可达`,
+    };
+  }
 
   try {
     // 使用curl测试连通性（跨平台）
@@ -327,4 +337,23 @@ async function checkRegistryConnectivity(): Promise<CheckResult> {
       suggested_fix: '检查网络连接或跳过此检查（使用国内镜像源时）',
     };
   }
+}
+
+function checkLocalDockerfileBaseImages(sourceDir: string): { allAvailable: boolean; images: string[] } | undefined {
+  const dockerfile = path.join(sourceDir, 'Dockerfile');
+  if (!fs.existsSync(dockerfile)) {
+    return undefined;
+  }
+  const content = fs.readFileSync(dockerfile, 'utf8');
+  const images = [...content.matchAll(/^\s*FROM(?:\s+--platform=\S+)?\s+(\S+)/gim)]
+    .map((match) => match[1])
+    .filter((image) => image.toLowerCase() !== 'scratch' && !image.startsWith('$'));
+  if (images.length === 0) {
+    return undefined;
+  }
+  const uniqueImages = [...new Set(images)];
+  return {
+    images: uniqueImages,
+    allAvailable: uniqueImages.every((image) => runCommand('docker', ['image', 'inspect', image]).success),
+  };
 }
