@@ -58,7 +58,7 @@ ForgeKit 当前专注一个更具体的问题：帮助初学者和 AI Agent 发�
   "mcpServers": {
     "forgekit": {
       "command": "npx",
-      "args": ["--yes", "github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#e6dc074"]
+      "args": ["--yes", "--package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#f5fbc4e", "forgekit-mcp"]
     }
   }
 }
@@ -69,8 +69,8 @@ ForgeKit 当前专注一个更具体的问题：帮助初学者和 AI Agent 发�
 不使用 MCP 时也可以直接验证一个服务项目：
 
 ```bash
-npx --yes github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#18364eb \
-  deliver . --image my-service --port 8080 --health-path /health
+npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#f5fbc4e \
+  forgekit deliver . --image my-service --port 8080 --health-path /health
 ```
 
 该命令默认执行完整 Preflight；任何检查、构建、启动或健康验证失败都会以非零状态退出。
@@ -84,7 +84,7 @@ npx --yes github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#18364eb \
   "mcpServers": {
     "forgekit": {
       "command": "npx",
-      "args": ["--yes", "github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#e6dc074"]
+      "args": ["--yes", "--package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#f5fbc4e", "forgekit-mcp"]
     }
   }
 }

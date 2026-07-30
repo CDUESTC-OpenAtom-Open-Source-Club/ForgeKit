@@ -18,7 +18,7 @@
   "mcpServers": {
     "forgekit": {
       "command": "npx",
-      "args": ["--yes", "github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#e6dc074"]
+      "args": ["--yes", "--package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#f5fbc4e", "forgekit-mcp"]
     }
   }
 }
@@ -55,8 +55,8 @@ npm run verify
 只想知道“这个项目能不能构建并运行”时，使用结果导向的 CLI。它默认运行完整 Registry Preflight，不会为了通过而跳过失败项：
 
 ```bash
-npx --yes github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#18364eb \
-  deliver /path/to/project \
+npx --yes --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#f5fbc4e \
+  forgekit deliver /path/to/project \
   --image my-service \
   --tag pilot \
   --port 8080 \
