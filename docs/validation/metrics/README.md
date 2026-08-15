@@ -1,11 +1,11 @@
 # ForgeKit growth evidence
 
-Last material change: 2026-07-31T04:38:28.857Z
+Last material change: 2026-08-15T10:36:34.649Z
 
 | Funnel stage | Evidence | Current |
 |---|---|---:|
-| Acquisition | Repository unique visitors (14d) | 3 |
-| Acquisition | Unique cloners (14d, includes automation) | 81 |
+| Acquisition | Repository unique visitors (14d) | 1 |
+| Acquisition | Unique cloners (14d, includes automation) | 10 |
 | Activation | Pilot started | 0 |
 | Value | Runtime verified | 0 |
 | Retention | Reused within 7 days | 0 |

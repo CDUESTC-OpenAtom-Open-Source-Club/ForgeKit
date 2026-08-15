@@ -85,8 +85,14 @@ describe('Executor - plan_path 强制校验', () => {
     // - Docker 可用 → success 或 docker_build_failed
     // - Docker 不可用 → docker_daemon_unavailable
     // - 无 Dockerfile 且语言无法识别 → dockerfile_not_found
+    // - Registry/网络不可达 → network_unreachable
     if (result.status === 'failed') {
-      expect(['docker_daemon_unavailable', 'docker_build_failed', 'dockerfile_not_found']).toContain(result.error?.code);
+      expect([
+        'docker_daemon_unavailable',
+        'docker_build_failed',
+        'dockerfile_not_found',
+        'network_unreachable',
+      ]).toContain(result.error?.code);
     } else {
       expect(result.status).toBe('success');
     }

@@ -78,6 +78,8 @@ export type ErrorCode =
   | 'system_package_not_found'
   | 'module_not_found'
   | 'container_entrypoint_not_found'
+  // 系统/发行版相关
+  | 'distribution_unsupported'
   // 权限相关
   | 'permission_denied'
   | 'write_permission_denied'

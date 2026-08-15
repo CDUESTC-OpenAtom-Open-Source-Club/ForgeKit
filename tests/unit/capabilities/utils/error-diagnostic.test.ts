@@ -119,6 +119,30 @@ describe('ErrorDiagnostician', () => {
     });
   });
 
+  describe('真实公开案例回归（来自近 30 天 GitHub issue）', () => {
+    it('obico-server #1156：apt 源已 EOL / 404 → distribution_unsupported', () => {
+      const result = diagnoseBuildError(
+        '=> ERROR [ml_api 2/7] RUN apt update && apt install -y curl',
+        'Err:4 http://archive.ubuntu.com/ubuntu noble Release 404  Not Found'
+      );
+      expect(result?.code).toBe('distribution_unsupported');
+      expect(result?.category).toBe('dependency');
+      expect(result?.confidence).toBe('high');
+      expect(result?.suggested_actions[0]).toContain('发行版');
+    });
+
+    it('muse #1337：npm ERESOLVE peer 冲突 → npm_dependency_conflict', () => {
+      const result = diagnoseBuildError(
+        'npm error code ERESOLVE',
+        'npm error While resolving: pagination.djs@4.0.18\nnpm error Found: discord.js@14.11.0\nnpm error Could not resolve dependency:\nnpm error peer discord.js@"^14.18.0" from pagination.djs@4.0.18'
+      );
+      expect(result?.code).toBe('npm_dependency_conflict');
+      expect(result?.confidence).toBe('high');
+      expect(result?.suggested_fix).toContain('npm explain');
+      expect(result?.suggested_fix).not.toMatch(/^--legacy-peer-deps|直接.*legacy-peer-deps/);
+    });
+  });
+
   describe('对外失败案例页主题映射', () => {
     // 这些断言对应 site/ 下公开失败案例页宣传的能力，避免页面说出引擎不支持的结论。
     it('failed to solve 页：registry 网络类被识别为 network_unreachable', () => {

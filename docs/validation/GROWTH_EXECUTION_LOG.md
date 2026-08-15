@@ -7,7 +7,7 @@
 
 | 指标 | 当前 | 30 天目标 |
 |---|---:|---:|
-| 已定向联系 | 9 | 20 |
+| 已定向联系 | 10 | 20 |
 | 有效对话 | 1 | 10 |
 | 合格访谈 | 0 | 12 |
 | Docker 真实试用 | 0 | 5 |
@@ -82,3 +82,9 @@ utm_content=<content_or_candidate_id>
 - Added the public log to the regression corpus and a conservative fixed UID/GID collision rule with read-only verification first.
 - Browser QA also found that the high-intent diagnosis page's copy action did not produce observable clipboard success in the embedded browser; added a permission-compatible fallback and persistent accessible result state for retesting.
 - Neither change counts as an external pilot, retention event, or revenue.
+# 2026-08-15 — week-2 real outreach with diagnosis-first comment
+
+- Searched public GitHub issues created 2026-07-15..2026-08-15 for fresh Docker build failures; shortlisted 6 open candidates with real logs.
+- Ran the local CLI against each redacted log first. obico (apt 404 on EOL Ubuntu 20.04 base) and muse (npm ERESOLVE peer conflict) both returned `unknown_error`, so two rules were added first — `distribution_unsupported` (EOL apt repos) and an npm peer-dependency conflict variant — with regression tests from the public logs; bpm-iq stayed unknown and was not contacted.
+- Posted one help-first comment on obico-server #1156 (O010): root cause in the prebuilt base image's EOL distro, a 404 verification command, and migration direction; no product claim beyond an honest disclosure of the research.
+- Funnel: contacted 9 → 10; valid conversations still 1; pilots, reuse, revenue unchanged. Commenting is not activation.

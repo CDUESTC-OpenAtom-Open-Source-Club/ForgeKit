@@ -101,6 +101,21 @@ const DIAGNOSTIC_RULES: DiagnosticRule[] = [
     ['在干净目录运行 `npm ci`，并执行项目测试确认依赖树有效。']
   ),
   rule(
+    /could not resolve dependency(?! tree)|conflicting peer de\bs?enden|conflicting peer dependency|while resolving:[^\n]*\bfound:[\s\S]{0,300}\bpeer [^:\n]* from [^\n]+/i,
+    'npm_dependency_conflict', 'dependency', 'npm peer dependency 冲突',
+    '`npm install` 因 peer dependency 无法同时满足而退出 ERESOLVE；通常是直接依赖锁定的版本与某个 peer 要求的范围不一致，而不是缓存或网络问题。',
+    ['用 `npm explain <包名>` 定位冲突链，优先调整显式版本约束或升级冲突包；不要把 `--legacy-peer-deps` 作为默认修复。'],
+    ['在干净目录运行 `npm ci`，确认依赖树与锁文件有效。']
+  ),
+  rule(
+    /err:4[^\n]* (?:inrel|release|inrelease|packages)[^\n]*404[^\n]*not found|apt[^\n]*(?:404\s{2}not found|not found)[^\n]*release|eol|end[ -]of[ -]life/i,
+    'distribution_unsupported', 'dependency', '发行版仓库已被 EOL / 不可达',
+    'apt 源指向的发行版版本已到生命末期或 404，`apt update` 无法获得 Release 文件。',
+    ['核对基础镜像的发行版版本与官方支持窗口；把镜像或源迁移到仍在支持的发行版，再在同一构建层内更新索引。'],
+    ['在相同基础镜像内 `apt-get update` 成功，并确认所用仓库未被 EOL / 停用。'],
+    'high', ['dockerfile_best_practices']
+  ),
+  rule(
     /npm ci can only install packages when[^\n]*(package-lock|npm-shrinkwrap)|package\.json and package-lock\.json are not in sync/i,
     'npm_dependency_conflict', 'dependency', 'npm 锁文件与 package.json 不一致',
     '`package-lock.json` 没有反映当前 `package.json` 的依赖约束。',

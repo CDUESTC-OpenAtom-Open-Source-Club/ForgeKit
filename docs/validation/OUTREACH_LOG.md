@@ -101,4 +101,17 @@
 - 状态：已响应。参与者报告改用 UID/GID 1001 后“目前看起来可用”，但没有完整运行时写入或 MCP/健康路径证据；计 1 个有效对话，不计试用或 `runtime-verified`。
 - 后续：https://github.com/bethington/ghidra-mcp/issues/416#issuecomment-5135668797 提供最小只读身份与临时写入验证步骤；等待对方自愿验证，不再主动追发。
 
-当前合计 9 个上下文相关触达、1 个外部有效响应；真实试用、七日复用和付费仍均为 0。
+## 2026-08-15：第四批（第 2 周实践验证）
+
+按 NEXT_PHASE 第 2 周计划，通过 GitHub 公开搜索筛选近 30 天（created:2026-07-15..2026-08-15）仍开放、含真实失败日志的 Docker 构建 issue。先用本地 `forgekit diagnose` 验证每条脱敏日志：初始结果中 obico（apt 404）与 muse（ERESOLVE）均为 `unknown_error`，因此先在诊断引擎补充 `distribution_unsupported`（EOL apt 源）与 npm peer dependency 冲突两条规则并加回归测试，重新验证为高置信度命中后才对外评论；bpm-iq（pnpm workspace 缺拷贝）仍为 unknown，未联系。
+
+### O010 · obico-server / TheSpaghettiDetective
+
+- 候选：C11
+- 场景：`ml_api` 基于 `ml_api_base:1.4`（底层 CUDA 11.4.3 ubuntu20.04，已 EOL），`RUN apt update && apt install -y curl` 失败；
+- ForgeKit 结果：`distribution_unsupported` / dependency / 高置信度（补规则后）；
+- 先行帮助：指出根因在预构建基础镜像的 EOL 发行版而非用户 Dockerfile；给出 `curl -sSI .../dists/focal/Release` 的 404 验证、迁移到受支持发行版的方向，并说明 RK3588/Jetson 路径不受影响；
+- 链接：https://github.com/TheSpaghettiDetective/obico-server/issues/1156#issuecomment-5301526282
+- 状态：已发送，待响应。不计为有效对话、试用或用户。
+
+当前合计 10 个上下文相关触达、1 个外部有效响应；真实试用、七日复用和付费仍均为 0。

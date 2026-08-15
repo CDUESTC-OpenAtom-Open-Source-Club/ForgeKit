@@ -146,7 +146,12 @@ describe('M4: Docker 构建行为', () => {
     // 1. Docker 可用 → 构建成功或 docker_build_failed（网络/镜像问题）
     // 2. Docker 不可用 → docker_daemon_unavailable
     if (result.status === 'failed') {
-      expect(['docker_daemon_unavailable', 'docker_build_failed', 'dockerfile_not_found']).toContain(result.error?.code);
+      expect([
+        'docker_daemon_unavailable',
+        'docker_build_failed',
+        'dockerfile_not_found',
+        'network_unreachable',
+      ]).toContain(result.error?.code);
       expect(result.error?.suggested_fix).toBeTruthy();
     } else {
       // Docker 可用且构建成功

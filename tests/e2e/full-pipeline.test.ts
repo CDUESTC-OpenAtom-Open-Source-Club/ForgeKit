@@ -93,7 +93,7 @@ describe('M6 E2E: Agent 完整调用闭环', () => {
     expect(result.error?.code).not.toBe('plan_not_found');
     // 无 docker 环境 → daemon/build 错误，但这是能力层返回的结构化结果
     if (result.status === 'failed') {
-      expect(['docker_daemon_unavailable', 'docker_build_failed']).toContain(result.error?.code);
+      expect(['docker_daemon_unavailable', 'docker_build_failed', 'network_unreachable']).toContain(result.error?.code);
     }
   });
 

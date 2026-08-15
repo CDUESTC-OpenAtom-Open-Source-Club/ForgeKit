@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "collected_at": "2026-07-31T04:38:28.857Z",
+  "collected_at": "2026-08-15T10:36:34.649Z",
   "repository": "CDUESTC-OpenAtom-Open-Source-Club/ForgeKit",
   "acquisition": {
-    "repository_views_14d": 6,
-    "repository_unique_visitors_14d": 3,
-    "clones_14d": 260,
-    "unique_cloners_14d": 81,
+    "repository_views_14d": 3,
+    "repository_unique_visitors_14d": 1,
+    "clones_14d": 24,
+    "unique_cloners_14d": 10,
     "stars_total": 1,
     "forks_total": 0
   },
@@ -34,7 +34,6 @@
   "caveats": [
     "GitHub clone counts may include CI, bots, and repeated automated fetches; they are not users.",
     "Repository traffic does not include GitHub Pages search impressions or client-side page events.",
-    "Activation, retention, and revenue require explicit evidence labels on public, consented issues.",
-    "Traffic metrics are unavailable to the GitHub Actions token; the last privileged snapshot is retained."
+    "Activation, retention, and revenue require explicit evidence labels on public, consented issues."
   ]
 }
