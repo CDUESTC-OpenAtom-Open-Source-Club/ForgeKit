@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="docker build 报 failed to solve 怎么排查？区分 network、COPY、依赖、权限、磁盘和架构，再定位真实根因，而不是反复清缓存或重试。" />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#f7fbff" />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:title" content="failed to solve 怎么排查｜ForgeKit" />
+    <meta property="og:description" content="把 failed to solve 按网络、构建上下文、Dockerfile、依赖、权限、磁盘和架构分类，再最小重试。" />
+    <link rel="canonical" href="https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-failed-to-solve.html" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <title>failed to solve 怎么排查｜类别与最小验证</title>
+    <link rel="stylesheet" href="./styles.css?v=20260730-nav" />
+    <script defer src="./app.js?v=20260730-nav"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <header class="site-header">
+      <a class="brand" href="./"><span class="brand-mark" aria-hidden="true">F</span><span>ForgeKit</span></a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav"><span>菜单</span></button>
+      <nav id="site-nav" class="site-nav" aria-label="主要导航"><a href="#context">context 是谁</a><a href="#kinds">按类别定位</a><a href="#diagnose">用命令定位</a><a class="nav-action" href="./docker-build-failed.html">全部诊断</a></nav>
+    </header>
+    <main id="main">
+      <section class="article-hero section-shell">
+        <p class="plain-note">failed to solve</p>
+        <h1>`failed to solve` 不是根因，是“某个步骤失败”的总入口。</h1>
+        <p class="hero-lead">BuildKit 在 `STEP …: failed to solve` 之后通常会补一句具体原因。不要反复 `--no-cache` 重试，先看这一句下面是 network、COPY、Dockerfile、依赖、权限、磁盘还是架构。ForgeKit 只读诊断会把这一句整理成类别、证据、置信度和可验证的下一步。</p>
+        <div class="hero-actions"><a class="button primary" href="#diagnose">分析一段失败日志</a><a class="button secondary" href="./docker-copy-failed.html">COPY failed 单独看</a></div>
+      </section>
+
+      <section id="context" class="article-section section-shell">
+        <div class="section-heading compact"><span>先弄清楚 context</span><h2>最后一行决定 Docker 能看到什么，也决定多数 failed 指向哪里。</h2></div>
+        <div class="code-panel"><div class="code-toolbar"><span>命令与目录</span></div><pre><code># context 是命令末尾的 "."，不是 Dockerfile 所在目录
+docker build -f docker/Dockerfile .
+
+# 从 context 根目录引用文件
+COPY package.json ./</code></pre></div>
+        <p>只要失败步骤出现在 COPY / ADD 或 `npm install` / `RUN apt-get` 之前，优先怀疑 context 与路径；出现在依赖下载时，优先怀疑网络与 Registry。</p>
+      </section>
+
+      <section id="kinds" class="article-section section-shell">
+        <div class="section-heading compact"><span>按类别定位</span><h2>同一句 total，不同的下一行，对应不同的检查。</h2></div>
+        <div class="problem-list">
+          <article><span>网络 / Registry</span><h3>下载或校验失败</h3><p>`network is unreachable`、`dial tcp … i/o timeout`、`unauthorized …`。先单独拉一次基础镜像或失败的依赖端点，确认连接与凭据。</p></article>
+          <article><span>构建上下文 / COPY</span><h3>文件不存在</h3><p>`COPY failed`、`failed to calculate checksum`、`failed to compute cache key`。从 context 根目录检查路径、大小写与 `.dockerignore`。</p></article>
+          <article><span>Dockerfile</span><h3>解析或语法</h3><p>`Dockerfile parse error`、`unknown instruction`。按证据行号修正指令，不要整段重写。</p></article>
+          <article><span>依赖</span><h3>npm / pip / apt</h3><p>`ERESOLVE`、`resolutionimpossible`、`unable to locate package`。先在干净目录用锁文件重建，再检查索引源。</p></article>
+          <article><span>权限</span><h3>拒绝访问</h3><p>`permission denied`。确认路径所有者与 USER，避免递归放宽权限或无条件 sudo。</p></article>
+          <article><span>磁盘</span><h3>空间不足</h3><p>`no space left on device`。先 `df -h` 与 `docker system df`，再由用户决定清理什么。</p></article>
+          <article><span>架构</span><h3>平台不匹配</h3><p>`exec format error` 或 manifest 不匹配。核对 `--platform`、基础镜像与编译目标架构。</p></article>
+        </div>
+      </section>
+
+      <section id="diagnose" class="article-section section-shell">
+        <div class="section-heading compact"><span>最小重试</span><h2>一次只改一个变量，把剩下的失败样本保留下来。</h2></div>
+        <ol class="diagnostic-steps">
+          <li><b>1</b><div><h3>保留失败上下文</h3><p>复制失败步骤前后的日志，移除 Token、密钥与私人路径。</p></div></li>
+          <li><b>2</b><div><h3>判断类别</h3><p>先定位到某一个类别，再对症检查，而不是一上来清缓存。</p></div></li>
+          <li><b>3</b><div><h3>验证再重试</h3><p>只改一个变量，确认后重试；仍失败时保留样本。</p></div></li>
+        </ol>
+        <div class="code-panel"><div class="code-toolbar"><span>本地只读诊断</span><button class="copy-button" data-copy-target="failed-solve-install" type="button" aria-live="polite">复制</button></div><pre id="failed-solve-install"><code>npx --yes \
+  --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#88c945a \
+  forgekit diagnose ./docker-build.log</code></pre><p class="code-note">需要 Node.js 18+；日志只在本机处理。退出 0 = 已识别，1 = 暂未知，2 = 输入错误。</p></div>
+        <div class="article-cta"><a class="button primary" href="./interview.html?source_id=docker_failed_to_solve">参加 15–20 分钟计时试用</a><a class="button secondary" href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/issues/new?template=pilot-feedback.yml&utm_source=github_pages&utm_medium=article&utm_campaign=v0_2_3_real_pilot&utm_content=docker_failed_to_solve">提交你的真实案例</a></div>
+      </section>
+    </main>
+    <footer class="site-footer"><div><strong>ForgeKit</strong><span>先把失败分类，再决定改哪里。</span></div><div><a href="./">首页</a><a href="./docker-build-failed.html">诊断总览</a><a href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit">GitHub</a></div></footer>
+  </body>
+</html>

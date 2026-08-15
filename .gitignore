@@ -57,3 +57,6 @@ src/templates/**/*.d.ts
 *.rpm
 *.tar.gz
 *.zip
+
+# ZCode local sessions
+.zcode/

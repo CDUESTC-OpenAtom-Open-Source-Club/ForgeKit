@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Docker 构建里 npm install / pip install 失败怎么排查？区分 ERESOLVE、锁文件不同步、包找不到与网络问题，并给出可验证的下一步。" />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#f7fbff" />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:title" content="容器内依赖安装失败怎么排查｜ForgeKit" />
+    <meta property="og:description" content="把 npm install / pip install 失败分为约束冲突、锁文件、包索引与网络四类，再对症修复。" />
+    <link rel="canonical" href="https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-dependency-install-failed.html" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <title>容器内 npm install / pip install 失败怎么排查｜ForgeKit</title>
+    <link rel="stylesheet" href="./styles.css?v=20260730-nav" />
+    <script defer src="./app.js?v=20260730-nav"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <header class="site-header">
+      <a class="brand" href="./"><span class="brand-mark" aria-hidden="true">F</span><span>ForgeKit</span></a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav"><span>菜单</span></button>
+      <nav id="site-nav" class="site-nav" aria-label="主要导航"><a href="#kinds">四类原因</a><a href="#checks">对症检查</a><a href="#diagnose">用命令定位</a><a class="nav-action" href="./docker-build-failed.html">全部诊断</a></nav>
+    </header>
+    <main id="main">
+      <section class="article-hero section-shell">
+        <p class="plain-note">dependency install</p>
+        <h1>容器里的依赖装不上，问题常在“约束”而不在“缓存”。</h1>
+        <p class="hero-lead">`npm install` 和 `pip install` 在容器内失败，先分清是版本约束冲突、锁文件不同步、包或索引不存在，还是单纯网络不通。别一上来就清缓存、加 `--legacy-peer-deps` 或关校验。</p>
+        <div class="hero-actions"><a class="button primary" href="#diagnose">分析一段失败日志</a><a class="button secondary" href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/blob/main/docs/GETTING_STARTED.md">查看接入文档</a></div>
+      </section>
+
+      <section id="kinds" class="article-section section-shell">
+        <div class="section-heading compact"><span>先分类</span><h2>失败信息自己会说出是四种原因里的哪一种。</h2></div>
+        <div class="problem-list">
+          <article><span>约束冲突</span><h3>`ERESOLVE` / `resolutionimpossible`</h3><p>依赖之间的版本要求无法同时满足。用 `npm explain &lt;包&gt;` 或多个依赖的冲突链定位，优先调整显式版本约束，而不是默认加宽松参数。</p></article>
+          <article><span>锁文件</span><h3>`package-lock` 与 `package.json` 不同步</h3><p>`npm ci` 只有在锁文件反映当前 package.json 时才工作。在受信任环境 `npm install` 更新锁文件，审查后提交。</p></article>
+          <article><span>包不存在</span><h3>`could not find a version` / `unable to locate package`</h3><p>包名、版本、Python/Node 版本、架构或索引源不兼容。核对包名和版本范围，并确认所使用的索引源。</p></article>
+          <article><span>网络</span><h3>`network is unreachable` / 超时</h3><p>DNS、代理或 Registry 连接失败。单独拉基础镜像或访问失败的依赖端点，确认连接与镜像源。</p></article>
+        </div>
+      </section>
+
+      <section id="checks" class="article-section section-shell">
+        <div class="section-heading compact"><span>字面证据 vs 根因</span><h2>打印的“找不到包”有时只是真因的最后一行。</h2></div>
+        <ol class="diagnostic-steps">
+          <li><b>1</b><div><h3>看 npm/pip 自己的报错</h3><p>是 `ERESOLVE`、`no matching distribution` 还是 `network is unreachable`？三者验证方式不同。</p></div></li>
+          <li><b>2</b><div><h3>在干净目录重建</h3><p>用锁文件跑 `npm ci` / 新虚拟环境 `pip install`，区分“项目状态”与“环境状态”。</p></div></li>
+          <li><b>3</b><div><h3>确认索引与网络</h3><p>`npm ping` / `python -m pip index versions &lt;包&gt;` 单独验证，再把结论应用到 Dockerfile。</p></div></li>
+        </ol>
+      </section>
+
+      <section id="diagnose" class="article-section section-shell">
+        <div class="section-heading compact"><span>本地只读诊断</span><h2>一条命令把这几种失败分类成证据和下一步。</h2></div>
+        <div class="code-panel"><div class="code-toolbar"><span>诊断命令</span><button class="copy-button" data-copy-target="dependency-install" type="button" aria-live="polite">复制</button></div><pre id="dependency-install"><code>npx --yes \
+  --package=github:CDUESTC-OpenAtom-Open-Source-Club/ForgeKit#88c945a \
+  forgekit diagnose ./docker-build.log</code></pre><p class="code-note">需要 Node.js 18+；日志只在本机处理，不上传。退出 0 = 已识别，1 = 暂未知，2 = 输入错误。</p></div>
+        <div class="article-cta"><a class="button primary" href="./interview.html?source_id=dependency_install_failed">参加 15–20 分钟计时试用</a><a class="button secondary" href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/issues/new?template=pilot-feedback.yml&utm_source=github_pages&utm_medium=article&utm_campaign=v0_2_3_real_pilot&utm_content=dependency_install_failed">提交你的真实案例</a></div>
+      </section>
+    </main>
+    <footer class="site-footer"><div><strong>ForgeKit</strong><span>先看清是依赖约束，还是环境网络。</span></div><div><a href="./">首页</a><a href="./docker-build-failed.html">诊断总览</a><a href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit">GitHub</a></div></footer>
+  </body>
+</html>

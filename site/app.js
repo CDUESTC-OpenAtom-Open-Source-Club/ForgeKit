@@ -1,6 +1,11 @@
 const header = document.querySelector('.site-header');
 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-const currentSection = currentPage === 'docker-copy-failed.html'
+const currentSection = [
+  'docker-copy-failed.html',
+  'docker-failed-to-solve.html',
+  'docker-dependency-install-failed.html',
+  'docker-container-healthcheck-failed.html',
+].includes(currentPage)
   ? 'docker-build-failed.html'
   : currentPage;
 const globalLinks = [
@@ -51,6 +56,9 @@ const pageSections = {
   'index.html': [['start', '快速上手'], ['workflow', '工作流程'], ['learn', '学习路径'], ['limits', '支持范围']],
   'docker-build-failed.html': [['triage', '排查顺序'], ['example', '诊断示例'], ['try', '开始试用']],
   'docker-copy-failed.html': [['checks', '三处检查'], ['example', '最小示例']],
+  'docker-failed-to-solve.html': [['context', 'context'], ['kinds', '按类别定位'], ['diagnose', '用命令定位']],
+  'docker-dependency-install-failed.html': [['kinds', '四类原因'], ['checks', '对症检查'], ['diagnose', '用命令定位']],
+  'docker-container-healthcheck-failed.html': [['not-same', '构建≠能跑'], ['checks', '五处检查'], ['diagnose', '用命令定位']],
   'docker-preflight-check.html': [['checks', '检查项目'], ['result', '结果边界']],
   'mcp-docker-build.html': [['install', '接入配置'], ['flow', '完整流程']],
   'harmonyos-release-readiness.html': [['boundary', '能力边界'], ['checklist', '准备清单']],

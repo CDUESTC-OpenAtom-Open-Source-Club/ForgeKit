@@ -4,18 +4,12 @@
     <loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/</loc>
     <lastmod>2026-07-30</lastmod>
   </url>
-  <url>
-    <loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/interview.html</loc>
-    <lastmod>2026-07-30</lastmod>
-  </url>
-  <url>
-    <loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-build-failed.html</loc>
-    <lastmod>2026-07-30</lastmod>
-  </url>
-  <url>
-    <loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-copy-failed.html</loc>
-    <lastmod>2026-07-30</lastmod>
-  </url>
+  <url><loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/interview.html</loc><lastmod>2026-07-30</lastmod></url>
+  <url><loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-build-failed.html</loc><lastmod>2026-07-30</lastmod></url>
+  <url><loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-copy-failed.html</loc><lastmod>2026-07-30</lastmod></url>
+  <url><loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-failed-to-solve.html</loc><lastmod>2026-08-13</lastmod></url>
+  <url><loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-dependency-install-failed.html</loc><lastmod>2026-08-13</lastmod></url>
+  <url><loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-container-healthcheck-failed.html</loc><lastmod>2026-08-13</lastmod></url>
   <url><loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/mcp-docker-build.html</loc><lastmod>2026-07-30</lastmod></url>
   <url><loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-preflight-check.html</loc><lastmod>2026-07-30</lastmod></url>
   <url><loc>https://cduestc-openatom-open-source-club.github.io/ForgeKit/harmonyos-release-readiness.html</loc><lastmod>2026-07-30</lastmod></url>

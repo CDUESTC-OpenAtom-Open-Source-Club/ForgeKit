@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="容器能启动但 healthcheck 或健康端点失败怎么排查？区分入口迁移、端口、路径、权限与监听地址，而不是把 构建成功 当成 一定能跑。" />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#f7fbff" />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:title" content="容器启动但健康检查失败怎么排查｜ForgeKit" />
+    <meta property="og:description" content="镜像能构建但不代表能运行。从入口、端口、健康路径、权限和监听地址逐项验证。" />
+    <link rel="canonical" href="https://cduestc-openatom-open-source-club.github.io/ForgeKit/docker-container-healthcheck-failed.html" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <title>容器启动但健康检查失败怎么排查｜ForgeKit</title>
+    <link rel="stylesheet" href="./styles.css?v=20260730-nav" />
+    <script defer src="./app.js?v=20260730-nav"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <header class="site-header">
+      <a class="brand" href="./"><span class="brand-mark" aria-hidden="true">F</span><span>ForgeKit</span></a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav"><span>菜单</span></button>
+      <nav id="site-nav" class="site-nav" aria-label="主要导航"><a href="#not-same">构建起来≠能跑</a><a href="#checks">五处检查</a><a href="#diagnose">用命令定位</a><a class="nav-action" href="./docker-build-failed.html">全部诊断</a></nav>
+    </header>
+    <main id="main">
+      <section class="article-hero section-shell">
+        <p class="plain-note">container starts but unhealthy</p>
+        <h1>容器起来了，但接口没反应——构建成功不等于服务可用。</h1>
+        <p class="hero-lead">`docker build` 成功只代表镜像能形成。进程是否保持运行、端口是否真的在监听、健康路径是否可达，是另一组验证。健康检查失败时先分清是入口迁移、端口、路径、权限还是监听地址。</p>
+        <div class="hero-actions"><a class="button primary" href="#diagnose">验证一段日志</a><a class="button secondary" href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/blob/main/docs/HARD_VALIDATION.md">查看验证记录</a></div>
+      </section>
+
+      <section id="not-same" class="article-section section-shell">
+        <div class="section-heading compact"><span>先纠正假设</span><h2>四条独立证据，缺一条都不能说“能跑”。</h2></div>
+        <ol class="diagnostic-steps">
+          <li><b>1</b><div><h3>容器保持运行</h3><p>`docker ps` 不带 `-a` 时能看到它，且没有被退出码标记。</p></div></li>
+          <li><b>2</b><div><h3>端口被监听</h3><p>容器内进程实际绑定到你映射的主机端口，而不是只在容器内随机端口。</p></div></li>
+          <li><b>3</b><div><h3>健康路径可达</h3><p>你请求的 health 路径存在且返回预期状态码。</p></div></li>
+          <li><b>4</b><div><h3>数据库 / 依赖就绪</h3><p>服务依赖的库、网络或外部依赖真正可用，而不是启动即重试。</p></div></li>
+        </ol>
+      </section>
+
+      <section id="checks" class="article-section section-shell">
+        <div class="section-heading compact"><span>五处检查</span><h2>健康检查失败，按顺序排除入口、端口、路径、权限和监听。</h2></div>
+        <div class="problem-list">
+          <article><span>入口</span><h3>CMD/ENTRYPOINT 是否真的存在</h3><p>镜像里有文件，但 CMD 指向路径缺失或命令不存在。核对 Dockerfile 的 CMD / ENTRYPOINT 与项目真实入口。</p></article>
+          <article><span>端口</span><h3>映射或监听地址</h3><p>应用可能只监听 `127.0.0.1`，导致容器外部访问不到。确认 `EXPOSE`、`-p` 映射与进程实际绑定地址。</p></article>
+          <article><span>路径</span><h3>健康端点</h3><p>请求 `/health` 之前，先用 `docker exec` 在容器内 `curl -i` 同一个地址，判断是路径不对还是整个服务没起。</p></article>
+          <article><span>权限</span><h3>运行用户对目录可写</h3><p>以非 root USER 运行时，数据目录可能不可写导致启动后退出或进入重试。</p></article>
+          <article><span>依赖</span><h3>外部服务就绪</h3><p>数据库或 Registry 未就绪时，进程可能无限重试。先确认依赖可用，再判断是否健康。</p></article>
+        </div>
+      </section>
+
+      <section id="diagnose" class="article-section section-shell">
+        <div class="section-heading compact"><span>两条验证命令</span><h2>先在容器内看真实状态，再查主机侧。</h2></div>
+        <div class="code-panel"><div class="code-toolbar"><span>容器内最小验证</span><button class="copy-button" data-copy-target="healthcheck-check" type="button" aria-live="polite">复制</button></div><pre id="healthcheck-check"><code># 确认进程与监听地址
+docker exec &lt;容器&gt; sh -c "ps; netstat -ltn" 
+
+# 在容器内直接请求健康端点，排除主机映射问题
+docker exec &lt;容器&gt; curl -i http://127.0.0.1:&lt;端口&gt;/health</code></pre></div>
+        <div class="article-cta"><a class="button primary" href="./interview.html?source_id=container_healthcheck_failed">参加 15–20 分钟计时试用</a><a class="button secondary" href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit/issues/new?template=pilot-feedback.yml&utm_source=github_pages&utm_medium=article&utm_campaign=v0_2_3_real_pilot&utm_content=container_healthcheck_failed">提交你的真实案例</a></div>
+      </section>
+    </main>
+    <footer class="site-footer"><div><strong>ForgeKit</strong><span>构建成功不等于服务可用。</span></div><div><a href="./">首页</a><a href="./docker-build-failed.html">诊断总览</a><a href="https://github.com/CDUESTC-OpenAtom-Open-Source-Club/ForgeKit">GitHub</a></div></footer>
+  </body>
+</html>

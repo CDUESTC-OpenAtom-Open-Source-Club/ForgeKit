@@ -119,6 +119,32 @@ describe('ErrorDiagnostician', () => {
     });
   });
 
+  describe('对外失败案例页主题映射', () => {
+    // 这些断言对应 site/ 下公开失败案例页宣传的能力，避免页面说出引擎不支持的结论。
+    it('failed to solve 页：registry 网络类被识别为 network_unreachable', () => {
+      const result = diagnoseBuildError(
+        '#1 [1/3] FROM node:18\n#1 ERROR: process "/bin/sh -c apt-get" did not complete successfully',
+        '=> ERROR [2/3] RUN npm install\n#8 network is unreachable'
+      );
+      expect(result?.code).toBe('network_unreachable');
+    });
+
+    it('依赖安装失败页：pip 找不到匹配版本被识别为 pip_package_not_found', () => {
+      const result = diagnoseBuildError(
+        'ERROR: Could not find a version that satisfies the requirement flask==99.0'
+      );
+      expect(result?.code).toBe('pip_package_not_found');
+    });
+
+    it('容器健康检查失败页：容器启动入口不存在被识别为 container_entrypoint_not_found', () => {
+      const result = diagnoseBuildError(
+        "exec: \"python\": executable file not found in $PATH\nError: Cannot find module '/app/main.py'"
+      );
+      expect(result?.code).toBe('container_entrypoint_not_found');
+      expect(result?.category).toBe('runtime');
+    });
+  });
+
   describe('enhanceResult', () => {
     it('应增强 ForgeKitResult 的错误信息', () => {
       const result: ForgeKitResult = {
